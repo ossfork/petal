@@ -1355,12 +1355,13 @@ private enum AppTranscriptionClientKey: DependencyKey {
     static var liveValue: AppTranscriptionClient {
         AppTranscriptionClient(
             prepareModelIfNeeded: { option in
-                try await LiveAppServiceContainer.transcriptionService.prepareModelIfNeeded(option: option)
+                try await LiveAppServiceContainer.transcriptionService.prepareModelIfNeeded(option: option, pipelineModel: option.pipelineModel)
             },
             transcribe: { audioURL, option, mode, prompt in
                 try await LiveAppServiceContainer.transcriptionService.transcribe(
                     audioURL: audioURL,
                     option: option,
+                    pipelineModel: option.pipelineModel,
                     mode: mode,
                     prompt: prompt
                 )
@@ -1681,7 +1682,10 @@ private extension DependencyValues {
 @MainActor
 private enum LiveAppServiceContainer {
     static let modelSetupService = ModelSetupService()
-    static let transcriptionService = TranscriptionService()
+    static let transcriptionService: TranscriptionService = {
+        @Dependency(\.appLogClient) var appLogClient
+        return TranscriptionService(appLogClient: appLogClient)
+    }()
     static let pasteService = PasteService()
     static let permissionsService = PermissionsService()
     static let audioCaptureService = AudioCaptureService()

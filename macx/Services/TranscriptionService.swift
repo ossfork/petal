@@ -1,5 +1,4 @@
 import AVFoundation
-import Dependencies
 import Foundation
 import os
 import VoxtralCore
@@ -7,10 +6,14 @@ import VoxtralCore
 actor TranscriptionService {
     private var pipeline: VoxtralPipeline?
     private var loadedModel: ModelOption?
-    @Dependency(\.appLogClient) private var appLogClient
+    private let appLogClient: AppLogClient
     private let logger = Logger(subsystem: "com.optimalapps.macx", category: "TranscriptionService")
 
-    func prepareModelIfNeeded(option: ModelOption) async throws {
+    init(appLogClient: AppLogClient) {
+        self.appLogClient = appLogClient
+    }
+
+    func prepareModelIfNeeded(option: ModelOption, pipelineModel: VoxtralPipeline.Model) async throws {
         if loadedModel == option, pipeline != nil {
             logger.debug("Model already loaded: \(option.rawValue, privacy: .public)")
             return
@@ -25,7 +28,7 @@ actor TranscriptionService {
         config.repetitionPenalty = 1.15
 
         let pipeline = VoxtralPipeline(
-            model: option.pipelineModel,
+            model: pipelineModel,
             backend: .hybrid,
             configuration: config
         )
@@ -46,8 +49,8 @@ actor TranscriptionService {
         consoleLog("Power/Thermal state: lowPowerMode=\(ProcessInfo.processInfo.isLowPowerModeEnabled), thermal=\(self.thermalStateDescription(ProcessInfo.processInfo.thermalState))")
     }
 
-    func transcribe(audioURL: URL, option: ModelOption, mode: TranscriptionMode = .verbatim, prompt: String? = nil) async throws -> String {
-        try await prepareModelIfNeeded(option: option)
+    func transcribe(audioURL: URL, option: ModelOption, pipelineModel: VoxtralPipeline.Model, mode: TranscriptionMode = .verbatim, prompt: String? = nil) async throws -> String {
+        try await prepareModelIfNeeded(option: option, pipelineModel: pipelineModel)
 
         guard let pipeline else {
             throw TranscriptionError.pipelineUnavailable

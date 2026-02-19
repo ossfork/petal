@@ -1,5 +1,5 @@
 {
-  "originHash" : "f7b6c94582e59b728136c959f6d6499602c2945ea0d688691908a5ee3303af6f",
+  "originHash" : "bfd8bd25beefa726c03bfc4a5797c020ab37f43b4cb39c5f21272eaa7c4440ce",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -40,10 +40,19 @@
     {
       "identity" : "sauce",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Clipy/Sauce.git",
+      "location" : "https://github.com/Clipy/Sauce",
       "state" : {
-        "revision" : "df657bc1beba23ffd580953f183cd756b5bcd514",
-        "version" : "2.4.1"
+        "branch" : "master",
+        "revision" : "9c0de6c233f29d892e86dda68c2dd791aa10670c"
+      }
+    },
+    {
+      "identity" : "sparkle",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/sparkle-project/Sparkle",
+      "state" : {
+        "revision" : "5581748cef2bae787496fe6d61139aebe0a451f6",
+        "version" : "2.8.1"
       }
     },
     {

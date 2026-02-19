@@ -180,6 +180,12 @@ struct MenuBarContentView: View {
                 Divider()
             }
 
+            SettingsLink {
+                Text("Settings…")
+            }
+
+            Divider()
+
             Button("Quit MacX") {
                 NSApplication.shared.terminate(nil)
             }
