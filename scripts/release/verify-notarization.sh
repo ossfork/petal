@@ -37,7 +37,10 @@ xcrun stapler validate "$APP_PATH"
 echo "Gatekeeper assessment for app bundle"
 spctl --assess --type execute --verbose=4 "$APP_PATH"
 
-mapfile -t ARIA2C_BINARIES < <(find "$APP_PATH/Contents" -type f -name aria2c)
+ARIA2C_BINARIES=()
+while IFS= read -r binary; do
+  ARIA2C_BINARIES+=("$binary")
+done < <(find "$APP_PATH/Contents" -type f -name aria2c)
 if [[ ${#ARIA2C_BINARIES[@]} -eq 0 ]]; then
   if [[ "$REQUIRE_ARIA2C" == "1" ]]; then
     echo "No aria2c binary found in $APP_PATH but --require-aria2c was set" >&2

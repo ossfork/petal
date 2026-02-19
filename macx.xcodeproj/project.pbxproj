@@ -13,6 +13,7 @@
 		A10000010000000000000004 /* Sharing in Frameworks */ = {isa = PBXBuildFile; productRef = A10000040000000000000004 /* Sharing */; };
 		A10000010000000000000005 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = A10000040000000000000005 /* Dependencies */; };
 		A10000010000000000000006 /* IssueReporting in Frameworks */ = {isa = PBXBuildFile; productRef = A10000040000000000000006 /* IssueReporting */; };
+		A10000010000000000000007 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A10000040000000000000007 /* Sparkle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +39,7 @@
 				A10000010000000000000004 /* Sharing in Frameworks */,
 				A10000010000000000000005 /* Dependencies in Frameworks */,
 				A10000010000000000000006 /* IssueReporting in Frameworks */,
+				A10000010000000000000007 /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -87,6 +89,7 @@
 				A10000040000000000000004 /* Sharing */,
 				A10000040000000000000005 /* Dependencies */,
 				A10000040000000000000006 /* IssueReporting */,
+				A10000040000000000000007 /* Sparkle */,
 			);
 			productName = macx;
 			productReference = 51F869592F469BEA004C06DD /* macx.app */;
@@ -123,6 +126,7 @@
 				A10000030000000000000003 /* XCRemoteSwiftPackageReference "swift-dependencies" */,
 				A10000030000000000000004 /* XCRemoteSwiftPackageReference "swift-sharing" */,
 				A10000030000000000000005 /* XCRemoteSwiftPackageReference "xctest-dynamic-overlay" */,
+				A10000030000000000000006 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 51F8695A2F469BEA004C06DD /* Products */;
@@ -322,6 +326,11 @@
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MacX records audio while you hold your push-to-talk shortcut.";
+				INFOPLIST_KEY_SUAutomaticallyUpdate = YES;
+				INFOPLIST_KEY_SUEnableAutomaticChecks = YES;
+				INFOPLIST_KEY_SUEnableInstallerLauncherService = NO;
+				INFOPLIST_KEY_SUFeedURL = "https://github.com/Aayush9029/macx/releases/latest/download/appcast.xml";
+				INFOPLIST_KEY_SUPublicEDKey = "$(SPARKLE_PUBLIC_ED_KEY)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -337,6 +346,7 @@
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SPARKLE_PUBLIC_ED_KEY = "";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -369,6 +379,11 @@
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MacX records audio while you hold your push-to-talk shortcut.";
+				INFOPLIST_KEY_SUAutomaticallyUpdate = YES;
+				INFOPLIST_KEY_SUEnableAutomaticChecks = YES;
+				INFOPLIST_KEY_SUEnableInstallerLauncherService = NO;
+				INFOPLIST_KEY_SUFeedURL = "https://github.com/Aayush9029/macx/releases/latest/download/appcast.xml";
+				INFOPLIST_KEY_SUPublicEDKey = "$(SPARKLE_PUBLIC_ED_KEY)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -384,6 +399,7 @@
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SPARKLE_PUBLIC_ED_KEY = "";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -463,6 +479,14 @@
 				minimumVersion = 1.0.0;
 			};
 		};
+		A10000030000000000000006 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.8.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -494,6 +518,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A10000030000000000000005 /* XCRemoteSwiftPackageReference "xctest-dynamic-overlay" */;
 			productName = IssueReporting;
+		};
+		A10000040000000000000007 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000030000000000000006 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

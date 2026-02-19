@@ -3,6 +3,7 @@ import SwiftUI
 
 struct MenuBarContentView: View {
     @Bindable var model: AppModel
+    var updatesModel: CheckForUpdatesModel? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -134,6 +135,14 @@ struct MenuBarContentView: View {
             }
 
             Divider()
+
+            if let updatesModel {
+                Button("Check for Updates…") {
+                    updatesModel.checkForUpdates()
+                }
+                .disabled(!updatesModel.canCheckForUpdates)
+                Divider()
+            }
 
             Button("Quit MacX") {
                 NSApplication.shared.terminate(nil)

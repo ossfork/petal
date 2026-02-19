@@ -2,19 +2,8 @@ import AVFoundation
 import Dependencies
 import DependenciesMacros
 import Foundation
+import MacXMLXClient
 import MacXShared
-import VoxtralCore
-
-public enum MacXTranscriptionClientError: LocalizedError, Sendable {
-    case pipelineUnavailable
-
-    public var errorDescription: String? {
-        switch self {
-        case .pipelineUnavailable:
-            return "Transcription pipeline is not available."
-        }
-    }
-}
 
 @DependencyClient
 public struct MacXTranscriptionClient: Sendable {
@@ -26,16 +15,24 @@ public struct MacXTranscriptionClient: Sendable {
 
 extension MacXTranscriptionClient: DependencyKey {
     public static var liveValue: Self {
-        let runtime = LiveTranscriptionRuntime()
-        return Self(
+        Self(
             prepareModelIfNeeded: { option in
-                try await runtime.prepareModelIfNeeded(option: option)
+                @Dependency(\.macXMLXClient) var mlxClient
+                try await mlxClient.prepareModelIfNeeded(option.pipelineModel)
             },
             transcribe: { audioURL, option, mode, prompt in
-                try await runtime.transcribe(audioURL: audioURL, option: option, mode: mode, prompt: prompt)
+                @Dependency(\.macXMLXClient) var mlxClient
+                try await mlxClient.prepareModelIfNeeded(option.pipelineModel)
+                return try await mlxClient.transcribe(
+                    audioURL,
+                    mode == .verbatim
+                        ? .verbatim
+                        : .smart(prompt: prompt ?? Self.defaultSmartPrompt)
+                )
             },
             unloadModel: {
-                await runtime.unloadModel()
+                @Dependency(\.macXMLXClient) var mlxClient
+                await mlxClient.unloadModel()
             },
             audioDurationSeconds: { url in
                 audioFileDurationSeconds(url)
@@ -62,62 +59,6 @@ public extension DependencyValues {
     }
 }
 
-private actor LiveTranscriptionRuntime {
-    private var pipeline: VoxtralPipeline?
-    private var loadedModel: MacXModelOption?
-
-    func prepareModelIfNeeded(option: MacXModelOption) async throws {
-        if loadedModel == option, pipeline != nil {
-            return
-        }
-
-        unloadModel()
-
-        var config = VoxtralPipeline.Configuration.default
-        config.temperature = 0.0
-        config.topP = 0.95
-        config.repetitionPenalty = 1.15
-
-        let pipeline = VoxtralPipeline(
-            model: option.pipelineModel,
-            backend: .hybrid,
-            configuration: config
-        )
-
-        try await pipeline.loadModel()
-
-        self.pipeline = pipeline
-        self.loadedModel = option
-    }
-
-    func transcribe(
-        audioURL: URL,
-        option: MacXModelOption,
-        mode: MacXTranscriptionMode,
-        prompt: String?
-    ) async throws -> String {
-        try await prepareModelIfNeeded(option: option)
-
-        guard let pipeline else {
-            throw MacXTranscriptionClientError.pipelineUnavailable
-        }
-
-        switch mode {
-        case .verbatim:
-            return try await pipeline.transcribe(audio: audioURL, language: "en")
-        case .smart:
-            let instruction = prompt ?? "Clean up filler words and repeated phrases. Return a polished version of what was said."
-            return try await pipeline.chat(audio: audioURL, prompt: instruction, language: "en")
-        }
-    }
-
-    func unloadModel() {
-        pipeline?.unload()
-        pipeline = nil
-        loadedModel = nil
-    }
-}
-
 private func audioFileDurationSeconds(_ url: URL) -> Double {
     guard let file = try? AVAudioFile(forReading: url) else { return 0 }
     let sampleRate = file.fileFormat.sampleRate
@@ -125,8 +66,12 @@ private func audioFileDurationSeconds(_ url: URL) -> Double {
     return Double(file.length) / sampleRate
 }
 
+private extension MacXTranscriptionClient {
+    static let defaultSmartPrompt = "Clean up filler words and repeated phrases. Return a polished version of what was said."
+}
+
 private extension MacXModelOption {
-    var pipelineModel: VoxtralPipeline.Model {
+    var pipelineModel: MacXMLXPipelineModel {
         switch self {
         case .mini3b:
             return .mini3b

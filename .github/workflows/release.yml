@@ -1,6 +1,9 @@
 name: Release
 
 on:
+  push:
+    branches:
+      - main
   release:
     types: [published]
   workflow_dispatch:
@@ -9,11 +12,13 @@ env:
   SCHEME: macx
   PRODUCT_NAME: macx
   XCODE_VERSION: "26.2"
+  DMG_NAME_PREFIX: MacX
+  SPARKLE_VERSION: "2.8.1"
 
 jobs:
-  build-sign-notarize:
+  validate:
     runs-on: macos-26
-    timeout-minutes: 60
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -21,6 +26,46 @@ jobs:
 
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
+
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/phase-gate.sh
+          chmod +x scripts/ci/test-aria2c.sh
+
+      - name: Run package, app, and aria2c gates
+        run: ./scripts/phase-gate.sh
+
+  release:
+    if: github.event_name == 'release'
+    needs: validate
+    runs-on: macos-26
+    timeout-minutes: 75
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/phase-gate.sh
+          chmod +x scripts/ci/test-aria2c.sh
+          chmod +x scripts/release/sign-aria2c.sh
+          chmod +x scripts/release/verify-notarization.sh
+          chmod +x scripts/release/create-dmg.sh
+          chmod +x scripts/release/generate-appcast.py
 
       - name: Import Developer ID certificate
         env:
@@ -54,8 +99,16 @@ jobs:
           mkdir -p ~/private_keys
           echo "$API_KEY_P8" | base64 --decode > ~/private_keys/AuthKey_${API_KEY_ID}.p8
 
+      - name: Download Sparkle tools
+        run: |
+          curl -L -o "$RUNNER_TEMP/Sparkle.tar.xz" \
+            "https://github.com/sparkle-project/Sparkle/releases/download/${{ env.SPARKLE_VERSION }}/Sparkle-${{ env.SPARKLE_VERSION }}.tar.xz"
+          mkdir -p "$RUNNER_TEMP/sparkle-tools"
+          tar -xf "$RUNNER_TEMP/Sparkle.tar.xz" -C "$RUNNER_TEMP/sparkle-tools"
+
       - name: Resolve SPM packages
         run: |
+          defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
           xcodebuild -resolvePackageDependencies \
             -project macx.xcodeproj \
             -scheme "$SCHEME" \
@@ -69,6 +122,10 @@ jobs:
             -configuration Release \
             -archivePath "$RUNNER_TEMP/macx.xcarchive" \
             -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm" \
+            MARKETING_VERSION="${{ steps.version.outputs.version }}" \
+            CURRENT_PROJECT_VERSION="${GITHUB_RUN_NUMBER}" \
+            INFOPLIST_KEY_SUFeedURL="https://github.com/${{ github.repository }}/releases/latest/download/appcast.xml" \
+            SPARKLE_PUBLIC_ED_KEY="${{ secrets.SPARKLE_PUBLIC_ED_KEY }}" \
             CODE_SIGN_IDENTITY="Developer ID Application" \
             DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
             CODE_SIGN_STYLE=Manual \
@@ -102,10 +159,15 @@ jobs:
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
             -exportPath "$RUNNER_TEMP/export"
 
+      - name: Set export paths
+        run: |
+          echo "APP_PATH=$RUNNER_TEMP/export/${{ env.PRODUCT_NAME }}.app" >> "$GITHUB_ENV"
+          echo "APPCAST_PATH=$RUNNER_TEMP/appcast.xml" >> "$GITHUB_ENV"
+
       - name: Sign embedded aria2c
         run: |
           ./scripts/release/sign-aria2c.sh \
-            --app "$RUNNER_TEMP/export/${{ env.PRODUCT_NAME }}.app" \
+            --app "$APP_PATH" \
             --identity "Developer ID Application: Aayush Pokharel (${{ secrets.APPLE_TEAM_ID }})" \
             --keychain "$KEYCHAIN_PATH" \
             --require
@@ -115,7 +177,7 @@ jobs:
           API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
         run: |
-          ditto -c -k --keepParent "$RUNNER_TEMP/export/${{ env.PRODUCT_NAME }}.app" "$RUNNER_TEMP/app-for-notarization.zip"
+          ditto -c -k --keepParent "$APP_PATH" "$RUNNER_TEMP/app-for-notarization.zip"
           xcrun notarytool submit "$RUNNER_TEMP/app-for-notarization.zip" \
             --key ~/private_keys/AuthKey_${API_KEY_ID}.p8 \
             --key-id "$API_KEY_ID" \
@@ -123,10 +185,98 @@ jobs:
             --wait
 
       - name: Staple app
-        run: xcrun stapler staple "$RUNNER_TEMP/export/${{ env.PRODUCT_NAME }}.app"
+        run: xcrun stapler staple "$APP_PATH"
 
-      - name: Verify notarization and embedded aria2c
+      - name: Verify app notarization and embedded aria2c
         run: |
           ./scripts/release/verify-notarization.sh \
-            --app "$RUNNER_TEMP/export/${{ env.PRODUCT_NAME }}.app" \
+            --app "$APP_PATH" \
             --require-aria2c
+          ./scripts/ci/test-aria2c.sh --app "$APP_PATH"
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Create DMG
+        run: |
+          DMG_NAME="${{ env.DMG_NAME_PREFIX }}-${{ steps.version.outputs.version }}.dmg"
+          DMG_PATH="$RUNNER_TEMP/$DMG_NAME"
+          ./scripts/release/create-dmg.sh \
+            --app "$APP_PATH" \
+            --output "$DMG_PATH" \
+            --volume-name "MacX Installer"
+          echo "DMG_NAME=$DMG_NAME" >> "$GITHUB_ENV"
+          echo "DMG_PATH=$DMG_PATH" >> "$GITHUB_ENV"
+
+      - name: Sign DMG
+        run: |
+          codesign --force \
+            --sign "Developer ID Application: Aayush Pokharel (${{ secrets.APPLE_TEAM_ID }})" \
+            --keychain "$KEYCHAIN_PATH" \
+            --timestamp \
+            "$DMG_PATH"
+
+      - name: Notarize and staple DMG
+        env:
+          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          xcrun notarytool submit "$DMG_PATH" \
+            --key ~/private_keys/AuthKey_${API_KEY_ID}.p8 \
+            --key-id "$API_KEY_ID" \
+            --issuer "$API_ISSUER_ID" \
+            --wait
+          xcrun stapler staple "$DMG_PATH"
+
+      - name: Generate appcast.xml
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          SIGN_UPDATE="$RUNNER_TEMP/sparkle-tools/bin/sign_update"
+          chmod +x "$SIGN_UPDATE"
+
+          RAW_OUTPUT=$(echo "$SPARKLE_PRIVATE_KEY" | "$SIGN_UPDATE" "$DMG_PATH" --ed-key-file -)
+          ED_SIGNATURE=$(echo "$RAW_OUTPUT" | sed -n 's/.*sparkle:edSignature="\([^"]*\)".*/\1/p')
+          FILE_SIZE=$(stat -f%z "$DMG_PATH")
+
+          ./scripts/release/generate-appcast.py \
+            --output "$APPCAST_PATH" \
+            --title "MacX" \
+            --link "https://github.com/${{ github.repository }}" \
+            --version "${{ steps.version.outputs.version }}" \
+            --build "${GITHUB_RUN_NUMBER}" \
+            --download-url "https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag }}/$DMG_NAME" \
+            --ed-signature "$ED_SIGNATURE" \
+            --length "$FILE_SIZE"
+
+      - name: Upload DMG and appcast to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.DMG_PATH }}
+            ${{ env.APPCAST_PATH }}
+          fail_on_unmatched_files: true
+
+      - name: Verify public appcast and DMG
+        run: |
+          APPCAST_URL="https://github.com/${{ github.repository }}/releases/latest/download/appcast.xml"
+          DMG_URL="https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag }}/$DMG_NAME"
+          VERSION="${{ steps.version.outputs.version }}"
+
+          curl -sfL "$APPCAST_URL" -o "$RUNNER_TEMP/verify-appcast.xml"
+          xmllint --noout "$RUNNER_TEMP/verify-appcast.xml"
+          grep -q 'sparkle:edSignature="' "$RUNNER_TEMP/verify-appcast.xml"
+          grep -q "<sparkle:shortVersionString>$VERSION</sparkle:shortVersionString>" "$RUNNER_TEMP/verify-appcast.xml"
+
+          HTTP_CODE=$(curl -sfIL "$DMG_URL" -o /dev/null -w "%{http_code}")
+          [ "$HTTP_CODE" = "200" ]
+
+      - name: Cleanup
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/build.keychain-db" ]; then
+            security delete-keychain "$RUNNER_TEMP/build.keychain-db" || true
+          fi
+          rm -f ~/private_keys/AuthKey_*.p8
+          rm -f "$RUNNER_TEMP/certificate.p12"
+          rm -f "$RUNNER_TEMP/app-for-notarization.zip"

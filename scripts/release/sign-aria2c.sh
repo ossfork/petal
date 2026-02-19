@@ -41,7 +41,10 @@ if [[ ! -d "$APP_PATH" ]]; then
   exit 1
 fi
 
-mapfile -t ARIA2C_BINARIES < <(find "$APP_PATH/Contents" -type f -name aria2c)
+ARIA2C_BINARIES=()
+while IFS= read -r binary; do
+  ARIA2C_BINARIES+=("$binary")
+done < <(find "$APP_PATH/Contents" -type f -name aria2c)
 
 if [[ ${#ARIA2C_BINARIES[@]} -eq 0 ]]; then
   if [[ "$REQUIRE_ARIA2C" == "1" ]]; then

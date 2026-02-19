@@ -1,8 +1,8 @@
 import Dependencies
 import DependenciesMacros
 import Foundation
+import MacXMLXClient
 import MacXShared
-import VoxtralCore
 
 public struct MacXModelDownloadUpdate: Sendable, Equatable {
     public var fractionCompleted: Double
@@ -26,10 +26,12 @@ extension MacXModelSetupClient: DependencyKey {
     public static var liveValue: Self {
         Self(
             isModelDownloaded: { option in
-                ModelDownloader.findModelPath(for: option.voxtralModelInfo) != nil
+                @Dependency(\.macXMLXClient) var mlxClient
+                return mlxClient.isModelDownloaded(option.mlxModelInfo)
             },
             downloadModel: { option, progress in
-                _ = try await ModelDownloader.download(option.voxtralModelInfo, progress: { fractionCompleted, status in
+                @Dependency(\.macXMLXClient) var mlxClient
+                try await mlxClient.downloadModel(option.mlxModelInfo, { fractionCompleted, status in
                     progress(
                         MacXModelDownloadUpdate(
                             fractionCompleted: fractionCompleted,
@@ -74,17 +76,13 @@ private func speedText(from status: String) -> String? {
 }
 
 private extension MacXModelOption {
-    var voxtralModelInfo: VoxtralModelInfo {
-        if let info = ModelRegistry.model(withId: rawValue) {
-            return info
-        }
-
+    var mlxModelInfo: MacXMLXModelInfo {
         let descriptor = descriptor
-        return VoxtralModelInfo(
+        return MacXMLXModelInfo(
             id: descriptor.id,
             repoId: descriptor.repoID,
             name: descriptor.name,
-            description: descriptor.summary,
+            summary: descriptor.summary,
             size: descriptor.size,
             quantization: descriptor.quantization,
             parameters: descriptor.parameters,

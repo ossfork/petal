@@ -6,6 +6,7 @@ extension Target.Dependency {
     static let macXShared: Self = "MacXShared"
     static let macXModels: Self = "MacXModels"
     static let macXUI: Self = "MacXUI"
+    static let macXMLXClient: Self = "MacXMLXClient"
     static let macXModelSetupClient: Self = "MacXModelSetupClient"
     static let macXPermissionsClient: Self = "MacXPermissionsClient"
 
@@ -33,6 +34,7 @@ let package = Package(
         .library(name: "MacXPasteClient", targets: ["MacXPasteClient"]),
         .library(name: "MacXKeyboardClient", targets: ["MacXKeyboardClient"]),
         .library(name: "MacXFloatingCapsuleClient", targets: ["MacXFloatingCapsuleClient"]),
+        .library(name: "MacXMLXClient", targets: ["MacXMLXClient"]),
         .library(name: "MacXModelSetupClient", targets: ["MacXModelSetupClient"]),
         .library(name: "MacXTranscriptionClient", targets: ["MacXTranscriptionClient"])
     ],
@@ -120,12 +122,20 @@ let package = Package(
             ]
         ),
         .target(
+            name: "MacXMLXClient",
+            dependencies: [
+                .dependencies,
+                .dependenciesMacros,
+                .voxtralCore
+            ]
+        ),
+        .target(
             name: "MacXModelSetupClient",
             dependencies: [
                 .dependencies,
                 .dependenciesMacros,
                 .macXShared,
-                .voxtralCore
+                .macXMLXClient
             ]
         ),
         .target(
@@ -135,7 +145,7 @@ let package = Package(
                 .dependenciesMacros,
                 .macXShared,
                 .macXModelSetupClient,
-                .voxtralCore
+                .macXMLXClient
             ]
         ),
         .testTarget(
@@ -149,6 +159,7 @@ let package = Package(
                 "MacXPasteClient",
                 "MacXKeyboardClient",
                 "MacXFloatingCapsuleClient",
+                "MacXMLXClient",
                 "MacXModelSetupClient",
                 "MacXTranscriptionClient",
                 .dependencies
