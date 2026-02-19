@@ -1,186 +1,360 @@
+import AppKit
 import KeyboardShortcuts
 import SwiftUI
 
 struct SetupWindowView: View {
     @Bindable var model: AppModel
+    @State private var hasStarted = false
+    @State private var animating = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            Text("MacX Setup")
-                .font(.title2.bold())
+        ZStack {
+            backgroundLayer
 
-            Text(model.setupStepTitle)
-                .font(.headline)
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        if !hasStarted {
+                            topSection
+                                .slideIn(active: animating)
+                        }
 
-            Text(model.setupStepDescription)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                        stageCard
+                            .slideIn(active: animating, delay: 0.2)
 
-            setupStepper
-
-            Group {
-                switch model.setupStep {
-                case .model:
-                    modelStep
-                case .shortcut:
-                    shortcutStep
-                case .download:
-                    downloadStep
-                }
-            }
-
-            if let error = model.lastError {
-                Text(error)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-            }
-
-            if let message = model.transientMessage {
-                Text(message)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer(minLength: 0)
-
-            HStack {
-                if model.setupCanGoBack {
-                    Button("Back") {
-                        model.setupBackButtonTapped()
+                        feedbackSection
                     }
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                    .padding(.horizontal, 34)
+                    .padding(.vertical, 28)
                 }
+                .scrollIndicators(.hidden)
 
-                Button("Close") {
-                    model.closeSetupWindowButtonTapped()
-                }
+                Divider()
+                    .overlay(.white.opacity(0.08))
 
-                Spacer()
-
-                Button(model.setupPrimaryButtonTitle) {
-                    Task { await model.setupPrimaryButtonTapped() }
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(model.setupPrimaryButtonDisabled)
+                actionBar
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 18)
+                    .background(.regularMaterial)
+                    .overlay(.black.opacity(0.22))
             }
+            .frame(width: 900, height: 560)
+            .background {
+                RoundedRectangle(cornerRadius: 28)
+                    .fill(.ultraThinMaterial)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 28)
+                            .fill(.black.opacity(0.28))
+                    }
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 28)
+                    .strokeBorder(.white.opacity(0.14), lineWidth: 1)
+            }
+            .shadow(color: .black.opacity(0.42), radius: 24, y: 12)
+            .padding(18)
         }
-        .padding(24)
-        .frame(width: 560, height: 500, alignment: .topLeading)
+        .frame(width: 900, height: 560)
+        .preferredColorScheme(.dark)
         .onAppear {
+            hasStarted = model.hasCompletedSetup
+            animating = true
             model.setupWindowAppeared()
+            DispatchQueue.main.async {
+                ensureSetupWindowsAreVisible()
+            }
         }
         .onChange(of: model.selectedModelID) { _, _ in
             model.selectedModelSelectionChanged()
         }
     }
 
-    private var setupStepper: some View {
-        HStack(spacing: 10) {
-            ForEach(model.setupStepItems, id: \.rawValue) { step in
-                HStack(spacing: 6) {
-                    Image(systemName: symbolName(for: step))
-                        .font(.caption.weight(.semibold))
+    private var backgroundLayer: some View {
+        Group {
+            if NSImage(named: "blackhole") != nil {
+                Image("blackhole")
+                    .resizable()
+                    .scaledToFill()
+                    .scaleEffect(1.12)
+                    .saturation(0.72)
+                    .blur(radius: 96)
+                    .opacity(0.86)
+            } else {
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.09, green: 0.10, blue: 0.22),
+                        Color(red: 0.05, green: 0.04, blue: 0.14),
+                        Color.black
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        }
+        .overlay {
+            LinearGradient(
+                colors: [
+                    .black.opacity(0.25),
+                    .black.opacity(0.55)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        }
+        .ignoresSafeArea()
+    }
 
-                    Text(model.setupStepDisplayName(step))
-                        .font(.caption.weight(.semibold))
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(stepBackground(step), in: Capsule())
-                .foregroundStyle(stepForeground(step))
+    @ViewBuilder
+    private var topSection: some View {
+        VStack(spacing: 10) {
+            if NSImage(named: "appIcon") != nil {
+                Image("appIcon")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 92, height: 92)
+                    .shadow(radius: 12)
+            } else {
+                Image(systemName: "waveform.badge.mic")
+                    .font(.system(size: 74))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(.white)
+            }
+
+            Text("Welcome to MacX")
+                .font(.system(size: 40, weight: .bold, design: .rounded))
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+
+            Text("On-device transcription with a Compose-inspired setup flow.")
+                .font(.title3)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+        }
+    }
+
+    @ViewBuilder
+    private var stageCard: some View {
+        if !hasStarted {
+            welcomeCard
+        } else {
+            switch model.setupStep {
+            case .model:
+                modelCard
+            case .shortcut:
+                shortcutCard
+            case .download:
+                permissionAndDownloadCard
             }
         }
     }
 
-    private var modelStep: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Model")
-                .font(.headline)
+    private var welcomeCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            onboardingFeatureRow(
+                symbol: "sparkles",
+                title: "Fast everywhere",
+                description: "Start recording instantly from your global shortcut."
+            )
 
-            Picker("Model", selection: $model.selectedModelID) {
+            onboardingFeatureRow(
+                symbol: "slider.horizontal.3",
+                title: "Choose your model",
+                description: "Pick the model size that fits your speed and quality needs."
+            )
+
+            onboardingFeatureRow(
+                symbol: "lock.shield",
+                title: "Private by default",
+                description: "Transcription runs locally on your Mac using downloaded models."
+            )
+        }
+        .onboardingCard()
+    }
+
+    private var modelCard: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            OnboardingHeader(
+                symbol: "externaldrive.fill",
+                title: "Choose your model",
+                description: "Select the local model that fits your speed and quality balance.",
+                layout: .vertical
+            )
+
+            VStack(spacing: 10) {
                 ForEach(ModelOption.allCases) { option in
-                    Text(option.displayName).tag(option.rawValue)
+                    modelOptionCard(option)
                 }
             }
-            .pickerStyle(.radioGroup)
 
             if let option = model.selectedModelOption {
-                Label("\(option.sizeLabel) - \(option.summary)", systemImage: "externaldrive")
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 10) {
+                        Label(option.sizeLabel, systemImage: "externaldrive")
+                        Label(option.rawValue, systemImage: "cpu")
+                    }
+                    .font(.caption)
+
+                    Text(option.summary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .foregroundStyle(.secondary)
+                .padding(.top, 2)
+            }
+        }
+        .onboardingCard()
+    }
+
+    private func modelOptionCard(_ option: ModelOption) -> some View {
+        let isSelected = option.rawValue == model.selectedModelID
+
+        return Button {
+            model.selectedModelID = option.rawValue
+        } label: {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 8) {
+                        Text(option.displayName)
+                            .font(.headline)
+
+                        if option.isRecommended {
+                            Text("Recommended")
+                                .font(.caption2.weight(.semibold))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.green.opacity(0.22), in: Capsule())
+                                .foregroundStyle(.green)
+                        }
+                    }
+
+                    Text(option.summary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Text(option.sizeLabel)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isSelected ? Color.accentColor.opacity(0.18) : Color.black.opacity(0.26))
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(
+                        isSelected ? Color.accentColor.opacity(0.62) : Color.white.opacity(0.08),
+                        lineWidth: isSelected ? 1.5 : 1
+                    )
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var shortcutCard: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            OnboardingHeader(
+                symbol: "keyboard.badge.ellipsis.fill",
+                title: "Set your shortcut",
+                description: "Use a key combo you can hit quickly in any app.",
+                layout: .vertical
+            )
+
+            VStack(alignment: .leading, spacing: 12) {
+                KeyboardShortcuts.Recorder("Push to talk", name: .pushToTalk)
+
+                Text(model.shortcutDisplayText)
+                    .font(.system(.body, design: .monospaced).weight(.semibold))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(.black.opacity(0.34), in: RoundedRectangle(cornerRadius: 10))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 10)
+                            .strokeBorder(.white.opacity(0.1), lineWidth: 1)
+                    }
+
+                Text(model.shortcutUsageText)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
         }
+        .onboardingCard()
     }
 
-    private var shortcutStep: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Push-to-talk Shortcut")
-                .font(.headline)
+    private var permissionAndDownloadCard: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            permissionIconStack
+                .frame(maxWidth: .infinity)
 
-            KeyboardShortcuts.Recorder("Shortcut", name: .pushToTalk)
+            VStack(spacing: 6) {
+                Text("Enable permissions")
+                    .font(.title3.bold())
+                    .fontDesign(.rounded)
 
-            Text(model.shortcutDisplayText)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Text(model.shortcutUsageText)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    private var downloadStep: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Selected model")
-                    .font(.headline)
-
-                Text(model.currentModelSummary)
-                    .font(.caption)
+                Text("Microphone is required. Accessibility is optional and enables auto-paste to the focused app.")
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
             }
+            .frame(maxWidth: .infinity)
 
-            VStack(alignment: .leading, spacing: 6) {
-                permissionRow(
+            HStack(spacing: 10) {
+                permissionStatusChip(
                     title: "Microphone",
                     isGranted: model.microphoneAuthorized,
-                    actionTitle: "Grant",
-                    action: microphonePermissionButtonTapped
+                    required: true
                 )
 
-                permissionRow(
+                permissionStatusChip(
                     title: "Accessibility",
                     isGranted: model.accessibilityAuthorized,
-                    actionTitle: "Enable",
-                    action: accessibilityPermissionButtonTapped
+                    required: false
                 )
-
-                Text("Accessibility is optional, but needed for auto-paste into the focused app.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Label("Downloader: aria2c", systemImage: "arrow.down.circle")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Label("Models folder: \(model.modelsDirectoryDisplayPath)", systemImage: "folder")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
+            HStack(spacing: 10) {
+                if !model.microphoneAuthorized {
+                    ComposeSecondaryButton(microphonePermissionActionTitle, systemImage: "mic.fill") {
+                        microphonePermissionButtonTapped()
+                    }
+                }
+
+                if !model.accessibilityAuthorized {
+                    ComposeSecondaryButton("Enable Accessibility", systemImage: "figure.wave") {
+                        accessibilityPermissionButtonTapped()
+                    }
+                }
             }
 
-            VStack(alignment: .leading, spacing: 6) {
+            Divider()
+                .overlay(.white.opacity(0.08))
+
+            Label("Model: \(model.currentModelSummary)", systemImage: "cpu")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Label("Models folder: \(model.modelsDirectoryDisplayPath)", systemImage: "folder")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+
+            HStack(spacing: 10) {
                 Picker("History Retention", selection: $model.historyRetentionMode) {
                     ForEach(HistoryRetentionMode.allCases) { mode in
                         Text(mode.displayName).tag(mode)
                     }
                 }
                 .pickerStyle(.menu)
-
-                Label("History folder: \(model.historyDirectoryDisplayPath)", systemImage: "folder")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
 
                 Button("Open History Folder") {
                     model.openHistoryFolderButtonTapped()
@@ -204,62 +378,131 @@ struct SetupWindowView: View {
 
                     ProgressView(value: model.downloadProgress)
                 }
+                .padding(12)
+                .background(.black.opacity(0.24), in: RoundedRectangle(cornerRadius: 12))
+            }
+        }
+        .onboardingCard()
+    }
+
+    private var permissionIconStack: some View {
+        ZStack {
+            if NSImage(named: "accessibility") != nil {
+                Image("accessibility")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 76, height: 76)
+                    .offset(y: -26)
+            } else {
+                Image(systemName: "accessibility.fill")
+                    .font(.system(size: 40))
+                    .offset(y: -26)
+            }
+
+            if NSImage(named: "appIcon") != nil {
+                Image("appIcon")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 96, height: 96)
+                    .shadow(radius: 8)
+                    .offset(y: 20)
+            } else {
+                Image(systemName: "waveform.badge.mic")
+                    .font(.system(size: 58))
+                    .offset(y: 20)
+            }
+        }
+        .frame(height: 130)
+    }
+
+    private func permissionStatusChip(title: String, isGranted: Bool, required: Bool) -> some View {
+        let statusColor: Color = isGranted ? .green : (required ? .red : .orange)
+        let statusText = isGranted ? "Enabled" : (required ? "Required" : "Optional")
+
+        return HStack(spacing: 8) {
+            Image(systemName: isGranted ? "checkmark.circle.fill" : "xmark.circle")
+            Text("\(title): \(statusText)")
+        }
+        .font(.caption.weight(.semibold))
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(statusColor.opacity(0.2), in: Capsule())
+        .foregroundStyle(statusColor)
+    }
+
+    private var feedbackSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if hasStarted, let error = model.lastError {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+
+            if hasStarted, let message = model.transientMessage {
+                Text(message)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
     }
 
-    private func permissionRow(title: String, isGranted: Bool, actionTitle: String, action: @escaping () -> Void) -> some View {
-        HStack {
-            Label(title, systemImage: isGranted ? "checkmark.circle.fill" : "xmark.circle")
-                .foregroundStyle(isGranted ? .green : .secondary)
+    private var actionBar: some View {
+        HStack(spacing: 10) {
+            if showBackButton {
+                ComposeSecondaryButton("Back", systemImage: "chevron.left") {
+                    backButtonTapped()
+                }
+            }
 
             Spacer()
 
-            if !isGranted {
-                Button(actionTitle, action: action)
-                    .buttonStyle(.link)
+            ComposePrimaryButton(primaryButtonTitle) {
+                primaryButtonTapped()
+            }
+            .disabled(primaryButtonDisabled)
+        }
+    }
+
+    private var showBackButton: Bool {
+        hasStarted && (model.setupCanGoBack || (!model.hasCompletedSetup && model.setupStep == .model))
+    }
+
+    private var primaryButtonTitle: String {
+        hasStarted ? model.setupPrimaryButtonTitle : "Get Started"
+    }
+
+    private var primaryButtonDisabled: Bool {
+        hasStarted ? model.setupPrimaryButtonDisabled : false
+    }
+
+    private var microphonePermissionActionTitle: String {
+        switch model.microphonePermissionState {
+        case .notDetermined:
+            return "Grant Microphone"
+        case .denied:
+            return "Open Mic Settings"
+        case .authorized:
+            return "Microphone Enabled"
+        }
+    }
+
+    private func onboardingFeatureRow(symbol: String, title: String, description: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: symbol)
+                .font(.headline)
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(.white)
+                .frame(width: 22)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.headline)
+
+                Text(description)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
         }
-        .font(.caption)
-    }
-
-    private func symbolName(for step: AppModel.SetupStep) -> String {
-        if step.rawValue < model.setupStep.rawValue {
-            return "checkmark.circle.fill"
-        }
-
-        switch step {
-        case .model:
-            return "1.circle.fill"
-        case .shortcut:
-            return "2.circle.fill"
-        case .download:
-            return "3.circle.fill"
-        }
-    }
-
-    private func stepBackground(_ step: AppModel.SetupStep) -> some ShapeStyle {
-        if step == model.setupStep {
-            return AnyShapeStyle(Color.accentColor.opacity(0.18))
-        }
-
-        if step.rawValue < model.setupStep.rawValue {
-            return AnyShapeStyle(Color.green.opacity(0.14))
-        }
-
-        return AnyShapeStyle(Color.secondary.opacity(0.12))
-    }
-
-    private func stepForeground(_ step: AppModel.SetupStep) -> some ShapeStyle {
-        if step == model.setupStep {
-            return AnyShapeStyle(Color.accentColor)
-        }
-
-        if step.rawValue < model.setupStep.rawValue {
-            return AnyShapeStyle(Color.green)
-        }
-
-        return AnyShapeStyle(Color.secondary)
     }
 
     private func microphonePermissionButtonTapped() {
@@ -268,6 +511,232 @@ struct SetupWindowView: View {
 
     private func accessibilityPermissionButtonTapped() {
         model.accessibilityPermissionButtonTapped()
+    }
+
+    private func backButtonTapped() {
+        if model.setupStep == .model {
+            withAnimation(.easeInOut) {
+                hasStarted = false
+            }
+        } else {
+            model.setupBackButtonTapped()
+        }
+    }
+
+    private func primaryButtonTapped() {
+        if !hasStarted {
+            withAnimation(.easeInOut(duration: 0.35)) {
+                hasStarted = true
+            }
+            return
+        }
+
+        Task { await model.setupPrimaryButtonTapped() }
+    }
+
+    private func ensureSetupWindowsAreVisible() {
+        let setupTitles = Set(["MacX Setup", "macx Settings"])
+
+        for window in NSApp.windows where setupTitles.contains(window.title) {
+            guard let screenFrame = (window.screen ?? NSScreen.main)?.visibleFrame else {
+                window.center()
+                continue
+            }
+
+            var origin = window.frame.origin
+            let maxX = screenFrame.maxX - window.frame.width
+            let maxY = screenFrame.maxY - window.frame.height
+
+            if origin.x < screenFrame.minX || origin.x > maxX || origin.y < screenFrame.minY || origin.y > maxY {
+                origin = NSPoint(
+                    x: screenFrame.midX - (window.frame.width / 2),
+                    y: screenFrame.midY - (window.frame.height / 2)
+                )
+                window.setFrameOrigin(origin)
+            }
+        }
+    }
+}
+
+private struct ComposePrimaryButton: View {
+    let title: String
+    let action: () -> Void
+
+    @Environment(\.isEnabled) private var isEnabled
+
+    init(_ title: String, action: @escaping () -> Void) {
+        self.title = title
+        self.action = action
+    }
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.headline)
+                .frame(minWidth: 170)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 10)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(isEnabled ? .white : .secondary)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.black.opacity(isEnabled ? 0.82 : 0.55))
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(.white.opacity(0.15), lineWidth: 1)
+        }
+    }
+}
+
+private struct ComposeSecondaryButton: View {
+    let title: String
+    let systemImage: String?
+    let action: () -> Void
+
+    @Environment(\.isEnabled) private var isEnabled
+    @State private var isHovering = false
+
+    init(_ title: String, systemImage: String? = nil, action: @escaping () -> Void) {
+        self.title = title
+        self.systemImage = systemImage
+        self.action = action
+    }
+
+    var body: some View {
+        Button(action: action) {
+            Group {
+                if let systemImage {
+                    Label(title, systemImage: systemImage)
+                } else {
+                    Text(title)
+                }
+            }
+            .font(.headline)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .foregroundStyle(isEnabled ? .white : .secondary)
+            .frame(minWidth: 120)
+        }
+        .buttonStyle(.plain)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isHovering ? .white.opacity(0.16) : .white.opacity(0.09))
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(.white.opacity(0.14), lineWidth: 1)
+        }
+        .scaleEffect(isHovering && isEnabled ? 1.02 : 1)
+        .animation(.easeInOut(duration: 0.15), value: isHovering)
+        .onHover { hovering in
+            isHovering = hovering
+        }
+    }
+}
+
+private struct OnboardingHeader: View {
+    enum Layout {
+        case horizontal
+        case vertical
+    }
+
+    @State private var animating = false
+    let symbol: String?
+    let title: String
+    let description: String
+    let layout: Layout
+
+    init(symbol: String? = nil, title: String, description: String, layout: Layout = .horizontal) {
+        self.symbol = symbol
+        self.title = title
+        self.description = description
+        self.layout = layout
+    }
+
+    var body: some View {
+        Group {
+            switch layout {
+            case .horizontal:
+                HStack {
+                    headerContent
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            case .vertical:
+                VStack(alignment: .leading) {
+                    headerContent
+                }
+            }
+        }
+        .onAppear {
+            animating.toggle()
+        }
+    }
+
+    private var headerContent: some View {
+        Group {
+            if let symbol {
+                Image(systemName: symbol)
+                    .font(.largeTitle)
+                    .symbolVariant(.fill)
+                    .symbolRenderingMode(.hierarchical)
+                    .padding(4)
+                    .padding(.leading, layout == .horizontal ? 0 : -4)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.title2.bold())
+                    .fontDesign(.rounded)
+
+                Text(description)
+                    .font(.headline)
+                    .fontWeight(.regular)
+                    .foregroundStyle(.secondary)
+            }
+            .multilineTextAlignment(.leading)
+        }
+        .slideIn(active: animating, delay: 0.3)
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func slideIn(
+        active: Bool,
+        offset: CGFloat = 20,
+        opacity: CGFloat = 0,
+        blur: CGFloat = 0,
+        scale: CGFloat = 1,
+        delay: CGFloat = 0,
+        duration: CGFloat = 1.0,
+        animation: Animation = .easeIn
+    ) -> some View {
+        self
+            .opacity(active ? 1 : opacity)
+            .blur(radius: active ? 0 : blur)
+            .offset(y: active ? 0 : offset)
+            .scaleEffect(active ? 1 : scale)
+            .animation(animation.speed(duration).delay(delay), value: active)
+    }
+
+    func onboardingCard() -> some View {
+        self
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(24)
+            .background {
+                RoundedRectangle(cornerRadius: 22)
+                    .fill(.ultraThinMaterial)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 22)
+                            .fill(.black.opacity(0.3))
+                    }
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 22)
+                    .strokeBorder(.white.opacity(0.1), lineWidth: 1)
+            }
     }
 }
 
@@ -278,10 +747,19 @@ private func makeSetupPreviewModel(
     configure: (AppModel) -> Void = { _ in }
 ) -> AppModel {
     AppModel.makePreview { model in
-        model.hasCompletedSetup = false
+        model.hasCompletedSetup = true
         model.setupStep = step
         configure(model)
     }
+}
+
+#Preview("Welcome") {
+    SetupWindowView(
+        model: AppModel.makePreview { model in
+            model.hasCompletedSetup = false
+            model.setupStep = .model
+        }
+    )
 }
 
 #Preview("Step 1 - Model") {
@@ -311,7 +789,7 @@ private func makeSetupPreviewModel(
             model.accessibilityAuthorized = true
             model.isDownloadingModel = true
             model.downloadProgress = 0.42
-            model.downloadStatus = "Downloading model…"
+            model.downloadStatus = "Downloading model..."
             model.downloadSpeedText = "11.2 MB/s"
         }
     )

@@ -6,7 +6,19 @@ import os
 final class SoundEffectService {
     enum Effect: String {
         case recordingStarted = "click"
+        case transcriptionStarted = "magic-transition"
         case transcriptionCompleted = "jingle"
+
+        var volume: Float {
+            switch self {
+            case .recordingStarted:
+                return 0.3
+            case .transcriptionStarted:
+                return 0.2
+            case .transcriptionCompleted:
+                return 0.25
+            }
+        }
     }
 
     private var players: [Effect: AVAudioPlayer] = [:]
@@ -15,6 +27,7 @@ final class SoundEffectService {
     func play(_ effect: Effect) {
         do {
             let player = try player(for: effect)
+            player.volume = effect.volume
             player.currentTime = 0
             player.play()
         } catch {
@@ -27,11 +40,7 @@ final class SoundEffectService {
             return existing
         }
 
-        guard let url = Bundle.main.url(
-            forResource: effect.rawValue,
-            withExtension: "mp3",
-            subdirectory: "SoundEffects"
-        ) else {
+        guard let url = resourceURL(for: effect) else {
             throw NSError(
                 domain: "SoundEffectService",
                 code: 1,
@@ -43,5 +52,17 @@ final class SoundEffectService {
         player.prepareToPlay()
         players[effect] = player
         return player
+    }
+
+    private func resourceURL(for effect: Effect) -> URL? {
+        if let subdirectoryURL = Bundle.main.url(
+            forResource: effect.rawValue,
+            withExtension: "mp3",
+            subdirectory: "SoundEffects"
+        ) {
+            return subdirectoryURL
+        }
+
+        return Bundle.main.url(forResource: effect.rawValue, withExtension: "mp3")
     }
 }

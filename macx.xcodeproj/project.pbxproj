@@ -20,9 +20,22 @@
 		51F869592F469BEA004C06DD /* macx.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = macx.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		516F16AA2F47AD3000A41BE1 /* Exceptions for "macx" folder in "macx" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 51F869582F469BEA004C06DD /* macx */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		51F8695B2F469BEA004C06DD /* macx */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				516F16AA2F47AD3000A41BE1 /* Exceptions for "macx" folder in "macx" target */,
+			);
 			path = macx;
 			sourceTree = "<group>";
 		};

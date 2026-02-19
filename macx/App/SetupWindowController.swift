@@ -9,10 +9,22 @@ final class SetupWindowController: NSWindowController {
 
         let window = NSWindow(contentViewController: hostingController)
         window.title = "MacX Setup"
-        window.styleMask = [.titled, .closable, .miniaturizable]
+        window.styleMask = [.titled, .fullSizeContentView]
+        window.identifier = NSUserInterfaceItemIdentifier("MacXSetupWindow")
         window.isReleasedWhenClosed = false
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
+        window.isMovableByWindowBackground = true
+        window.tabbingMode = .disallowed
+        window.backgroundColor = .clear
+        window.isOpaque = false
+        window.level = .floating
+        window.animationBehavior = .utilityWindow
+        window.standardWindowButton(.closeButton)?.isHidden = true
+        window.standardWindowButton(.miniaturizeButton)?.isHidden = true
+        window.standardWindowButton(.zoomButton)?.isHidden = true
         window.center()
-        window.setContentSize(NSSize(width: 560, height: 500))
+        window.setContentSize(NSSize(width: 900, height: 560))
 
         super.init(window: window)
     }

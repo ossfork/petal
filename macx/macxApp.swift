@@ -25,14 +25,14 @@ struct macxApp: App {
     var body: some Scene {
         MenuBarExtra {
             MenuBarContentView(model: model, updatesModel: updatesModel)
+        } label: {
+            Label("MacX", systemImage: model.menuBarSymbolName)
                 .onAppear {
                     appDelegate.model = model
                     if updatesModel == nil {
                         updatesModel = CheckForUpdatesModel(updater: appDelegate.updaterController.updater)
                     }
                 }
-        } label: {
-            Label("MacX", systemImage: model.menuBarSymbolName)
         }
         .menuBarExtraStyle(.window)
 

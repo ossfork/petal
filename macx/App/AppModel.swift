@@ -703,6 +703,7 @@ final class AppModel {
 
             sessionState = .processing(.transcribing)
             appFloatingCapsuleClient.showTranscribing()
+            appSoundClient.playTranscriptionStarted()
             startTranscriptionProgressTracking(audioDuration: audioDuration)
             let transcriptionStart = now
 
@@ -942,7 +943,24 @@ final class AppModel {
 
         let controller = setupWindowController ?? SetupWindowController(model: self)
         setupWindowController = controller
+
+        if let setupWindow = controller.window {
+            for window in NSApp.windows {
+                guard
+                    window !== setupWindow,
+                    window.identifier?.rawValue == "MacXSetupWindow"
+                else { continue }
+                window.close()
+            }
+        }
+
+        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         controller.showWindow(nil)
+        controller.window?.center()
+        controller.window?.collectionBehavior.insert(.moveToActiveSpace)
+        controller.window?.collectionBehavior.insert(.fullScreenAuxiliary)
+        controller.window?.orderFrontRegardless()
+        controller.window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
 
@@ -1291,6 +1309,7 @@ private struct AppFloatingCapsuleClient {
 
 private struct AppSoundClient {
     var playRecordingStarted: @MainActor () -> Void = {}
+    var playTranscriptionStarted: @MainActor () -> Void = {}
     var playTranscriptionCompleted: @MainActor () -> Void = {}
 }
 
@@ -1544,6 +1563,9 @@ private enum AppSoundClientKey: DependencyKey {
             playRecordingStarted: {
                 LiveAppServiceContainer.soundEffectService.play(.recordingStarted)
             },
+            playTranscriptionStarted: {
+                LiveAppServiceContainer.soundEffectService.play(.transcriptionStarted)
+            },
             playTranscriptionCompleted: {
                 LiveAppServiceContainer.soundEffectService.play(.transcriptionCompleted)
             }
@@ -1553,6 +1575,7 @@ private enum AppSoundClientKey: DependencyKey {
     static var testValue: AppSoundClient {
         AppSoundClient(
             playRecordingStarted: {},
+            playTranscriptionStarted: {},
             playTranscriptionCompleted: {}
         )
     }
