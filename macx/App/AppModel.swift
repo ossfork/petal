@@ -79,13 +79,13 @@ final class AppModel {
     var accessibilityAuthorized = false
 
     @ObservationIgnored @Dependency(\.continuousClock) private var clock
+    @ObservationIgnored @Dependency(\.appModelSetupClient) private var modelSetupClient
+    @ObservationIgnored @Dependency(\.appTranscriptionClient) private var appTranscriptionClient
+    @ObservationIgnored @Dependency(\.appPasteClient) private var appPasteClient
     @ObservationIgnored private let logger = Logger(subsystem: "com.optimalapps.macx", category: "AppModel")
 
     @ObservationIgnored private let permissionsService: PermissionsService
-    @ObservationIgnored private let modelSetupService: ModelSetupService
     @ObservationIgnored private let audioCaptureService: AudioCaptureService
-    @ObservationIgnored private let transcriptionService: TranscriptionService
-    @ObservationIgnored private let pasteService: PasteService
     @ObservationIgnored private let keyboardMonitorService: KeyboardMonitorService
     @ObservationIgnored private let floatingCapsuleController: FloatingCapsuleController
     @ObservationIgnored private let isPreviewMode: Bool
@@ -109,10 +109,7 @@ final class AppModel {
 
     init(isPreviewMode: Bool = AppModel.isRunningInSwiftUIPreview) {
         permissionsService = PermissionsService()
-        modelSetupService = ModelSetupService()
         audioCaptureService = AudioCaptureService()
-        transcriptionService = TranscriptionService()
-        pasteService = PasteService()
         keyboardMonitorService = KeyboardMonitorService()
         floatingCapsuleController = FloatingCapsuleController()
         self.isPreviewMode = isPreviewMode
@@ -150,7 +147,7 @@ final class AppModel {
 
     var isSelectedModelDownloaded: Bool {
         guard let selectedModelOption else { return false }
-        return modelSetupService.isModelDownloaded(selectedModelOption)
+        return modelSetupClient.isModelDownloaded(selectedModelOption)
     }
 
     var statusTitle: String {
@@ -399,7 +396,7 @@ final class AppModel {
         consoleLog("Starting model download: \(option.rawValue)")
 
         do {
-            try await modelSetupService.downloadModel(option) { update in
+            try await modelSetupClient.downloadModel(option) { update in
                 Task { @MainActor [weak self] in
                     guard let self else { return }
                     self.downloadProgress = min(max(update.fractionCompleted, 0), 1)
@@ -638,21 +635,21 @@ final class AppModel {
                 throw TranscriptionError.pipelineUnavailable
             }
 
-            let audioDuration = transcriptionService.audioDurationSeconds(for: audioURL)
+            let audioDuration = appTranscriptionClient.audioDurationSeconds(audioURL)
             startTranscriptionProgressTracking(audioDuration: audioDuration)
             let transcriptionStart = Date()
 
-            let transcript = try await transcriptionService.transcribe(
-                audioURL: audioURL,
-                option: selectedModelOption,
-                mode: transcriptionMode,
-                prompt: transcriptionMode == .smart ? smartPrompt : nil
+            let transcript = try await appTranscriptionClient.transcribe(
+                audioURL,
+                selectedModelOption,
+                transcriptionMode,
+                transcriptionMode == .smart ? smartPrompt : nil
             )
             let transcriptionElapsed = Date().timeIntervalSince(transcriptionStart)
             updateTranscriptionSpeedEstimate(audioDuration: audioDuration, elapsed: transcriptionElapsed)
             stopTranscriptionProgressTracking(finalProgress: 1)
 
-            let pasteResult = await pasteService.paste(text: transcript)
+            let pasteResult = await appPasteClient.paste(transcript)
             logger.info("Transcription completed. characters=\(transcript.count, privacy: .public), pasteResult=\(String(describing: pasteResult), privacy: .public)")
             consoleLog("Transcription completed. characters=\(transcript.count), pasteResult=\(String(describing: pasteResult))")
 
@@ -715,7 +712,7 @@ final class AppModel {
             return
         }
 
-        if modelSetupService.isModelDownloaded(option) {
+        if modelSetupClient.isModelDownloaded(option) {
             completeSetup()
             return
         }
@@ -944,7 +941,7 @@ final class AppModel {
         consoleLog("Warming model: \(selectedModelOption.rawValue)")
 
         do {
-            try await transcriptionService.prepareModelIfNeeded(option: selectedModelOption)
+            try await appTranscriptionClient.prepareModelIfNeeded(selectedModelOption)
             logger.info("Model warmup complete: \(selectedModelOption.rawValue, privacy: .public)")
             consoleLog("Model warmup complete: \(selectedModelOption.rawValue)")
         } catch {
@@ -1117,6 +1114,124 @@ final class AppModel {
         permissionMonitorTask?.cancel()
         keyboardMonitorService.stop()
     }
+}
+
+private struct AppModelDownloadUpdate: Sendable {
+    var fractionCompleted: Double
+    var status: String
+    var speedText: String?
+}
+
+private struct AppModelSetupClient {
+    var isModelDownloaded: @MainActor (ModelOption) -> Bool = { _ in false }
+    var downloadModel: @MainActor (ModelOption, @escaping @Sendable (AppModelDownloadUpdate) -> Void) async throws -> Void
+}
+
+private struct AppTranscriptionClient {
+    var prepareModelIfNeeded: @MainActor (ModelOption) async throws -> Void
+    var transcribe: @MainActor (URL, ModelOption, TranscriptionMode, String?) async throws -> String
+    var audioDurationSeconds: @MainActor (URL) -> Double = { _ in 0 }
+}
+
+private struct AppPasteClient {
+    var paste: @MainActor (String) async -> PasteResult = { _ in .copiedOnly }
+}
+
+private enum AppModelSetupClientKey: DependencyKey {
+    static var liveValue: AppModelSetupClient {
+        AppModelSetupClient(
+            isModelDownloaded: { option in
+                LiveAppServiceContainer.modelSetupService.isModelDownloaded(option)
+            },
+            downloadModel: { option, progress in
+                try await LiveAppServiceContainer.modelSetupService.downloadModel(option) { update in
+                    progress(
+                        AppModelDownloadUpdate(
+                            fractionCompleted: update.fractionCompleted,
+                            status: update.status,
+                            speedText: update.speedText
+                        )
+                    )
+                }
+            }
+        )
+    }
+
+    static var testValue: AppModelSetupClient {
+        AppModelSetupClient(
+            isModelDownloaded: { _ in false },
+            downloadModel: { _, _ in }
+        )
+    }
+}
+
+private enum AppTranscriptionClientKey: DependencyKey {
+    static var liveValue: AppTranscriptionClient {
+        AppTranscriptionClient(
+            prepareModelIfNeeded: { option in
+                try await LiveAppServiceContainer.transcriptionService.prepareModelIfNeeded(option: option)
+            },
+            transcribe: { audioURL, option, mode, prompt in
+                try await LiveAppServiceContainer.transcriptionService.transcribe(
+                    audioURL: audioURL,
+                    option: option,
+                    mode: mode,
+                    prompt: prompt
+                )
+            },
+            audioDurationSeconds: { url in
+                LiveAppServiceContainer.transcriptionService.audioDurationSeconds(for: url)
+            }
+        )
+    }
+
+    static var testValue: AppTranscriptionClient {
+        AppTranscriptionClient(
+            prepareModelIfNeeded: { _ in },
+            transcribe: { _, _, _, _ in "Test transcription" },
+            audioDurationSeconds: { _ in 1 }
+        )
+    }
+}
+
+private enum AppPasteClientKey: DependencyKey {
+    static var liveValue: AppPasteClient {
+        AppPasteClient(
+            paste: { text in
+                await LiveAppServiceContainer.pasteService.paste(text: text)
+            }
+        )
+    }
+
+    static var testValue: AppPasteClient {
+        AppPasteClient(
+            paste: { _ in .pasted }
+        )
+    }
+}
+
+private extension DependencyValues {
+    var appModelSetupClient: AppModelSetupClient {
+        get { self[AppModelSetupClientKey.self] }
+        set { self[AppModelSetupClientKey.self] = newValue }
+    }
+
+    var appTranscriptionClient: AppTranscriptionClient {
+        get { self[AppTranscriptionClientKey.self] }
+        set { self[AppTranscriptionClientKey.self] = newValue }
+    }
+
+    var appPasteClient: AppPasteClient {
+        get { self[AppPasteClientKey.self] }
+        set { self[AppPasteClientKey.self] = newValue }
+    }
+}
+
+@MainActor
+private enum LiveAppServiceContainer {
+    static let modelSetupService = ModelSetupService()
+    static let transcriptionService = TranscriptionService()
+    static let pasteService = PasteService()
 }
 
 private extension AppModel {
