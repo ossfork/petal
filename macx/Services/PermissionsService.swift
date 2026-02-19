@@ -15,20 +15,14 @@ final class PermissionsService {
         let captureState = microphonePermissionStateFromCaptureDevice()
 
         if #available(macOS 14.0, *) {
-            let audioApplicationState: MicrophonePermissionState
-            switch AVAudioApplication.shared.recordPermission {
-            case .granted:
-                audioApplicationState = .authorized
-            case .undetermined:
-                audioApplicationState = .notDetermined
-            case .denied:
-                audioApplicationState = .denied
-            @unknown default:
-                audioApplicationState = .denied
+            let audioApplicationState = microphonePermissionStateFromAudioApplication()
+
+            if captureState == .authorized, audioApplicationState == .authorized {
+                return .authorized
             }
 
-            if captureState == .authorized || audioApplicationState == .authorized {
-                return .authorized
+            if captureState == .denied || audioApplicationState == .denied {
+                return .denied
             }
 
             if captureState == .notDetermined || audioApplicationState == .notDetermined {
@@ -46,33 +40,45 @@ final class PermissionsService {
             return true
         }
 
+        var appPermissionGranted = true
         if #available(macOS 14.0, *) {
-            let appPermissionGranted = await withCheckedContinuation { continuation in
-                AVAudioApplication.requestRecordPermission { isGranted in
+            switch AVAudioApplication.shared.recordPermission {
+            case .granted:
+                appPermissionGranted = true
+            case .undetermined:
+                appPermissionGranted = await withCheckedContinuation { continuation in
+                    AVAudioApplication.requestRecordPermission { isGranted in
+                        continuation.resume(returning: isGranted)
+                    }
+                }
+            case .denied:
+                appPermissionGranted = false
+            @unknown default:
+                appPermissionGranted = false
+            }
+        }
+
+        let capturePermissionGranted: Bool
+        switch AVCaptureDevice.authorizationStatus(for: .audio) {
+        case .authorized:
+            capturePermissionGranted = true
+        case .notDetermined:
+            capturePermissionGranted = await withCheckedContinuation { continuation in
+                AVCaptureDevice.requestAccess(for: .audio) { isGranted in
                     continuation.resume(returning: isGranted)
                 }
             }
-
-            if appPermissionGranted {
-                return true
-            }
+        case .restricted, .denied:
+            capturePermissionGranted = false
+        @unknown default:
+            capturePermissionGranted = false
         }
 
-        if AVCaptureDevice.authorizationStatus(for: .audio) == .authorized {
-            return true
+        if #available(macOS 14.0, *) {
+            return appPermissionGranted && capturePermissionGranted && microphonePermissionState() == .authorized
         }
 
-        let capturePermissionGranted = await withCheckedContinuation { continuation in
-            AVCaptureDevice.requestAccess(for: .audio) { isGranted in
-                continuation.resume(returning: isGranted)
-            }
-        }
-
-        if capturePermissionGranted {
-            return true
-        }
-
-        return microphonePermissionState() == .authorized
+        return capturePermissionGranted && microphonePermissionState() == .authorized
     }
 
     func hasAccessibilityPermission() -> Bool {
@@ -109,6 +115,20 @@ final class PermissionsService {
             return .denied
         case .authorized:
             return .authorized
+        @unknown default:
+            return .denied
+        }
+    }
+
+    @available(macOS 14.0, *)
+    private func microphonePermissionStateFromAudioApplication() -> MicrophonePermissionState {
+        switch AVAudioApplication.shared.recordPermission {
+        case .granted:
+            return .authorized
+        case .undetermined:
+            return .notDetermined
+        case .denied:
+            return .denied
         @unknown default:
             return .denied
         }

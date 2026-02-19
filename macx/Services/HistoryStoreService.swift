@@ -110,6 +110,7 @@ final class HistoryStoreService {
                 }
 
                 try fileManager.copyItem(at: audioURL, to: audioTarget)
+                Self.applyProtection(to: audioTarget)
                 artifacts.audioRelativePath = "media/\(audioTarget.lastPathComponent)"
             }
 
@@ -119,6 +120,7 @@ final class HistoryStoreService {
                 }
 
                 try transcript.write(to: transcriptTarget, atomically: true, encoding: .utf8)
+                Self.applyProtection(to: transcriptTarget)
                 artifacts.transcriptRelativePath = "transcripts/\(transcriptTarget.lastPathComponent)"
             }
 
@@ -149,17 +151,17 @@ final class HistoryStoreService {
 
     private func ensureDataDirectories(retentionMode: HistoryRetentionMode) {
         let fileManager = FileManager.default
-        try? fileManager.createDirectory(at: Self.modelsDirectoryURL, withIntermediateDirectories: true)
-        try? fileManager.createDirectory(at: Self.historyDirectoryURL, withIntermediateDirectories: true)
+        Self.ensureDirectory(Self.modelsDirectoryURL, using: fileManager)
+        Self.ensureDirectory(Self.historyDirectoryURL, using: fileManager)
 
         if retentionMode.keepsAudio {
-            try? fileManager.createDirectory(at: Self.historyMediaDirectoryURL, withIntermediateDirectories: true)
+            Self.ensureDirectory(Self.historyMediaDirectoryURL, using: fileManager)
         } else {
             try? fileManager.removeItem(at: Self.historyMediaDirectoryURL)
         }
 
         if retentionMode.keepsTranscripts {
-            try? fileManager.createDirectory(at: Self.historyTranscriptsDirectoryURL, withIntermediateDirectories: true)
+            Self.ensureDirectory(Self.historyTranscriptsDirectoryURL, using: fileManager)
         } else {
             try? fileManager.removeItem(at: Self.historyTranscriptsDirectoryURL)
         }
@@ -212,6 +214,19 @@ final class HistoryStoreService {
         formatter.dateFormat = "yyyyMMdd-HHmmss"
         return formatter
     }()
+
+    private static var protectedAttributes: [FileAttributeKey: Any] {
+        [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication]
+    }
+
+    private static func ensureDirectory(_ url: URL, using fileManager: FileManager) {
+        try? fileManager.createDirectory(at: url, withIntermediateDirectories: true, attributes: protectedAttributes)
+        applyProtection(to: url, using: fileManager)
+    }
+
+    private static func applyProtection(to url: URL, using fileManager: FileManager = FileManager.default) {
+        try? fileManager.setAttributes(protectedAttributes, ofItemAtPath: url.path)
+    }
 
     private static var appDocumentsDirectoryURL: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
