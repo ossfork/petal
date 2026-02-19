@@ -48,7 +48,8 @@ let package = Package(
                 .dependencies,
                 .dependenciesMacros,
                 .sharing,
-                .identifiedCollections
+                .identifiedCollections,
+                .keyboardShortcuts
             ]
         ),
         .target(
