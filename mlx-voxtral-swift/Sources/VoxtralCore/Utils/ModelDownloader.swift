@@ -28,7 +28,7 @@ public class ModelDownloader {
         )
     }()
 
-    /// Default models directory (in Documents/MacX/models)
+    /// Default models directory (in Documents/Gloam/models)
     public static var modelsDirectory: URL {
         appDirectory.appendingPathComponent("models")
     }
@@ -498,7 +498,7 @@ public class ModelDownloader {
         let candidateURLs: [URL] = [
             Bundle.main.resourceURL?.appendingPathComponent("Tools/aria2c"),
             Bundle.main.resourceURL?.appendingPathComponent("aria2c"),
-            URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("macx/Resources/Tools/aria2c"),
+            URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("gloam/Resources/Tools/aria2c"),
             URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".local/bin/aria2c"),
             URL(fileURLWithPath: "/opt/homebrew/bin/aria2c"),
             URL(fileURLWithPath: "/usr/local/bin/aria2c")
@@ -513,7 +513,7 @@ public class ModelDownloader {
 
     private static var appDirectory: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            .appendingPathComponent("MacX")
+            .appendingPathComponent("Gloam")
     }
 
     private static func ensureModelDirectories() throws {

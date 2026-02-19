@@ -1,4 +1,4 @@
-# MacX Rewrite Parity Checklist
+# Gloam Rewrite Parity Checklist
 
 Use this checklist at the end of every phase that touches behavior.
 

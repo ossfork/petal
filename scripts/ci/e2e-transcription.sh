@@ -55,8 +55,8 @@ if [[ "$DOWNLOAD_IF_NEEDED" == "1" ]]; then
   CLI_ARGS+=(--download-if-needed)
 fi
 
-echo "Running end-to-end inference through MacXInferenceCLI"
-swift run --package-path "$ROOT_DIR/MacXKit" MacXInferenceCLI "${CLI_ARGS[@]}" | tee "$TRANSCRIPT_OUT"
+echo "Running end-to-end inference through GloamInferenceCLI"
+swift run --package-path "$ROOT_DIR/GloamKit" GloamInferenceCLI "${CLI_ARGS[@]}" | tee "$TRANSCRIPT_OUT"
 
 if ! rg -q "=== TRANSCRIPT BEGIN ===" "$TRANSCRIPT_OUT"; then
   echo "Transcript markers missing in CLI output" >&2

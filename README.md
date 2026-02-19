@@ -1,23 +1,23 @@
 <p align="center">
-  <h1 align="center">MacX for macOS</h1>
+  <h1 align="center">Gloam for macOS</h1>
 </p>
 
 <p align="center">
-  <a aria-label="Open Issues" href="https://github.com/Aayush9029/macx/issues" target="_blank">
-    <img alt="Issues" src="https://img.shields.io/github/issues/Aayush9029/macx?style=for-the-badge">
+  <a aria-label="Open Issues" href="https://github.com/Aayush9029/gloam/issues" target="_blank">
+    <img alt="Issues" src="https://img.shields.io/github/issues/Aayush9029/gloam?style=for-the-badge">
   </a>
-  <a aria-label="Latest Release" href="https://github.com/Aayush9029/macx/releases/latest" target="_blank">
-    <img alt="Latest Release" src="https://img.shields.io/github/v/release/Aayush9029/macx?style=for-the-badge">
+  <a aria-label="Latest Release" href="https://github.com/Aayush9029/gloam/releases/latest" target="_blank">
+    <img alt="Latest Release" src="https://img.shields.io/github/v/release/Aayush9029/gloam?style=for-the-badge">
   </a>
 </p>
 
-MacX is a menu bar transcription app for macOS built with Swift, SwiftUI, MLX, and Point-Free dependencies.
+Gloam is a menu bar transcription app for macOS built with Swift, SwiftUI, MLX, and Point-Free dependencies.
 
 ## Current Architecture
 
-- `macx`: app target (menu bar UX, onboarding, setup, services)
-- `MacXKit`: modular package layer (shared domain, clients, UI, onboarding)
-- `MacXMLXClient`: MLX/Voxtral bridge package used by higher-level clients
+- `gloam`: app target (menu bar UX, onboarding, setup, services)
+- `GloamKit`: modular package layer (shared domain, clients, UI, onboarding)
+- `GloamMLXClient`: MLX/Voxtral bridge package used by higher-level clients
 - `Vendor/mlx-voxtral-swift`: low-level model runtime dependency
 
 ## Release Pipeline
@@ -36,15 +36,15 @@ MacX is a menu bar transcription app for macOS built with Swift, SwiftUI, MLX, a
 ./scripts/ci/e2e-transcription.sh --model mini-3b-4bit --mode verbatim
 
 # Manual CLI inference
-swift run --package-path MacXKit MacXInferenceCLI --audio /path/to/audio.wav --model mini-3b-4bit --mode verbatim
+swift run --package-path GloamKit GloamInferenceCLI --audio /path/to/audio.wav --model mini-3b-4bit --mode verbatim
 ```
 
 ## Deep Links
 
-- `macx://start`
-- `macx://stop`
-- `macx://toggle`
-- `macx://setup`
+- `gloam://start`
+- `gloam://stop`
+- `gloam://toggle`
+- `gloam://setup`
 
 ## Secrets and Ops
 

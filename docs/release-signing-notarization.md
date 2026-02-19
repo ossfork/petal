@@ -11,9 +11,9 @@
   - `aria2c` source + embedded smoke tests
 
 ## Release pipeline (published release)
-- Archive and export `macx.app`
+- Archive and export `gloam.app`
 - Sign embedded `aria2c` binaries
-- Notarize and staple `macx.app`
+- Notarize and staple `gloam.app`
 - Create DMG using `create-dmg`
 - Sign, notarize, and staple DMG
 - Sparkle-sign DMG (`sign_update`) and generate `appcast.xml`
@@ -34,7 +34,7 @@
 
 ## Sparkle key generation
 - Script: `scripts/release/setup-sparkle-keys.sh`
-- Default account name: `macx`
+- Default account name: `gloam`
 - Default private key export path: `ops/private/sparkle_private_ed25519.key`
 - Run locally:
   - `./scripts/release/setup-sparkle-keys.sh`
@@ -43,11 +43,11 @@
 ## Helper scripts
 - `scripts/phase-gate.sh`
   - package tests + app build + aria2 smoke checks
-  - optional full inference E2E when `MACX_RUN_E2E=1`
+  - optional full inference E2E when `GLOAM_RUN_E2E=1`
 - `scripts/ci/test-aria2c.sh`
   - executable/codesign/smoke tests for source and embedded `aria2c`
 - `scripts/ci/e2e-transcription.sh`
-  - local end-to-end inference test path (`say` -> wav -> `MacXInferenceCLI`)
+  - local end-to-end inference test path (`say` -> wav -> `GloamInferenceCLI`)
 - `scripts/release/sign-aria2c.sh`
   - signs embedded `aria2c` binaries and verifies codesign/Gatekeeper
 - `scripts/release/verify-notarization.sh`

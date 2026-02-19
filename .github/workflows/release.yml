@@ -9,10 +9,10 @@ on:
   workflow_dispatch:
 
 env:
-  SCHEME: macx
-  PRODUCT_NAME: macx
+  SCHEME: gloam
+  PRODUCT_NAME: gloam
   XCODE_VERSION: "26.2"
-  DMG_NAME_PREFIX: MacX
+  DMG_NAME_PREFIX: Gloam
   SPARKLE_VERSION: "2.8.1"
   SPARKLE_TAR_SHA256: "5cddb7695674ef7704268f38eccaee80e3accbf19e61c1689efff5b6116d85be"
 
@@ -120,17 +120,17 @@ jobs:
         run: |
           defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
           xcodebuild -resolvePackageDependencies \
-            -project macx.xcodeproj \
+            -project gloam.xcodeproj \
             -scheme "$SCHEME" \
             -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm"
 
       - name: Archive
         run: |
           xcodebuild archive \
-            -project macx.xcodeproj \
+            -project gloam.xcodeproj \
             -scheme "$SCHEME" \
             -configuration Release \
-            -archivePath "$RUNNER_TEMP/macx.xcarchive" \
+            -archivePath "$RUNNER_TEMP/gloam.xcarchive" \
             -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm" \
             MARKETING_VERSION="${{ steps.version.outputs.version }}" \
             CURRENT_PROJECT_VERSION="${GITHUB_RUN_NUMBER}" \
@@ -165,7 +165,7 @@ jobs:
       - name: Export archive
         run: |
           xcodebuild -exportArchive \
-            -archivePath "$RUNNER_TEMP/macx.xcarchive" \
+            -archivePath "$RUNNER_TEMP/gloam.xcarchive" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
             -exportPath "$RUNNER_TEMP/export"
 
@@ -247,7 +247,7 @@ jobs:
           ./scripts/release/create-dmg.sh \
             --app "$APP_PATH" \
             --output "$DMG_PATH" \
-            --volume-name "MacX Installer"
+            --volume-name "Gloam Installer"
           echo "DMG_NAME=$DMG_NAME" >> "$GITHUB_ENV"
           echo "DMG_PATH=$DMG_PATH" >> "$GITHUB_ENV"
 
@@ -300,7 +300,7 @@ jobs:
 
           ./scripts/release/generate-appcast.py \
             --output "$APPCAST_PATH" \
-            --title "MacX" \
+            --title "Gloam" \
             --link "https://github.com/${{ github.repository }}" \
             --version "${{ steps.version.outputs.version }}" \
             --build "${GITHUB_RUN_NUMBER}" \

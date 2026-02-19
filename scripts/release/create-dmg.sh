@@ -4,7 +4,7 @@ set -euo pipefail
 APP_PATH=""
 DMG_PATH=""
 BACKGROUND_PATH=""
-VOLUME_NAME="MacX Installer"
+VOLUME_NAME="Gloam Installer"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DEFAULT_BACKGROUND="$ROOT_DIR/dmg-assets/dmg-bg@2x.jpg"

@@ -1,6 +1,6 @@
 # VoxtralCore (Vendored)
 
-Minimal vendored package used by `macx`.
+Minimal vendored package used by `gloam`.
 
 ## Scope
 

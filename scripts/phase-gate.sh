@@ -5,8 +5,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 DERIVED_DATA_PATH="$ROOT_DIR/.derived/phase-gate"
-APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug/macx.app"
-BUILD_LOG_PATH="${TMPDIR:-/tmp}/macx-phase-build.log"
+APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug/gloam.app"
+BUILD_LOG_PATH="${TMPDIR:-/tmp}/gloam-phase-build.log"
 
 echo "==> Phase gate: package tests"
 PACKAGE_MANIFESTS=()
@@ -36,8 +36,8 @@ fi
 
 echo "==> Phase gate: app build"
 if ! xcodebuild \
-  -project macx.xcodeproj \
-  -scheme macx \
+  -project gloam.xcodeproj \
+  -scheme gloam \
   -configuration Debug \
   -destination 'platform=macOS' \
   -derivedDataPath "$DERIVED_DATA_PATH" \
@@ -53,13 +53,13 @@ fi
 echo "==> Phase gate: aria2c smoke test"
 ./scripts/ci/test-aria2c.sh --app "$APP_PATH"
 
-if [[ "${MACX_RUN_E2E:-0}" == "1" ]]; then
+if [[ "${GLOAM_RUN_E2E:-0}" == "1" ]]; then
   echo "==> Phase gate: end-to-end transcription CLI"
-  ./scripts/ci/e2e-transcription.sh ${MACX_E2E_ARGS:-}
+  ./scripts/ci/e2e-transcription.sh ${GLOAM_E2E_ARGS:-}
   echo "==> Phase gate: end-to-end app flow (terminal launch, single-instance monitored)"
-  ./scripts/ci/e2e-app-terminal.sh --app "$APP_PATH" ${MACX_APP_E2E_ARGS:-}
+  ./scripts/ci/e2e-app-terminal.sh --app "$APP_PATH" ${GLOAM_APP_E2E_ARGS:-}
 else
-  echo "==> Phase gate: end-to-end transcription (skipped, set MACX_RUN_E2E=1)"
+  echo "==> Phase gate: end-to-end transcription (skipped, set GLOAM_RUN_E2E=1)"
 fi
 
 echo "==> Phase gate complete"
