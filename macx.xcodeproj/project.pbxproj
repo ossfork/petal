@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5186424D2F47BBA800A69D9B /* mlx-voxtral-swift in Resources */ = {isa = PBXBuildFile; fileRef = 5186424C2F47BBA800A69D9B /* mlx-voxtral-swift */; };
 		A10000010000000000000001 /* VoxtralCore in Frameworks */ = {isa = PBXBuildFile; productRef = A10000040000000000000001 /* VoxtralCore */; };
 		A10000010000000000000002 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = A10000040000000000000002 /* KeyboardShortcuts */; };
 		A10000010000000000000003 /* Sauce in Frameworks */ = {isa = PBXBuildFile; productRef = A10000040000000000000003 /* Sauce */; };
@@ -17,6 +18,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		5186424B2F47BB9E00A69D9B /* MacXKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = MacXKit; sourceTree = "<group>"; };
+		5186424C2F47BBA800A69D9B /* mlx-voxtral-swift */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "mlx-voxtral-swift"; path = "/Users/yush/Developer/oss/macx/macx/mlx-voxtral-swift"; sourceTree = "<absolute>"; };
 		51F869592F469BEA004C06DD /* macx.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = macx.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -62,6 +65,8 @@
 		51F869502F469BEA004C06DD = {
 			isa = PBXGroup;
 			children = (
+				5186424C2F47BBA800A69D9B /* mlx-voxtral-swift */,
+				5186424B2F47BB9E00A69D9B /* MacXKit */,
 				51F8695B2F469BEA004C06DD /* macx */,
 				51F8695A2F469BEA004C06DD /* Products */,
 			);
@@ -156,6 +161,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5186424D2F47BBA800A69D9B /* mlx-voxtral-swift in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
