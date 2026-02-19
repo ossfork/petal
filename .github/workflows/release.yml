@@ -1,0 +1,132 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+env:
+  SCHEME: macx
+  PRODUCT_NAME: macx
+  XCODE_VERSION: "26.2"
+
+jobs:
+  build-sign-notarize:
+    runs-on: macos-26
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
+
+      - name: Import Developer ID certificate
+        env:
+          CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          echo "$CERTIFICATE_P12" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security import "$RUNNER_TEMP/certificate.p12" \
+            -P "$CERTIFICATE_PASSWORD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" "$(security list-keychains -d user | tr -d '\"' | tr '\n' ' ')"
+
+      - name: Setup App Store Connect API key
+        env:
+          API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+        run: |
+          mkdir -p ~/private_keys
+          echo "$API_KEY_P8" | base64 --decode > ~/private_keys/AuthKey_${API_KEY_ID}.p8
+
+      - name: Resolve SPM packages
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project macx.xcodeproj \
+            -scheme "$SCHEME" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm"
+
+      - name: Archive
+        run: |
+          xcodebuild archive \
+            -project macx.xcodeproj \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -archivePath "$RUNNER_TEMP/macx.xcarchive" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm" \
+            CODE_SIGN_IDENTITY="Developer ID Application" \
+            DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
+            CODE_SIGN_STYLE=Manual \
+            OTHER_CODE_SIGN_FLAGS="--timestamp --keychain $KEYCHAIN_PATH"
+
+      - name: Create export options plist
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" << 'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>developer-id</string>
+              <key>teamID</key>
+              <string>TEAM_ID_PLACEHOLDER</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>signingCertificate</key>
+              <string>Developer ID Application</string>
+          </dict>
+          </plist>
+          PLIST
+
+          sed -i '' "s/TEAM_ID_PLACEHOLDER/${{ secrets.APPLE_TEAM_ID }}/" "$RUNNER_TEMP/ExportOptions.plist"
+
+      - name: Export archive
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/macx.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export"
+
+      - name: Sign embedded aria2c
+        run: |
+          ./scripts/release/sign-aria2c.sh \
+            --app "$RUNNER_TEMP/export/${{ env.PRODUCT_NAME }}.app" \
+            --identity "Developer ID Application: Aayush Pokharel (${{ secrets.APPLE_TEAM_ID }})" \
+            --keychain "$KEYCHAIN_PATH" \
+            --require
+
+      - name: Notarize app
+        env:
+          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          ditto -c -k --keepParent "$RUNNER_TEMP/export/${{ env.PRODUCT_NAME }}.app" "$RUNNER_TEMP/app-for-notarization.zip"
+          xcrun notarytool submit "$RUNNER_TEMP/app-for-notarization.zip" \
+            --key ~/private_keys/AuthKey_${API_KEY_ID}.p8 \
+            --key-id "$API_KEY_ID" \
+            --issuer "$API_ISSUER_ID" \
+            --wait
+
+      - name: Staple app
+        run: xcrun stapler staple "$RUNNER_TEMP/export/${{ env.PRODUCT_NAME }}.app"
+
+      - name: Verify notarization and embedded aria2c
+        run: |
+          ./scripts/release/verify-notarization.sh \
+            --app "$RUNNER_TEMP/export/${{ env.PRODUCT_NAME }}.app" \
+            --require-aria2c
