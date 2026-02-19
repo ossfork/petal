@@ -10,3 +10,8 @@ Expected files (not committed):
 - optional local env file with export helpers
 
 Never commit raw signing keys.
+
+Sparkle key helper:
+- `../scripts/release/setup-sparkle-keys.sh`
+  - Generates/exports Sparkle keypair material.
+  - Writes the private key to `ops/private/sparkle_private_ed25519.key` by default.

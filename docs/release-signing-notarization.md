@@ -32,6 +32,14 @@
 - `SPARKLE_PRIVATE_KEY`
 - `SPARKLE_PUBLIC_ED_KEY`
 
+## Sparkle key generation
+- Script: `scripts/release/setup-sparkle-keys.sh`
+- Default account name: `macx`
+- Default private key export path: `ops/private/sparkle_private_ed25519.key`
+- Run locally:
+  - `./scripts/release/setup-sparkle-keys.sh`
+- Script output includes the exact public key to keep in app config and the two GitHub secrets to set.
+
 ## Helper scripts
 - `scripts/phase-gate.sh`
   - package tests + app build + aria2 smoke checks
@@ -48,3 +56,5 @@
   - create-dmg wrapper with Compose-style layout
 - `scripts/release/generate-appcast.py`
   - deterministic Sparkle appcast XML generation
+- `scripts/release/setup-sparkle-keys.sh`
+  - generates/exports Sparkle Ed25519 key material and prints required secret wiring

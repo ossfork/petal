@@ -49,3 +49,4 @@ swift run --package-path MacXKit MacXInferenceCLI --audio /path/to/audio.wav --m
 ## Secrets and Ops
 
 Operational key material and templates live under `ops/`. Real secret files are intentionally git-ignored.
+Use `scripts/release/setup-sparkle-keys.sh` to generate/export Sparkle keys and wire `SPARKLE_PRIVATE_KEY` + `SPARKLE_PUBLIC_ED_KEY`.
