@@ -1,1 +1,149 @@
-public enum MacXFloatingCapsuleClient {}
+import AppKit
+import Dependencies
+import DependenciesMacros
+import MacXUI
+import Observation
+import SwiftUI
+
+@DependencyClient
+public struct MacXFloatingCapsuleClient: Sendable {
+    public var showRecording: @Sendable () async -> Void = {}
+    public var updateLevel: @Sendable (Double) async -> Void = { _ in }
+    public var showTranscribing: @Sendable () async -> Void = {}
+    public var updateTranscriptionProgress: @Sendable (Double) async -> Void = { _ in }
+    public var showCancelConfirmation: @Sendable () async -> Void = {}
+    public var showError: @Sendable (String) async -> Void = { _ in }
+    public var hide: @Sendable () async -> Void = {}
+}
+
+extension MacXFloatingCapsuleClient: DependencyKey {
+    public static var liveValue: Self {
+        return Self(
+            showRecording: {
+                await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.showRecording() }
+            },
+            updateLevel: { level in
+                await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.updateLevel(level) }
+            },
+            showTranscribing: {
+                await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.showTranscribing() }
+            },
+            updateTranscriptionProgress: { progress in
+                await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.updateTranscriptionProgress(progress) }
+            },
+            showCancelConfirmation: {
+                await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.showCancelConfirmation() }
+            },
+            showError: { message in
+                await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.showError(message) }
+            },
+            hide: {
+                await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.hide() }
+            }
+        )
+    }
+}
+
+extension MacXFloatingCapsuleClient: TestDependencyKey {
+    public static var testValue: Self {
+        Self(
+            showRecording: {},
+            updateLevel: { _ in },
+            showTranscribing: {},
+            updateTranscriptionProgress: { _ in },
+            showCancelConfirmation: {},
+            showError: { _ in },
+            hide: {}
+        )
+    }
+}
+
+public extension DependencyValues {
+    var macXFloatingCapsuleClient: MacXFloatingCapsuleClient {
+        get { self[MacXFloatingCapsuleClient.self] }
+        set { self[MacXFloatingCapsuleClient.self] = newValue }
+    }
+}
+
+@MainActor
+private final class LiveFloatingCapsuleRuntime {
+    private let state = MacXFloatingCapsuleState()
+    private let panel: NSPanel
+
+    init() {
+        let contentView = MacXFloatingCapsuleView(state: state)
+        let hostingController = NSHostingController(rootView: contentView)
+
+        let panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 220, height: 52),
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: true
+        )
+
+        panel.contentViewController = hostingController
+        panel.level = .floating
+        panel.backgroundColor = .clear
+        panel.isOpaque = false
+        panel.hasShadow = true
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+
+        self.panel = panel
+    }
+
+    func showRecording() {
+        state.phase = .recording
+        showWindowIfNeeded()
+    }
+
+    func updateLevel(_ level: Double) {
+        state.level = level
+    }
+
+    func showTranscribing() {
+        state.transcriptionProgress = 0
+        state.phase = .transcribing
+        showWindowIfNeeded()
+    }
+
+    func updateTranscriptionProgress(_ progress: Double) {
+        let clamped = min(max(progress, 0), 1)
+        state.transcriptionProgress = max(state.transcriptionProgress, clamped)
+    }
+
+    func showCancelConfirmation() {
+        state.phase = .confirmCancel
+        showWindowIfNeeded()
+    }
+
+    func showError(_ message: String) {
+        state.phase = .error(message)
+        showWindowIfNeeded()
+    }
+
+    func hide() {
+        state.phase = .hidden
+        state.level = 0
+        state.transcriptionProgress = 0
+        panel.orderOut(nil)
+    }
+
+    private func showWindowIfNeeded() {
+        positionPanel()
+        panel.orderFrontRegardless()
+    }
+
+    private func positionPanel() {
+        guard let screen = NSScreen.main else { return }
+
+        let visibleFrame = screen.visibleFrame
+        let x = visibleFrame.midX - panel.frame.width / 2
+        let y = visibleFrame.minY + 36
+        panel.setFrameOrigin(NSPoint(x: x, y: y))
+    }
+}
+
+@MainActor
+private enum LiveFloatingCapsuleRuntimeContainer {
+    static let shared = LiveFloatingCapsuleRuntime()
+}

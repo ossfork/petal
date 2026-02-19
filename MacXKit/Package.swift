@@ -14,6 +14,7 @@ extension Target.Dependency {
     static let identifiedCollections: Self = .product(name: "IdentifiedCollections", package: "swift-identified-collections")
     static let keyboardShortcuts: Self = .product(name: "KeyboardShortcuts", package: "KeyboardShortcuts")
     static let sauce: Self = .product(name: "Sauce", package: "Sauce")
+    static let voxtralCore: Self = .product(name: "VoxtralCore", package: "MLXVoxtralSwift")
 }
 
 let package = Package(
@@ -35,6 +36,7 @@ let package = Package(
         .library(name: "MacXTranscriptionClient", targets: ["MacXTranscriptionClient"])
     ],
     dependencies: [
+        .package(name: "MLXVoxtralSwift", path: "../Vendor/mlx-voxtral-swift"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.11.0"),
         .package(url: "https://github.com/pointfreeco/swift-sharing.git", from: "2.7.4"),
         .package(url: "https://github.com/pointfreeco/swift-identified-collections", from: "1.1.1"),
@@ -120,7 +122,8 @@ let package = Package(
             dependencies: [
                 .dependencies,
                 .dependenciesMacros,
-                .macXShared
+                .macXShared,
+                .voxtralCore
             ]
         ),
         .target(
@@ -129,7 +132,8 @@ let package = Package(
                 .dependencies,
                 .dependenciesMacros,
                 .macXShared,
-                .macXModelSetupClient
+                .macXModelSetupClient,
+                .voxtralCore
             ]
         ),
         .testTarget(
