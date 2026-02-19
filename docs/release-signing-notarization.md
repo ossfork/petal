@@ -35,8 +35,11 @@
 ## Helper scripts
 - `scripts/phase-gate.sh`
   - package tests + app build + aria2 smoke checks
+  - optional full inference E2E when `MACX_RUN_E2E=1`
 - `scripts/ci/test-aria2c.sh`
   - executable/codesign/smoke tests for source and embedded `aria2c`
+- `scripts/ci/e2e-transcription.sh`
+  - local end-to-end inference test path (`say` -> wav -> `MacXInferenceCLI`)
 - `scripts/release/sign-aria2c.sh`
   - signs embedded `aria2c` binaries and verifies codesign/Gatekeeper
 - `scripts/release/verify-notarization.sh`

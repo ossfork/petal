@@ -7,6 +7,8 @@ extension Target.Dependency {
     static let macXModels: Self = "MacXModels"
     static let macXUI: Self = "MacXUI"
     static let macXMLXClient: Self = "MacXMLXClient"
+    static let macXAudioTrimClient: Self = "MacXAudioTrimClient"
+    static let macXAudioSpeedClient: Self = "MacXAudioSpeedClient"
     static let macXModelSetupClient: Self = "MacXModelSetupClient"
     static let macXPermissionsClient: Self = "MacXPermissionsClient"
 
@@ -35,8 +37,11 @@ let package = Package(
         .library(name: "MacXKeyboardClient", targets: ["MacXKeyboardClient"]),
         .library(name: "MacXFloatingCapsuleClient", targets: ["MacXFloatingCapsuleClient"]),
         .library(name: "MacXMLXClient", targets: ["MacXMLXClient"]),
+        .library(name: "MacXAudioTrimClient", targets: ["MacXAudioTrimClient"]),
+        .library(name: "MacXAudioSpeedClient", targets: ["MacXAudioSpeedClient"]),
         .library(name: "MacXModelSetupClient", targets: ["MacXModelSetupClient"]),
-        .library(name: "MacXTranscriptionClient", targets: ["MacXTranscriptionClient"])
+        .library(name: "MacXTranscriptionClient", targets: ["MacXTranscriptionClient"]),
+        .executable(name: "MacXInferenceCLI", targets: ["MacXInferenceCLI"])
     ],
     dependencies: [
         .package(name: "MLXVoxtralSwift", path: "../Vendor/mlx-voxtral-swift"),
@@ -130,6 +135,20 @@ let package = Package(
             ]
         ),
         .target(
+            name: "MacXAudioTrimClient",
+            dependencies: [
+                .dependencies,
+                .dependenciesMacros
+            ]
+        ),
+        .target(
+            name: "MacXAudioSpeedClient",
+            dependencies: [
+                .dependencies,
+                .dependenciesMacros
+            ]
+        ),
+        .target(
             name: "MacXModelSetupClient",
             dependencies: [
                 .dependencies,
@@ -145,6 +164,15 @@ let package = Package(
                 .dependenciesMacros,
                 .macXShared,
                 .macXModelSetupClient,
+                .macXAudioTrimClient,
+                .macXAudioSpeedClient,
+                .macXMLXClient
+            ]
+        ),
+        .executableTarget(
+            name: "MacXInferenceCLI",
+            dependencies: [
+                .macXShared,
                 .macXMLXClient
             ]
         ),
@@ -159,6 +187,8 @@ let package = Package(
                 "MacXPasteClient",
                 "MacXKeyboardClient",
                 "MacXFloatingCapsuleClient",
+                "MacXAudioTrimClient",
+                "MacXAudioSpeedClient",
                 "MacXMLXClient",
                 "MacXModelSetupClient",
                 "MacXTranscriptionClient",

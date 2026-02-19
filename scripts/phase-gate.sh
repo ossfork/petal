@@ -45,5 +45,12 @@ xcodebuild \
 echo "==> Phase gate: aria2c smoke test"
 ./scripts/ci/test-aria2c.sh --app "$APP_PATH"
 
+if [[ "${MACX_RUN_E2E:-0}" == "1" ]]; then
+  echo "==> Phase gate: end-to-end transcription"
+  ./scripts/ci/e2e-transcription.sh ${MACX_E2E_ARGS:-}
+else
+  echo "==> Phase gate: end-to-end transcription (skipped, set MACX_RUN_E2E=1)"
+fi
+
 echo "==> Phase gate complete"
 echo "Run manual parity checklist in docs/phase-parity-checklist.md"

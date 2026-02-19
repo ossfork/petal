@@ -2,6 +2,8 @@ import AVFoundation
 import Dependencies
 import DependenciesMacros
 import Foundation
+import MacXAudioSpeedClient
+import MacXAudioTrimClient
 import MacXMLXClient
 import MacXShared
 
@@ -22,9 +24,38 @@ extension MacXTranscriptionClient: DependencyKey {
             },
             transcribe: { audioURL, option, mode, prompt in
                 @Dependency(\.macXMLXClient) var mlxClient
+                @Dependency(\.macXAudioTrimClient) var trimClient
+                @Dependency(\.macXAudioSpeedClient) var speedClient
                 try await mlxClient.prepareModelIfNeeded(option.pipelineModel)
+
+                var workingAudioURL = audioURL
+                var generatedAudioURLs = Set<URL>()
+
+                if Self.trimSilenceEnabled {
+                    let trimmedURL = try await trimClient.trimSilence(workingAudioURL, Self.trimSilenceThreshold)
+                    if trimmedURL != workingAudioURL {
+                        generatedAudioURLs.insert(trimmedURL)
+                        workingAudioURL = trimmedURL
+                    }
+                }
+
+                let duration = audioFileDurationSeconds(workingAudioURL)
+                if let speedRate = Self.autoSpeedRate(for: duration) {
+                    let spedUpURL = try await speedClient.speedUp(workingAudioURL, speedRate)
+                    if spedUpURL != workingAudioURL {
+                        generatedAudioURLs.insert(spedUpURL)
+                        workingAudioURL = spedUpURL
+                    }
+                }
+
+                defer {
+                    for generatedURL in generatedAudioURLs {
+                        try? FileManager.default.removeItem(at: generatedURL)
+                    }
+                }
+
                 return try await mlxClient.transcribe(
-                    audioURL,
+                    workingAudioURL,
                     mode == .verbatim
                         ? .verbatim
                         : .smart(prompt: prompt ?? Self.defaultSmartPrompt)
@@ -68,6 +99,21 @@ private func audioFileDurationSeconds(_ url: URL) -> Double {
 
 private extension MacXTranscriptionClient {
     static let defaultSmartPrompt = "Clean up filler words and repeated phrases. Return a polished version of what was said."
+    static let trimSilenceEnabled = true
+    static let trimSilenceThreshold: Float = 0.003
+
+    static func autoSpeedRate(for audioDuration: Double) -> Double? {
+        switch audioDuration {
+        case ..<45:
+            return nil
+        case 45..<90:
+            return 1.1
+        case 90..<180:
+            return 1.2
+        default:
+            return 1.25
+        }
+    }
 }
 
 private extension MacXModelOption {

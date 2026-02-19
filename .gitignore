@@ -1,0 +1,11 @@
+.derived/
+.DS_Store
+
+ops/*.p8
+ops/*.p12
+ops/*.key
+ops/*.pem
+ops/*.env
+ops/private/
+
+build-release/

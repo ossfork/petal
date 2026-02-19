@@ -99,6 +99,7 @@ final class AppModel {
     @ObservationIgnored private var setupWindowController: SetupWindowController?
     @ObservationIgnored private var didAutoPromptAccessibilityInSetup = false
     @ObservationIgnored private var transcriptionProgressTask: Task<Void, Never>?
+    @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
     @ObservationIgnored private var estimatedTranscriptionRTF = 2.2
     @ObservationIgnored private let toggleActivationThresholdSeconds = 2.0
 
@@ -136,6 +137,7 @@ final class AppModel {
         registerShortcutHandlers()
         registerKeyboardMonitor()
         refreshPermissionStatus()
+        startPermissionMonitoring()
         logger.info("AppModel initialized. setupCompleted=\(self.hasCompletedSetup, privacy: .public), model=\(self.selectedModelID, privacy: .public)")
         consoleLog("AppModel initialized. setupCompleted=\(self.hasCompletedSetup), model=\(self.selectedModelID)")
 
@@ -494,6 +496,19 @@ final class AppModel {
         return "\(entry.transcriptionMode.capitalized) • \(entry.modelID) • \(entry.characterCount) chars • \(elapsed)s elapsed • \(audio)s audio"
     }
 
+    func handleDeepLink(_ command: MacXDeepLinkCommand) async {
+        switch command {
+        case .start:
+            await startRecordingFromDeepLink()
+        case .stop:
+            await stopRecordingFromDeepLink()
+        case .toggle:
+            await toggleRecordingFromDeepLink()
+        case .setup:
+            changeModelButtonTapped()
+        }
+    }
+
     func pushToTalkKeyDown() async {
         logger.info("Push-to-talk key down")
         consoleLog("Push-to-talk key down")
@@ -844,6 +859,79 @@ final class AppModel {
         NSApp.activate(ignoringOtherApps: true)
     }
 
+    private func startPermissionMonitoring() {
+        permissionMonitorTask?.cancel()
+        permissionMonitorTask = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let self else { return }
+                self.refreshPermissionStatus()
+                try? await self.clock.sleep(for: .seconds(1))
+            }
+        }
+    }
+
+    private func startRecordingFromDeepLink() async {
+        guard hasCompletedSetup else {
+            transientMessage = "Complete setup before recording."
+            beginSetupFlow()
+            showSetupWindow()
+            return
+        }
+
+        if audioCaptureService.isRecording || sessionState == .transcribing {
+            return
+        }
+
+        if !microphoneAuthorized {
+            await microphonePermissionButtonTapped()
+            refreshPermissionStatus()
+            guard microphoneAuthorized else { return }
+        }
+
+        do {
+            try audioCaptureService.startRecording { [weak self] level in
+                guard let self else { return }
+                Task { @MainActor [self, level] in
+                    self.recordingLevelDidUpdate(level)
+                }
+            }
+
+            isAwaitingCancelRecordingConfirmation = false
+            pushToTalkIsActive = false
+            toggleRecordingIsActive = true
+            ignoreNextShortcutKeyUp = false
+            currentShortcutPressStart = nil
+            sessionState = .recording
+            transientMessage = "Listening... use macx://stop to transcribe."
+            floatingCapsuleController.showRecording()
+            logger.info("Recording started from deep link")
+            consoleLog("Recording started from deep link")
+        } catch {
+            reportIssue(error)
+            sessionState = .error(error.localizedDescription)
+            lastError = error.localizedDescription
+            floatingCapsuleController.showError("Recording failed")
+            logger.error("Deep link start failed: \(error.localizedDescription, privacy: .public)")
+            consoleLog("Deep link start failed: \(error.localizedDescription)")
+            await hideCapsuleAfterDelay()
+        }
+    }
+
+    private func stopRecordingFromDeepLink() async {
+        guard audioCaptureService.isRecording else { return }
+        logger.info("Stopping recording from deep link")
+        consoleLog("Stopping recording from deep link")
+        await stopRecordingAndTranscribe()
+    }
+
+    private func toggleRecordingFromDeepLink() async {
+        if audioCaptureService.isRecording {
+            await stopRecordingFromDeepLink()
+        } else {
+            await startRecordingFromDeepLink()
+        }
+    }
+
     private func recordingLevelDidUpdate(_ level: Double) {
         guard case .recording = sessionState else { return }
         floatingCapsuleController.updateLevel(level)
@@ -1022,6 +1110,12 @@ final class AppModel {
         for directory in directories {
             try? fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
         }
+    }
+
+    deinit {
+        transcriptionProgressTask?.cancel()
+        permissionMonitorTask?.cancel()
+        keyboardMonitorService.stop()
     }
 }
 

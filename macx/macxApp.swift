@@ -21,6 +21,7 @@ struct macxApp: App {
         MenuBarExtra {
             MenuBarContentView(model: model, updatesModel: updatesModel)
                 .onAppear {
+                    appDelegate.model = model
                     if updatesModel == nil {
                         updatesModel = CheckForUpdatesModel(updater: appDelegate.updaterController.updater)
                     }
@@ -42,8 +43,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         updaterDelegate: nil,
         userDriverDelegate: nil
     )
+    weak var model: AppModel?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         updaterController.startUpdater()
+    }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard let model else { return }
+
+        for url in urls {
+            guard let command = MacXDeepLinkCommand.parse(url) else { continue }
+            Task { @MainActor in
+                await model.handleDeepLink(command)
+            }
+        }
     }
 }

@@ -7,6 +7,8 @@ import Testing
 @testable import MacXPasteClient
 @testable import MacXKeyboardClient
 @testable import MacXFloatingCapsuleClient
+@testable import MacXAudioTrimClient
+@testable import MacXAudioSpeedClient
 @testable import MacXModelSetupClient
 @testable import MacXTranscriptionClient
 
@@ -20,6 +22,8 @@ func modulesCompile() {
     _ = MacXPasteClient.self
     _ = MacXKeyboardClient.self
     _ = MacXFloatingCapsuleClient.self
+    _ = MacXAudioTrimClient.self
+    _ = MacXAudioSpeedClient.self
     _ = MacXModelSetupClient.self
     _ = MacXTranscriptionClient.self
     _ = MacXModelOption.defaultOption
