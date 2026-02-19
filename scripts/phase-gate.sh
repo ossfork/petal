@@ -6,6 +6,7 @@ cd "$ROOT_DIR"
 
 DERIVED_DATA_PATH="$ROOT_DIR/.derived/phase-gate"
 APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug/macx.app"
+BUILD_LOG_PATH="${TMPDIR:-/tmp}/macx-phase-build.log"
 
 echo "==> Phase gate: package tests"
 PACKAGE_MANIFESTS=()
@@ -34,13 +35,20 @@ else
 fi
 
 echo "==> Phase gate: app build"
-xcodebuild \
+if ! xcodebuild \
   -project macx.xcodeproj \
   -scheme macx \
   -configuration Debug \
   -destination 'platform=macOS' \
   -derivedDataPath "$DERIVED_DATA_PATH" \
-  build >/tmp/macx-phase-build.log
+  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGNING_REQUIRED=NO \
+  CODE_SIGN_IDENTITY="" \
+  build >"$BUILD_LOG_PATH" 2>&1; then
+  echo "xcodebuild failed. Build log tail:" >&2
+  tail -n 200 "$BUILD_LOG_PATH" >&2
+  exit 65
+fi
 
 echo "==> Phase gate: aria2c smoke test"
 ./scripts/ci/test-aria2c.sh --app "$APP_PATH"
