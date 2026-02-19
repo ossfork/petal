@@ -158,16 +158,18 @@
 			);
 			inputPaths = (
 				"$(SRCROOT)/macx/Resources/Tools/aria2c",
+				"$(SRCROOT)/macx/Resources/SoundEffects",
 			);
 			name = "Embed aria2c";
 			outputFileListPaths = (
 			);
 			outputPaths = (
 				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Tools/aria2c",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/SoundEffects",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\nARIA2_SOURCE=\"$SRCROOT/macx/Resources/Tools/aria2c\"\nARIA2_DEST_DIR=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/Tools\"\nARIA2_DEST=\"$ARIA2_DEST_DIR/aria2c\"\nif [ ! -f \"$ARIA2_SOURCE\" ]; then\n  echo \"Missing aria2c source binary at $ARIA2_SOURCE\" >&2\n  exit 1\nfi\nmkdir -p \"$ARIA2_DEST_DIR\"\ncp \"$ARIA2_SOURCE\" \"$ARIA2_DEST\"\nchmod +x \"$ARIA2_DEST\"";
+			shellScript = "set -euo pipefail\nARIA2_SOURCE=\"$SRCROOT/macx/Resources/Tools/aria2c\"\nARIA2_DEST_DIR=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/Tools\"\nARIA2_DEST=\"$ARIA2_DEST_DIR/aria2c\"\nSFX_SOURCE_DIR=\"$SRCROOT/macx/Resources/SoundEffects\"\nSFX_DEST_DIR=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/SoundEffects\"\nif [ ! -f \"$ARIA2_SOURCE\" ]; then\n  echo \"Missing aria2c source binary at $ARIA2_SOURCE\" >&2\n  exit 1\nfi\nmkdir -p \"$ARIA2_DEST_DIR\"\ncp \"$ARIA2_SOURCE\" \"$ARIA2_DEST\"\nchmod +x \"$ARIA2_DEST\"\nif [ -d \"$SFX_SOURCE_DIR\" ]; then\n  rm -rf \"$SFX_DEST_DIR\"\n  mkdir -p \"$SFX_DEST_DIR\"\n  cp \"$SFX_SOURCE_DIR\"/*.mp3 \"$SFX_DEST_DIR\"/ 2>/dev/null || true\nfi";
 		};
 /* End PBXShellScriptBuildPhase section */
 

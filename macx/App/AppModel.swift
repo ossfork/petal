@@ -88,6 +88,7 @@ final class AppModel {
     @ObservationIgnored @Dependency(\.appAudioClient) private var appAudioClient
     @ObservationIgnored @Dependency(\.appKeyboardClient) private var appKeyboardClient
     @ObservationIgnored @Dependency(\.appFloatingCapsuleClient) private var appFloatingCapsuleClient
+    @ObservationIgnored @Dependency(\.appSoundClient) private var appSoundClient
     @ObservationIgnored private let logger = Logger(subsystem: "com.optimalapps.macx", category: "AppModel")
 
     @ObservationIgnored private let isPreviewMode: Bool
@@ -564,6 +565,7 @@ final class AppModel {
 
             isAwaitingCancelRecordingConfirmation = false
             sessionState = .recording
+            appSoundClient.playRecordingStarted()
             appFloatingCapsuleClient.showRecording()
             logger.info("Recording started")
             consoleLog("Recording started")
@@ -646,6 +648,7 @@ final class AppModel {
             let transcriptionElapsed = now.timeIntervalSince(transcriptionStart)
             updateTranscriptionSpeedEstimate(audioDuration: audioDuration, elapsed: transcriptionElapsed)
             stopTranscriptionProgressTracking(finalProgress: 1)
+            appSoundClient.playTranscriptionCompleted()
 
             let pasteResult = await appPasteClient.paste(transcript)
             logger.info("Transcription completed. characters=\(transcript.count, privacy: .public), pasteResult=\(String(describing: pasteResult), privacy: .public)")
@@ -898,6 +901,7 @@ final class AppModel {
             currentShortcutPressStart = nil
             sessionState = .recording
             transientMessage = "Listening... use macx://stop to transcribe."
+            appSoundClient.playRecordingStarted()
             appFloatingCapsuleClient.showRecording()
             logger.info("Recording started from deep link")
             consoleLog("Recording started from deep link")
@@ -1171,6 +1175,11 @@ private struct AppFloatingCapsuleClient {
     var hide: @MainActor () -> Void = {}
 }
 
+private struct AppSoundClient {
+    var playRecordingStarted: @MainActor () -> Void = {}
+    var playTranscriptionCompleted: @MainActor () -> Void = {}
+}
+
 private enum AppModelSetupClientKey: DependencyKey {
     static var liveValue: AppModelSetupClient {
         AppModelSetupClient(
@@ -1377,6 +1386,26 @@ private enum AppFloatingCapsuleClientKey: DependencyKey {
     }
 }
 
+private enum AppSoundClientKey: DependencyKey {
+    static var liveValue: AppSoundClient {
+        AppSoundClient(
+            playRecordingStarted: {
+                LiveAppServiceContainer.soundEffectService.play(.recordingStarted)
+            },
+            playTranscriptionCompleted: {
+                LiveAppServiceContainer.soundEffectService.play(.transcriptionCompleted)
+            }
+        )
+    }
+
+    static var testValue: AppSoundClient {
+        AppSoundClient(
+            playRecordingStarted: {},
+            playTranscriptionCompleted: {}
+        )
+    }
+}
+
 private extension DependencyValues {
     var appModelSetupClient: AppModelSetupClient {
         get { self[AppModelSetupClientKey.self] }
@@ -1412,6 +1441,11 @@ private extension DependencyValues {
         get { self[AppFloatingCapsuleClientKey.self] }
         set { self[AppFloatingCapsuleClientKey.self] = newValue }
     }
+
+    var appSoundClient: AppSoundClient {
+        get { self[AppSoundClientKey.self] }
+        set { self[AppSoundClientKey.self] = newValue }
+    }
 }
 
 @MainActor
@@ -1423,6 +1457,7 @@ private enum LiveAppServiceContainer {
     static let audioCaptureService = AudioCaptureService()
     static let keyboardMonitorService = KeyboardMonitorService()
     static let floatingCapsuleController = FloatingCapsuleController()
+    static let soundEffectService = SoundEffectService()
 }
 
 private extension AppModel {
