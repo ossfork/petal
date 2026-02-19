@@ -69,6 +69,7 @@
 			buildPhases = (
 				51F869552F469BEA004C06DD /* Sources */,
 				51F869562F469BEA004C06DD /* Frameworks */,
+				A10000050000000000000001 /* Embed aria2c */,
 				51F869572F469BEA004C06DD /* Resources */,
 			);
 			buildRules = (
@@ -142,6 +143,29 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A10000050000000000000001 /* Embed aria2c */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/macx/Resources/Tools/aria2c",
+			);
+			name = "Embed aria2c";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Tools/aria2c",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\nARIA2_SOURCE=\"$SRCROOT/macx/Resources/Tools/aria2c\"\nARIA2_DEST_DIR=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/Tools\"\nARIA2_DEST=\"$ARIA2_DEST_DIR/aria2c\"\nif [ ! -f \"$ARIA2_SOURCE\" ]; then\n  echo \"Missing aria2c source binary at $ARIA2_SOURCE\" >&2\n  exit 1\nfi\nmkdir -p \"$ARIA2_DEST_DIR\"\ncp \"$ARIA2_SOURCE\" \"$ARIA2_DEST\"\nchmod +x \"$ARIA2_DEST\"";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		51F869552F469BEA004C06DD /* Sources */ = {

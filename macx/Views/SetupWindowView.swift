@@ -159,6 +159,16 @@ struct SetupWindowView: View {
                     .foregroundStyle(.secondary)
             }
 
+            VStack(alignment: .leading, spacing: 4) {
+                Label("Downloader: aria2c", systemImage: "arrow.down.circle")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Label("Models folder: \(model.modelsDirectoryDisplayPath)", systemImage: "folder")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+
             if model.isDownloadingModel || model.downloadProgress > 0 || !model.downloadStatus.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {

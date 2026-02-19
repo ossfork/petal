@@ -87,6 +87,54 @@ struct MenuBarContentView: View {
 
             Divider()
 
+            VStack(alignment: .leading, spacing: 8) {
+                Text("History")
+                    .font(.subheadline.weight(.semibold))
+
+                if model.recentTranscriptHistoryEntries.isEmpty {
+                    Text("No transcripts yet.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(model.recentTranscriptHistoryEntries) { entry in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack(alignment: .top) {
+                                        Text(model.historyTimestampText(for: entry))
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
+
+                                        Spacer()
+
+                                        Button("Copy") {
+                                            model.copyTranscriptHistoryButtonTapped(entry.id)
+                                        }
+                                        .font(.caption2)
+                                        .buttonStyle(.link)
+                                    }
+
+                                    Text(model.historyMetadataText(for: entry))
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+
+                                    Text(entry.transcript)
+                                        .font(.caption)
+                                        .lineLimit(2)
+                                }
+
+                                if entry.id != model.recentTranscriptHistoryEntries.last?.id {
+                                    Divider()
+                                }
+                            }
+                        }
+                    }
+                    .frame(maxHeight: 190)
+                }
+            }
+
+            Divider()
+
             Button("Quit MacX") {
                 NSApplication.shared.terminate(nil)
             }

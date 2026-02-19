@@ -1,3 +1,4 @@
+import Foundation
 import Sharing
 
 extension SharedKey where Self == AppStorageKey<Bool>.Default {
@@ -17,5 +18,19 @@ extension SharedKey where Self == AppStorageKey<String>.Default {
 
     static var smartPrompt: Self {
         Self[.appStorage("smart_prompt"), default: "Clean up filler words and repeated phrases. Return a polished version of what was said."]
+    }
+}
+
+extension SharedKey where Self == FileStorageKey<[TranscriptHistoryDay]>.Default {
+    static var transcriptHistoryDays: Self {
+        Self[
+            .fileStorage(
+                .documentsDirectory
+                    .appending(component: "MacX")
+                    .appending(component: "transcripts")
+                    .appending(component: "history.json")
+            ),
+            default: []
+        ]
     }
 }

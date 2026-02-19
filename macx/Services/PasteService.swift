@@ -7,6 +7,15 @@ import os
 enum PasteResult: Equatable, Sendable {
     case pasted
     case copiedOnly
+
+    var rawValue: String {
+        switch self {
+        case .pasted:
+            return "pasted"
+        case .copiedOnly:
+            return "copied_only"
+        }
+    }
 }
 
 @MainActor

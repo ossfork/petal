@@ -29,6 +29,7 @@ final class AppModel {
     @ObservationIgnored @Shared(.selectedModelID) private var selectedModelIDStorage = ModelOption.defaultOption.rawValue
     @ObservationIgnored @Shared(.transcriptionMode) private var transcriptionModeStorage = TranscriptionMode.verbatim.rawValue
     @ObservationIgnored @Shared(.smartPrompt) private var smartPromptStorage = "Clean up filler words and repeated phrases. Return a polished version of what was said."
+    @ObservationIgnored @Shared(.transcriptHistoryDays) private var transcriptHistoryDaysStorage: [TranscriptHistoryDay] = []
 
     var hasCompletedSetup = false {
         didSet {
@@ -56,6 +57,12 @@ final class AppModel {
     var smartPrompt = "Clean up filler words and repeated phrases. Return a polished version of what was said." {
         didSet {
             $smartPromptStorage.withLock { $0 = smartPrompt }
+        }
+    }
+
+    var transcriptHistoryDays: [TranscriptHistoryDay] = [] {
+        didSet {
+            $transcriptHistoryDaysStorage.withLock { $0 = transcriptHistoryDays }
         }
     }
 
@@ -122,6 +129,9 @@ final class AppModel {
         selectedModelID = ModelOption.from(modelID: selectedModelIDStorage).rawValue
         transcriptionMode = TranscriptionMode(rawValue: transcriptionModeStorage) ?? .verbatim
         smartPrompt = smartPromptStorage
+        transcriptHistoryDays = transcriptHistoryDaysStorage
+
+        ensureDataDirectories()
 
         registerShortcutHandlers()
         registerKeyboardMonitor()
@@ -187,6 +197,14 @@ final class AppModel {
 
     var shortcutUsageText: String {
         "Tap and release quickly to toggle recording. Hold for at least \(Int(toggleActivationThresholdSeconds)) seconds for push-to-talk."
+    }
+
+    var recentTranscriptHistoryEntries: [TranscriptHistoryEntry] {
+        transcriptHistoryDays
+            .flatMap(\.entries)
+            .sorted { $0.timestamp > $1.timestamp }
+            .prefix(20)
+            .map { $0 }
     }
 
     var setupStepItems: [SetupStep] {
@@ -261,6 +279,10 @@ final class AppModel {
         }
 
         return "\(percent)%"
+    }
+
+    var modelsDirectoryDisplayPath: String {
+        Self.modelsDirectoryURL.path
     }
 
     func setupStepDisplayName(_ step: SetupStep) -> String {
@@ -447,6 +469,31 @@ final class AppModel {
         }
     }
 
+    func copyTranscriptHistoryButtonTapped(_ entryID: UUID) {
+        guard
+            let entry = transcriptHistoryDays
+                .flatMap(\.entries)
+                .first(where: { $0.id == entryID })
+        else {
+            return
+        }
+
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(formattedHistoryEntry(entry), forType: .string)
+        transientMessage = "Copied transcript history entry."
+    }
+
+    func historyTimestampText(for entry: TranscriptHistoryEntry) -> String {
+        entry.timestamp.formatted(date: .abbreviated, time: .shortened)
+    }
+
+    func historyMetadataText(for entry: TranscriptHistoryEntry) -> String {
+        let elapsed = entry.transcriptionElapsedSeconds.formatted(.number.precision(.fractionLength(2)))
+        let audio = entry.audioDurationSeconds.formatted(.number.precision(.fractionLength(2)))
+        return "\(entry.transcriptionMode.capitalized) • \(entry.modelID) • \(entry.characterCount) chars • \(elapsed)s elapsed • \(audio)s audio"
+    }
+
     func pushToTalkKeyDown() async {
         logger.info("Push-to-talk key down")
         consoleLog("Push-to-talk key down")
@@ -593,6 +640,15 @@ final class AppModel {
             let pasteResult = await pasteService.paste(text: transcript)
             logger.info("Transcription completed. characters=\(transcript.count, privacy: .public), pasteResult=\(String(describing: pasteResult), privacy: .public)")
             consoleLog("Transcription completed. characters=\(transcript.count), pasteResult=\(String(describing: pasteResult))")
+
+            appendTranscriptHistory(
+                transcript: transcript,
+                modelID: selectedModelOption.rawValue,
+                mode: transcriptionMode.rawValue,
+                audioDuration: audioDuration,
+                transcriptionElapsed: transcriptionElapsed,
+                pasteResult: pasteResult
+            )
 
             switch pasteResult {
             case .pasted:
@@ -902,6 +958,95 @@ final class AppModel {
         let alpha = 0.25
         estimatedTranscriptionRTF = (1 - alpha) * estimatedTranscriptionRTF + alpha * latestRTF
     }
+
+    private func appendTranscriptHistory(
+        transcript: String,
+        modelID: String,
+        mode: String,
+        audioDuration: Double,
+        transcriptionElapsed: Double,
+        pasteResult: PasteResult
+    ) {
+        let now = Date()
+        let day = Self.historyDayFormatter.string(from: now)
+        let entry = TranscriptHistoryEntry(
+            id: UUID(),
+            timestamp: now,
+            transcript: transcript,
+            modelID: modelID,
+            transcriptionMode: mode,
+            audioDurationSeconds: audioDuration,
+            transcriptionElapsedSeconds: transcriptionElapsed,
+            characterCount: transcript.count,
+            pasteResult: pasteResult.rawValue
+        )
+
+        if let dayIndex = transcriptHistoryDays.firstIndex(where: { $0.day == day }) {
+            transcriptHistoryDays[dayIndex].entries.insert(entry, at: 0)
+            if transcriptHistoryDays[dayIndex].entries.count > 200 {
+                transcriptHistoryDays[dayIndex].entries.removeLast(transcriptHistoryDays[dayIndex].entries.count - 200)
+            }
+        } else {
+            transcriptHistoryDays.append(
+                TranscriptHistoryDay(day: day, entries: [entry])
+            )
+        }
+
+        transcriptHistoryDays.sort { $0.day > $1.day }
+    }
+
+    private func formattedHistoryEntry(_ entry: TranscriptHistoryEntry) -> String {
+        let timestamp = entry.timestamp.formatted(date: .abbreviated, time: .standard)
+        let elapsed = entry.transcriptionElapsedSeconds.formatted(.number.precision(.fractionLength(2)))
+        let audio = entry.audioDurationSeconds.formatted(.number.precision(.fractionLength(2)))
+
+        return """
+        Timestamp: \(timestamp)
+        Model: \(entry.modelID)
+        Mode: \(entry.transcriptionMode)
+        Paste: \(entry.pasteResult)
+        Duration: \(audio)s audio, \(elapsed)s transcription
+        Characters: \(entry.characterCount)
+
+        \(entry.transcript)
+        """
+    }
+
+    private func ensureDataDirectories() {
+        let fileManager = FileManager.default
+        let directories = [
+            Self.modelsDirectoryURL,
+            Self.transcriptsDirectoryURL
+        ]
+
+        for directory in directories {
+            try? fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+        }
+    }
+}
+
+private extension AppModel {
+    static let historyDayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .current
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+
+    static var appDocumentsDirectoryURL: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            .appending(path: "MacX", directoryHint: .isDirectory)
+    }
+
+    static var modelsDirectoryURL: URL {
+        appDocumentsDirectoryURL.appending(path: "models", directoryHint: .isDirectory)
+    }
+
+    static var transcriptsDirectoryURL: URL {
+        appDocumentsDirectoryURL.appending(path: "transcripts", directoryHint: .isDirectory)
+    }
 }
 
 #if DEBUG
@@ -918,6 +1063,7 @@ extension AppModel {
         model.sessionState = .idle
         model.lastError = nil
         model.transientMessage = nil
+        model.transcriptHistoryDays = []
         model.microphonePermissionState = .authorized
         model.microphoneAuthorized = true
         model.accessibilityAuthorized = true

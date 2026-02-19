@@ -23,15 +23,14 @@ public class ModelDownloader {
         setenv("CI_DISABLE_NETWORK_MONITOR", "1", 1)
 
         return HubApi(
-            downloadBase: FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first,
+            downloadBase: appDirectory,
             useOfflineMode: false
         )
     }()
 
-    /// Default models directory (in user's home)
+    /// Default models directory (in Documents/MacX/models)
     public static var modelsDirectory: URL {
-        let homeDir = FileManager.default.homeDirectoryForCurrentUser
-        return homeDir.appendingPathComponent(".voxtral").appendingPathComponent("models")
+        appDirectory.appendingPathComponent("models")
     }
 
     /// Check if a model is already downloaded
@@ -161,6 +160,8 @@ public class ModelDownloader {
         _ model: VoxtralModelInfo,
         progress: DownloadProgressCallback? = nil
     ) async throws -> URL {
+        try ensureModelDirectories()
+
         // Check if already downloaded and complete
         if let existingPath = findModelPath(for: model) {
             let verification = verifyShardedModel(at: existingPath)
@@ -178,7 +179,14 @@ public class ModelDownloader {
         print("Repository: \(model.repoId)")
         print()
 
-        // Use Hub API to download the snapshot
+        do {
+            return try await downloadWithAria2(model, progress: progress)
+        } catch {
+            print("aria2c download failed, falling back to Hub downloader: \(error.localizedDescription)")
+            progress?(0.0, "aria2c failed, falling back to default downloader…")
+        }
+
+        // Fallback: Hub API snapshot download
         let modelUrl = try await hubApi.snapshot(
             from: model.repoId,
             matching: ["*.json", "*.safetensors"],
@@ -312,6 +320,206 @@ public class ModelDownloader {
         }
     }
 
+    private struct HuggingFaceTreeItem: Decodable {
+        struct LFSInfo: Decodable {
+            let size: Int64?
+        }
+
+        let path: String
+        let type: String?
+        let size: Int64?
+        let lfs: LFSInfo?
+
+        var resolvedSize: Int64 {
+            lfs?.size ?? size ?? 0
+        }
+    }
+
+    private static func downloadWithAria2(
+        _ model: VoxtralModelInfo,
+        progress: DownloadProgressCallback? = nil
+    ) async throws -> URL {
+        guard let aria2cURL = findAria2cBinaryURL() else {
+            throw ModelDownloaderError.aria2BinaryMissing
+        }
+
+        let modelPath = localPath(for: model)
+        try FileManager.default.createDirectory(at: modelPath, withIntermediateDirectories: true)
+
+        let files = try await fetchModelFiles(repoId: model.repoId)
+        let filteredFiles = files.filter {
+            $0.type == "file" && ($0.path.hasSuffix(".json") || $0.path.hasSuffix(".safetensors"))
+        }
+
+        guard !filteredFiles.isEmpty else {
+            throw ModelDownloaderError.downloadFailed("No model files found in HuggingFace tree.")
+        }
+
+        let manifestURL = try createAria2Manifest(
+            repoId: model.repoId,
+            files: filteredFiles.map(\.path),
+            destination: modelPath
+        )
+
+        defer {
+            try? FileManager.default.removeItem(at: manifestURL)
+        }
+
+        let totalExpectedBytes = filteredFiles.reduce(Int64(0)) { partialResult, file in
+            partialResult + max(file.resolvedSize, 1)
+        }
+
+        let process = Process()
+        process.executableURL = aria2cURL
+        process.arguments = [
+            "--input-file=\(manifestURL.path)",
+            "--dir=\(modelPath.path)",
+            "--continue=true",
+            "--allow-overwrite=true",
+            "--auto-file-renaming=false",
+            "--max-concurrent-downloads=6",
+            "--split=8",
+            "--min-split-size=1M",
+            "--summary-interval=0",
+            "--console-log-level=warn",
+            "--download-result=hide"
+        ]
+
+        // Avoid pipe back-pressure deadlocks for long-running downloads.
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+
+        try process.run()
+        progress?(0.0, "Downloading model files... 0%")
+
+        var lastMeasureTime = Date()
+        var lastMeasuredBytes: Int64 = 0
+        let trackedPaths = filteredFiles.map(\.path)
+
+        while process.isRunning {
+            try await Task.sleep(for: .seconds(1))
+            let downloadedBytes = downloadedBytes(at: modelPath, paths: trackedPaths)
+            let fractionCompleted = min(max(Double(downloadedBytes) / Double(max(totalExpectedBytes, 1)), 0), 0.99)
+            let now = Date()
+            let elapsed = now.timeIntervalSince(lastMeasureTime)
+            let bytesDelta = downloadedBytes - lastMeasuredBytes
+            let speedBytesPerSecond = elapsed > 0 ? Double(bytesDelta) / elapsed : nil
+
+            let percent = Int((fractionCompleted * 100).rounded())
+            let status = downloadStatus(percent: percent, speedBytesPerSecond: speedBytesPerSecond)
+            progress?(fractionCompleted, status)
+
+            lastMeasureTime = now
+            lastMeasuredBytes = downloadedBytes
+        }
+
+        process.waitUntilExit()
+        guard process.terminationStatus == 0 else {
+            throw ModelDownloaderError.downloadFailed("aria2c exited with code \(process.terminationStatus).")
+        }
+
+        let verification = verifyShardedModel(at: modelPath)
+        guard verification.complete else {
+            throw ModelDownloaderError.downloadFailed("Missing files after aria2c download: \(verification.missing.joined(separator: ", "))")
+        }
+
+        progress?(1.0, "Download complete!")
+        return modelPath
+    }
+
+    private static func fetchModelFiles(repoId: String) async throws -> [HuggingFaceTreeItem] {
+        guard let url = URL(string: "https://huggingface.co/api/models/\(repoId)/tree/main?recursive=1") else {
+            throw ModelDownloaderError.downloadFailed("Invalid HuggingFace API URL.")
+        }
+
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let httpResponse = response as? HTTPURLResponse, (200..<300).contains(httpResponse.statusCode) else {
+            throw ModelDownloaderError.downloadFailed("HuggingFace API returned an invalid response.")
+        }
+
+        do {
+            return try JSONDecoder().decode([HuggingFaceTreeItem].self, from: data)
+        } catch {
+            throw ModelDownloaderError.downloadFailed("Could not decode HuggingFace file list: \(error.localizedDescription)")
+        }
+    }
+
+    private static func createAria2Manifest(
+        repoId: String,
+        files: [String],
+        destination: URL
+    ) throws -> URL {
+        let tempURL = destination.appendingPathComponent(".aria2-input-\(UUID().uuidString).txt")
+        var lines: [String] = []
+        lines.reserveCapacity(files.count * 3)
+
+        for file in files {
+            let encodedPath = encodePathForURL(file)
+            let fileURL = "https://huggingface.co/\(repoId)/resolve/main/\(encodedPath)?download=true"
+            lines.append(fileURL)
+            lines.append("  out=\(file)")
+            lines.append("")
+
+            let parent = destination.appendingPathComponent((file as NSString).deletingLastPathComponent)
+            if parent.path != destination.path {
+                try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
+            }
+        }
+
+        try lines.joined(separator: "\n").write(to: tempURL, atomically: true, encoding: .utf8)
+        return tempURL
+    }
+
+    private static func encodePathForURL(_ path: String) -> String {
+        path
+            .split(separator: "/")
+            .map { component in
+                String(component).addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? String(component)
+            }
+            .joined(separator: "/")
+    }
+
+    private static func downloadedBytes(at basePath: URL, paths: [String]) -> Int64 {
+        var total: Int64 = 0
+
+        for relativePath in paths {
+            let fileURL = basePath.appendingPathComponent(relativePath)
+            guard let values = try? fileURL.resourceValues(forKeys: [.fileSizeKey]),
+                  let fileSize = values.fileSize else {
+                continue
+            }
+            total += Int64(fileSize)
+        }
+
+        return total
+    }
+
+    private static func findAria2cBinaryURL() -> URL? {
+        let candidateURLs: [URL] = [
+            Bundle.main.resourceURL?.appendingPathComponent("Tools/aria2c"),
+            Bundle.main.resourceURL?.appendingPathComponent("aria2c"),
+            URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("macx/Resources/Tools/aria2c"),
+            URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".local/bin/aria2c"),
+            URL(fileURLWithPath: "/opt/homebrew/bin/aria2c"),
+            URL(fileURLWithPath: "/usr/local/bin/aria2c")
+        ].compactMap { $0 }
+
+        for url in candidateURLs where FileManager.default.isExecutableFile(atPath: url.path) {
+            return url
+        }
+
+        return nil
+    }
+
+    private static var appDirectory: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            .appendingPathComponent("MacX")
+    }
+
+    private static func ensureModelDirectories() throws {
+        try FileManager.default.createDirectory(at: modelsDirectory, withIntermediateDirectories: true)
+    }
+
     // MARK: - Convenience Methods for Default Model
 
     /// Check if the default/recommended model is downloaded
@@ -356,6 +564,7 @@ public class ModelDownloader {
 public enum ModelDownloaderError: LocalizedError {
     case modelNotFound
     case downloadFailed(String)
+    case aria2BinaryMissing
 
     public var errorDescription: String? {
         switch self {
@@ -363,6 +572,8 @@ public enum ModelDownloaderError: LocalizedError {
             return "Model not found locally"
         case .downloadFailed(let reason):
             return "Download failed: \(reason)"
+        case .aria2BinaryMissing:
+            return "aria2c binary is missing from the app bundle or system PATH."
         }
     }
 }
