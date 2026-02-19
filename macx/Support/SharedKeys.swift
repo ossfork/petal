@@ -21,12 +21,6 @@ extension SharedKey where Self == AppStorageKey<String>.Default {
     }
 }
 
-extension SharedKey where Self == AppStorageKey<Bool>.Default {
-    static var saveHistory: Self {
-        Self[.appStorage("save_history"), default: true]
-    }
-}
-
 extension SharedKey where Self == FileStorageKey<[TranscriptHistoryDay]>.Default {
     static var transcriptHistoryDays: Self {
         Self[
@@ -38,5 +32,11 @@ extension SharedKey where Self == FileStorageKey<[TranscriptHistoryDay]>.Default
             ),
             default: []
         ]
+    }
+}
+
+extension SharedKey where Self == AppStorageKey<String>.Default {
+    static var historyRetentionMode: Self {
+        Self[.appStorage("history_retention_mode"), default: HistoryRetentionMode.both.rawValue]
     }
 }

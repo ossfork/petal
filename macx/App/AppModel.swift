@@ -29,7 +29,7 @@ final class AppModel {
     @ObservationIgnored @Shared(.selectedModelID) private var selectedModelIDStorage = ModelOption.defaultOption.rawValue
     @ObservationIgnored @Shared(.transcriptionMode) private var transcriptionModeStorage = TranscriptionMode.verbatim.rawValue
     @ObservationIgnored @Shared(.smartPrompt) private var smartPromptStorage = "Clean up filler words and repeated phrases. Return a polished version of what was said."
-    @ObservationIgnored @Shared(.saveHistory) private var saveHistoryStorage = true
+    @ObservationIgnored @Shared(.historyRetentionMode) private var historyRetentionModeStorage = HistoryRetentionMode.both.rawValue
     @ObservationIgnored @Shared(.transcriptHistoryDays) private var transcriptHistoryDaysStorage: [TranscriptHistoryDay] = []
 
     var hasCompletedSetup = false {
@@ -61,15 +61,16 @@ final class AppModel {
         }
     }
 
-    var saveHistory = true {
+    var historyRetentionMode: HistoryRetentionMode = .both {
         didSet {
-            $saveHistoryStorage.withLock { $0 = saveHistory }
+            $historyRetentionModeStorage.withLock { $0 = historyRetentionMode.rawValue }
 
-            if !saveHistory {
+            if !historyRetentionMode.keepsHistory {
                 transcriptHistoryDays = []
                 clearPersistedHistoryArtifacts()
             } else {
                 ensureDataDirectories()
+                prunePersistedHistoryArtifacts()
             }
         }
     }
@@ -140,7 +141,7 @@ final class AppModel {
         selectedModelID = ModelOption.from(modelID: selectedModelIDStorage).rawValue
         transcriptionMode = TranscriptionMode(rawValue: transcriptionModeStorage) ?? .verbatim
         smartPrompt = smartPromptStorage
-        saveHistory = saveHistoryStorage
+        historyRetentionMode = HistoryRetentionMode(rawValue: historyRetentionModeStorage) ?? .both
         transcriptHistoryDays = transcriptHistoryDaysStorage
 
         ensureDataDirectories()
@@ -513,11 +514,34 @@ final class AppModel {
     }
 
     func openHistoryFolderButtonTapped() {
+        guard historyRetentionMode.keepsHistory else {
+            transientMessage = "History retention is off."
+            return
+        }
+
         if !FileManager.default.fileExists(atPath: Self.historyDirectoryURL.path) {
             ensureDataDirectories()
         }
 
         NSWorkspace.shared.open(Self.historyDirectoryURL)
+    }
+
+    func playHistoryAudioButtonTapped(_ entryID: UUID) {
+        guard
+            let entry = transcriptHistoryDays.flatMap(\.entries).first(where: { $0.id == entryID }),
+            let audioRelativePath = entry.audioRelativePath
+        else {
+            transientMessage = "No saved audio for this entry."
+            return
+        }
+
+        let audioURL = Self.historyDirectoryURL.appending(path: audioRelativePath)
+        guard FileManager.default.fileExists(atPath: audioURL.path) else {
+            transientMessage = "Saved audio file not found."
+            return
+        }
+
+        NSWorkspace.shared.open(audioURL)
     }
 
     func handleDeepLink(_ command: MacXDeepLinkCommand) async {
@@ -1094,14 +1118,14 @@ final class AppModel {
         audioRelativePath: String?,
         transcriptRelativePath: String?
     ) {
-        guard saveHistory else { return }
+        guard historyRetentionMode.keepsHistory else { return }
 
         let timestamp = now
         let day = Self.historyDayFormatter.string(from: timestamp)
         let entry = TranscriptHistoryEntry(
             id: uuid(),
             timestamp: timestamp,
-            transcript: transcript,
+            transcript: historyRetentionMode.keepsTranscripts ? transcript : "",
             modelID: modelID,
             transcriptionMode: mode,
             audioDurationSeconds: audioDuration,
@@ -1132,8 +1156,8 @@ final class AppModel {
         timestamp: Date,
         mode: String,
         modelID: String
-    ) -> (audioRelativePath: String, transcriptRelativePath: String)? {
-        guard saveHistory else { return nil }
+    ) -> (audioRelativePath: String?, transcriptRelativePath: String?)? {
+        guard historyRetentionMode.keepsHistory else { return nil }
         ensureDataDirectories()
 
         let fileManager = FileManager.default
@@ -1144,17 +1168,31 @@ final class AppModel {
         let audioTarget = Self.historyMediaDirectoryURL.appending(path: "\(baseName).wav")
         let transcriptTarget = Self.historyTranscriptsDirectoryURL.appending(path: "\(baseName).txt")
 
+        var audioRelativePath: String?
+        var transcriptRelativePath: String?
+
         do {
-            if fileManager.fileExists(atPath: audioTarget.path) {
-                try fileManager.removeItem(at: audioTarget)
+            if historyRetentionMode.keepsAudio {
+                if fileManager.fileExists(atPath: audioTarget.path) {
+                    try fileManager.removeItem(at: audioTarget)
+                }
+
+                try fileManager.copyItem(at: audioURL, to: audioTarget)
+                audioRelativePath = "media/\(audioTarget.lastPathComponent)"
             }
 
-            try fileManager.copyItem(at: audioURL, to: audioTarget)
-            try transcript.write(to: transcriptTarget, atomically: true, encoding: .utf8)
+            if historyRetentionMode.keepsTranscripts {
+                if fileManager.fileExists(atPath: transcriptTarget.path) {
+                    try fileManager.removeItem(at: transcriptTarget)
+                }
+
+                try transcript.write(to: transcriptTarget, atomically: true, encoding: .utf8)
+                transcriptRelativePath = "transcripts/\(transcriptTarget.lastPathComponent)"
+            }
 
             return (
-                audioRelativePath: "media/\(audioTarget.lastPathComponent)",
-                transcriptRelativePath: "transcripts/\(transcriptTarget.lastPathComponent)"
+                audioRelativePath: audioRelativePath,
+                transcriptRelativePath: transcriptRelativePath
             )
         } catch {
             reportIssue(error)
@@ -1179,7 +1217,7 @@ final class AppModel {
         Audio file: \(audioPath)
         Transcript file: \(transcriptPath)
 
-        \(entry.transcript)
+        \(entry.transcript.isEmpty ? "Transcript not retained." : entry.transcript)
         """
     }
 
@@ -1194,15 +1232,43 @@ final class AppModel {
             try? fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
         }
 
-        if saveHistory {
+        if historyRetentionMode.keepsAudio {
             try? fileManager.createDirectory(at: Self.historyMediaDirectoryURL, withIntermediateDirectories: true)
+        } else {
+            try? fileManager.removeItem(at: Self.historyMediaDirectoryURL)
+        }
+
+        if historyRetentionMode.keepsTranscripts {
             try? fileManager.createDirectory(at: Self.historyTranscriptsDirectoryURL, withIntermediateDirectories: true)
+        } else {
+            try? fileManager.removeItem(at: Self.historyTranscriptsDirectoryURL)
         }
     }
 
     private func clearPersistedHistoryArtifacts() {
         let fileManager = FileManager.default
         try? fileManager.removeItem(at: Self.historyDirectoryURL)
+    }
+
+    private func prunePersistedHistoryArtifacts() {
+        guard historyRetentionMode.keepsHistory else { return }
+
+        if !historyRetentionMode.keepsAudio {
+            for dayIndex in transcriptHistoryDays.indices {
+                for entryIndex in transcriptHistoryDays[dayIndex].entries.indices {
+                    transcriptHistoryDays[dayIndex].entries[entryIndex].audioRelativePath = nil
+                }
+            }
+        }
+
+        if !historyRetentionMode.keepsTranscripts {
+            for dayIndex in transcriptHistoryDays.indices {
+                for entryIndex in transcriptHistoryDays[dayIndex].entries.indices {
+                    transcriptHistoryDays[dayIndex].entries[entryIndex].transcriptRelativePath = nil
+                    transcriptHistoryDays[dayIndex].entries[entryIndex].transcript = ""
+                }
+            }
+        }
     }
 
     deinit {

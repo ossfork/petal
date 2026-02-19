@@ -170,8 +170,12 @@ struct SetupWindowView: View {
             }
 
             VStack(alignment: .leading, spacing: 6) {
-                Toggle("Save history to disk", isOn: $model.saveHistory)
-                    .font(.caption)
+                Picker("History Retention", selection: $model.historyRetentionMode) {
+                    ForEach(HistoryRetentionMode.allCases) { mode in
+                        Text(mode.displayName).tag(mode)
+                    }
+                }
+                .pickerStyle(.menu)
 
                 Label("History folder: \(model.historyDirectoryDisplayPath)", systemImage: "folder")
                     .font(.caption)

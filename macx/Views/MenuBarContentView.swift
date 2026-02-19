@@ -92,8 +92,13 @@ struct MenuBarContentView: View {
                 Text("History")
                     .font(.subheadline.weight(.semibold))
 
-                Toggle("Save History", isOn: $model.saveHistory)
-                    .font(.caption)
+                Picker("Retention", selection: $model.historyRetentionMode) {
+                    ForEach(HistoryRetentionMode.allCases) { mode in
+                        Text(mode.displayName).tag(mode)
+                    }
+                }
+                .pickerStyle(.menu)
+                .labelsHidden()
 
                 HStack(spacing: 12) {
                     Text(model.historyDirectoryDisplayPath)
@@ -110,7 +115,11 @@ struct MenuBarContentView: View {
                     .buttonStyle(.link)
                 }
 
-                if model.recentTranscriptHistoryEntries.isEmpty {
+                if !model.historyRetentionMode.keepsHistory {
+                    Text("History retention is off.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else if model.recentTranscriptHistoryEntries.isEmpty {
                     Text("No transcripts yet.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -131,13 +140,21 @@ struct MenuBarContentView: View {
                                         }
                                         .font(.caption2)
                                         .buttonStyle(.link)
+
+                                        if entry.audioRelativePath != nil {
+                                            Button("Play") {
+                                                model.playHistoryAudioButtonTapped(entry.id)
+                                            }
+                                            .font(.caption2)
+                                            .buttonStyle(.link)
+                                        }
                                     }
 
                                     Text(model.historyMetadataText(for: entry))
                                         .font(.caption2)
                                         .foregroundStyle(.secondary)
 
-                                    Text(entry.transcript)
+                                    Text(entry.transcript.isEmpty ? "Transcript not retained." : entry.transcript)
                                         .font(.caption)
                                         .lineLimit(2)
                                 }
