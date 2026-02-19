@@ -5,6 +5,7 @@ APP_PATH=""
 SIGNING_IDENTITY=""
 KEYCHAIN_PATH=""
 REQUIRE_ARIA2C="0"
+SKIP_GATEKEEPER="0"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -24,6 +25,10 @@ while [[ $# -gt 0 ]]; do
       REQUIRE_ARIA2C="1"
       shift
       ;;
+    --skip-gatekeeper)
+      SKIP_GATEKEEPER="1"
+      shift
+      ;;
     *)
       echo "Unknown argument: $1" >&2
       exit 1
@@ -32,7 +37,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$APP_PATH" || -z "$SIGNING_IDENTITY" ]]; then
-  echo "Usage: $(basename "$0") --app <path/to/app> --identity <Developer ID Application> [--keychain <path>] [--require]" >&2
+  echo "Usage: $(basename "$0") --app <path/to/app> --identity <Developer ID Application> [--keychain <path>] [--require] [--skip-gatekeeper]" >&2
   exit 1
 fi
 
@@ -75,8 +80,12 @@ for binary in "${ARIA2C_BINARIES[@]}"; do
   echo "Verifying codesign for: $binary"
   codesign --verify --strict --verbose=2 "$binary"
 
-  echo "Gatekeeper assessment for: $binary"
-  spctl --assess --type execute --verbose=4 "$binary"
+  if [[ "$SKIP_GATEKEEPER" == "1" ]]; then
+    echo "Skipping Gatekeeper assessment for: $binary"
+  else
+    echo "Gatekeeper assessment for: $binary"
+    spctl --assess --type execute --verbose=4 "$binary"
+  fi
 done
 
 echo "aria2c signing and verification completed"

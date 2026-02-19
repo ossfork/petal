@@ -170,7 +170,8 @@ jobs:
             --app "$APP_PATH" \
             --identity "Developer ID Application: Aayush Pokharel (${{ secrets.APPLE_TEAM_ID }})" \
             --keychain "$KEYCHAIN_PATH" \
-            --require
+            --require \
+            --skip-gatekeeper
 
       - name: Notarize app
         env:
