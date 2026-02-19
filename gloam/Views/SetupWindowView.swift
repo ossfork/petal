@@ -1,5 +1,7 @@
 import AppKit
 import KeyboardShortcuts
+import PermissionsClient
+import Shared
 import SwiftUI
 
 struct SetupWindowView: View {
@@ -222,9 +224,11 @@ struct SetupWindowView: View {
                         if option.isRecommended {
                             Text("Recommended")
                                 .font(.caption2.weight(.semibold))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.green.opacity(0.22), in: Capsule())
+                                .capsulePill(
+                                    horizontalPadding: 8,
+                                    verticalPadding: 4,
+                                    fill: Color.green.opacity(0.22)
+                                )
                                 .foregroundStyle(.green)
                         }
                     }
@@ -424,9 +428,11 @@ struct SetupWindowView: View {
             Text("\(title): \(statusText)")
         }
         .font(.caption.weight(.semibold))
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(statusColor.opacity(0.2), in: Capsule())
+        .capsulePill(
+            horizontalPadding: 10,
+            verticalPadding: 6,
+            fill: statusColor.opacity(0.2)
+        )
         .foregroundStyle(statusColor)
     }
 
@@ -555,6 +561,19 @@ struct SetupWindowView: View {
                 window.setFrameOrigin(origin)
             }
         }
+    }
+}
+
+private extension View {
+    func capsulePill<S: ShapeStyle>(
+        horizontalPadding: CGFloat,
+        verticalPadding: CGFloat,
+        fill: S
+    ) -> some View {
+        self
+            .padding(.horizontal, horizontalPadding)
+            .padding(.vertical, verticalPadding)
+            .background(fill, in: Capsule())
     }
 }
 
