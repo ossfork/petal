@@ -64,14 +64,7 @@ final class AppModel {
     var historyRetentionMode: HistoryRetentionMode = .both {
         didSet {
             $historyRetentionModeStorage.withLock { $0 = historyRetentionMode.rawValue }
-
-            if !historyRetentionMode.keepsHistory {
-                transcriptHistoryDays = []
-                clearPersistedHistoryArtifacts()
-            } else {
-                ensureDataDirectories()
-                prunePersistedHistoryArtifacts()
-            }
+            transcriptHistoryDays = appHistoryClient.applyRetention(historyRetentionMode, transcriptHistoryDays)
         }
     }
 
@@ -104,6 +97,7 @@ final class AppModel {
     @ObservationIgnored @Dependency(\.appKeyboardClient) private var appKeyboardClient
     @ObservationIgnored @Dependency(\.appFloatingCapsuleClient) private var appFloatingCapsuleClient
     @ObservationIgnored @Dependency(\.appSoundClient) private var appSoundClient
+    @ObservationIgnored @Dependency(\.appHistoryClient) private var appHistoryClient
     @ObservationIgnored private let logger = Logger(subsystem: "com.optimalapps.macx", category: "AppModel")
 
     @ObservationIgnored private let isPreviewMode: Bool
@@ -144,7 +138,7 @@ final class AppModel {
         historyRetentionMode = HistoryRetentionMode(rawValue: historyRetentionModeStorage) ?? .both
         transcriptHistoryDays = transcriptHistoryDaysStorage
 
-        ensureDataDirectories()
+        transcriptHistoryDays = appHistoryClient.bootstrap(historyRetentionMode, transcriptHistoryDays)
 
         registerShortcutHandlers()
         registerKeyboardMonitor()
@@ -296,11 +290,11 @@ final class AppModel {
     }
 
     var modelsDirectoryDisplayPath: String {
-        Self.modelsDirectoryURL.path
+        appHistoryClient.modelsDirectoryPath()
     }
 
     var historyDirectoryDisplayPath: String {
-        Self.historyDirectoryURL.path
+        appHistoryClient.historyDirectoryPath()
     }
 
     func setupStepDisplayName(_ step: SetupStep) -> String {
@@ -514,16 +508,10 @@ final class AppModel {
     }
 
     func openHistoryFolderButtonTapped() {
-        guard historyRetentionMode.keepsHistory else {
+        let opened = appHistoryClient.openHistoryFolder(historyRetentionMode)
+        if !opened {
             transientMessage = "History retention is off."
-            return
         }
-
-        if !FileManager.default.fileExists(atPath: Self.historyDirectoryURL.path) {
-            ensureDataDirectories()
-        }
-
-        NSWorkspace.shared.open(Self.historyDirectoryURL)
     }
 
     func playHistoryAudioButtonTapped(_ entryID: UUID) {
@@ -535,8 +523,7 @@ final class AppModel {
             return
         }
 
-        let audioURL = Self.historyDirectoryURL.appending(path: audioRelativePath)
-        guard FileManager.default.fileExists(atPath: audioURL.path) else {
+        guard let audioURL = appHistoryClient.historyAudioURL(audioRelativePath) else {
             transientMessage = "Saved audio file not found."
             return
         }
@@ -1118,36 +1105,20 @@ final class AppModel {
         audioRelativePath: String?,
         transcriptRelativePath: String?
     ) {
-        guard historyRetentionMode.keepsHistory else { return }
-
-        let timestamp = now
-        let day = Self.historyDayFormatter.string(from: timestamp)
-        let entry = TranscriptHistoryEntry(
-            id: uuid(),
-            timestamp: timestamp,
-            transcript: historyRetentionMode.keepsTranscripts ? transcript : "",
-            modelID: modelID,
-            transcriptionMode: mode,
-            audioDurationSeconds: audioDuration,
-            transcriptionElapsedSeconds: transcriptionElapsed,
-            characterCount: transcript.count,
-            pasteResult: pasteResult.rawValue,
-            audioRelativePath: audioRelativePath,
-            transcriptRelativePath: transcriptRelativePath
+        transcriptHistoryDays = appHistoryClient.appendEntry(
+            transcriptHistoryDays,
+            transcript,
+            modelID,
+            mode,
+            audioDuration,
+            transcriptionElapsed,
+            pasteResult,
+            audioRelativePath,
+            transcriptRelativePath,
+            historyRetentionMode,
+            now,
+            uuid()
         )
-
-        if let dayIndex = transcriptHistoryDays.firstIndex(where: { $0.day == day }) {
-            transcriptHistoryDays[dayIndex].entries.insert(entry, at: 0)
-            if transcriptHistoryDays[dayIndex].entries.count > 200 {
-                transcriptHistoryDays[dayIndex].entries.removeLast(transcriptHistoryDays[dayIndex].entries.count - 200)
-            }
-        } else {
-            transcriptHistoryDays.append(
-                TranscriptHistoryDay(day: day, entries: [entry])
-            )
-        }
-
-        transcriptHistoryDays.sort { $0.day > $1.day }
     }
 
     private func persistHistoryArtifacts(
@@ -1157,47 +1128,18 @@ final class AppModel {
         mode: String,
         modelID: String
     ) -> (audioRelativePath: String?, transcriptRelativePath: String?)? {
-        guard historyRetentionMode.keepsHistory else { return nil }
-        ensureDataDirectories()
-
-        let fileManager = FileManager.default
-        let stamp = Self.historyArtifactFormatter.string(from: timestamp)
-        let safeModelID = modelID.replacingOccurrences(of: "/", with: "-")
-        let baseName = "\(stamp)-\(safeModelID)-\(mode)"
-
-        let audioTarget = Self.historyMediaDirectoryURL.appending(path: "\(baseName).wav")
-        let transcriptTarget = Self.historyTranscriptsDirectoryURL.appending(path: "\(baseName).txt")
-
-        var audioRelativePath: String?
-        var transcriptRelativePath: String?
-
-        do {
-            if historyRetentionMode.keepsAudio {
-                if fileManager.fileExists(atPath: audioTarget.path) {
-                    try fileManager.removeItem(at: audioTarget)
-                }
-
-                try fileManager.copyItem(at: audioURL, to: audioTarget)
-                audioRelativePath = "media/\(audioTarget.lastPathComponent)"
-            }
-
-            if historyRetentionMode.keepsTranscripts {
-                if fileManager.fileExists(atPath: transcriptTarget.path) {
-                    try fileManager.removeItem(at: transcriptTarget)
-                }
-
-                try transcript.write(to: transcriptTarget, atomically: true, encoding: .utf8)
-                transcriptRelativePath = "transcripts/\(transcriptTarget.lastPathComponent)"
-            }
-
-            return (
-                audioRelativePath: audioRelativePath,
-                transcriptRelativePath: transcriptRelativePath
-            )
-        } catch {
-            reportIssue(error)
-            return nil
-        }
+        let artifacts = appHistoryClient.persistArtifacts(
+            audioURL,
+            transcript,
+            timestamp,
+            mode,
+            modelID,
+            historyRetentionMode
+        )
+        return (
+            audioRelativePath: artifacts?.audioRelativePath,
+            transcriptRelativePath: artifacts?.transcriptRelativePath
+        )
     }
 
     private func formattedHistoryEntry(_ entry: TranscriptHistoryEntry) -> String {
@@ -1219,56 +1161,6 @@ final class AppModel {
 
         \(entry.transcript.isEmpty ? "Transcript not retained." : entry.transcript)
         """
-    }
-
-    private func ensureDataDirectories() {
-        let fileManager = FileManager.default
-        let directories = [
-            Self.modelsDirectoryURL,
-            Self.historyDirectoryURL
-        ]
-
-        for directory in directories {
-            try? fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
-        }
-
-        if historyRetentionMode.keepsAudio {
-            try? fileManager.createDirectory(at: Self.historyMediaDirectoryURL, withIntermediateDirectories: true)
-        } else {
-            try? fileManager.removeItem(at: Self.historyMediaDirectoryURL)
-        }
-
-        if historyRetentionMode.keepsTranscripts {
-            try? fileManager.createDirectory(at: Self.historyTranscriptsDirectoryURL, withIntermediateDirectories: true)
-        } else {
-            try? fileManager.removeItem(at: Self.historyTranscriptsDirectoryURL)
-        }
-    }
-
-    private func clearPersistedHistoryArtifacts() {
-        let fileManager = FileManager.default
-        try? fileManager.removeItem(at: Self.historyDirectoryURL)
-    }
-
-    private func prunePersistedHistoryArtifacts() {
-        guard historyRetentionMode.keepsHistory else { return }
-
-        if !historyRetentionMode.keepsAudio {
-            for dayIndex in transcriptHistoryDays.indices {
-                for entryIndex in transcriptHistoryDays[dayIndex].entries.indices {
-                    transcriptHistoryDays[dayIndex].entries[entryIndex].audioRelativePath = nil
-                }
-            }
-        }
-
-        if !historyRetentionMode.keepsTranscripts {
-            for dayIndex in transcriptHistoryDays.indices {
-                for entryIndex in transcriptHistoryDays[dayIndex].entries.indices {
-                    transcriptHistoryDays[dayIndex].entries[entryIndex].transcriptRelativePath = nil
-                    transcriptHistoryDays[dayIndex].entries[entryIndex].transcript = ""
-                }
-            }
-        }
     }
 
     deinit {
@@ -1338,6 +1230,35 @@ private struct AppFloatingCapsuleClient {
 private struct AppSoundClient {
     var playRecordingStarted: @MainActor () -> Void = {}
     var playTranscriptionCompleted: @MainActor () -> Void = {}
+}
+
+private struct AppHistoryArtifacts: Sendable {
+    var audioRelativePath: String?
+    var transcriptRelativePath: String?
+}
+
+private struct AppHistoryClient {
+    var modelsDirectoryPath: @MainActor () -> String
+    var historyDirectoryPath: @MainActor () -> String
+    var bootstrap: @MainActor (HistoryRetentionMode, [TranscriptHistoryDay]) -> [TranscriptHistoryDay]
+    var applyRetention: @MainActor (HistoryRetentionMode, [TranscriptHistoryDay]) -> [TranscriptHistoryDay]
+    var appendEntry: @MainActor (
+        [TranscriptHistoryDay],
+        String,
+        String,
+        String,
+        Double,
+        Double,
+        PasteResult,
+        String?,
+        String?,
+        HistoryRetentionMode,
+        Date,
+        UUID
+    ) -> [TranscriptHistoryDay]
+    var persistArtifacts: @MainActor (URL, String, Date, String, String, HistoryRetentionMode) -> AppHistoryArtifacts?
+    var openHistoryFolder: @MainActor (HistoryRetentionMode) -> Bool
+    var historyAudioURL: @MainActor (String?) -> URL?
 }
 
 private enum AppModelSetupClientKey: DependencyKey {
@@ -1566,6 +1487,80 @@ private enum AppSoundClientKey: DependencyKey {
     }
 }
 
+private enum AppHistoryClientKey: DependencyKey {
+    static var liveValue: AppHistoryClient {
+        AppHistoryClient(
+            modelsDirectoryPath: {
+                LiveAppServiceContainer.historyStoreService.modelsDirectoryPath
+            },
+            historyDirectoryPath: {
+                LiveAppServiceContainer.historyStoreService.historyDirectoryPath
+            },
+            bootstrap: { retentionMode, storedDays in
+                LiveAppServiceContainer.historyStoreService.bootstrap(
+                    retentionMode: retentionMode,
+                    storedDays: storedDays
+                )
+            },
+            applyRetention: { retentionMode, currentDays in
+                LiveAppServiceContainer.historyStoreService.applyRetention(
+                    retentionMode,
+                    to: currentDays
+                )
+            },
+            appendEntry: { days, transcript, modelID, mode, audioDuration, transcriptionElapsed, pasteResult, audioRelativePath, transcriptRelativePath, retentionMode, timestamp, id in
+                LiveAppServiceContainer.historyStoreService.appendEntry(
+                    currentDays: days,
+                    transcript: transcript,
+                    modelID: modelID,
+                    mode: mode,
+                    audioDuration: audioDuration,
+                    transcriptionElapsed: transcriptionElapsed,
+                    pasteResult: pasteResult,
+                    audioRelativePath: audioRelativePath,
+                    transcriptRelativePath: transcriptRelativePath,
+                    retentionMode: retentionMode,
+                    timestamp: timestamp,
+                    id: id
+                )
+            },
+            persistArtifacts: { audioURL, transcript, timestamp, mode, modelID, retentionMode in
+                let artifacts = LiveAppServiceContainer.historyStoreService.persistArtifacts(
+                    audioURL: audioURL,
+                    transcript: transcript,
+                    timestamp: timestamp,
+                    mode: mode,
+                    modelID: modelID,
+                    retentionMode: retentionMode
+                )
+                return AppHistoryArtifacts(
+                    audioRelativePath: artifacts?.audioRelativePath,
+                    transcriptRelativePath: artifacts?.transcriptRelativePath
+                )
+            },
+            openHistoryFolder: { retentionMode in
+                LiveAppServiceContainer.historyStoreService.openHistoryFolder(retentionMode: retentionMode)
+            },
+            historyAudioURL: { relativePath in
+                LiveAppServiceContainer.historyStoreService.historyAudioURL(relativePath: relativePath)
+            }
+        )
+    }
+
+    static var testValue: AppHistoryClient {
+        AppHistoryClient(
+            modelsDirectoryPath: { "/tmp/MacX/models" },
+            historyDirectoryPath: { "/tmp/MacX/history" },
+            bootstrap: { _, days in days },
+            applyRetention: { _, days in days },
+            appendEntry: { days, _, _, _, _, _, _, _, _, _, _, _ in days },
+            persistArtifacts: { _, _, _, _, _, _ in nil },
+            openHistoryFolder: { _ in true },
+            historyAudioURL: { _ in nil }
+        )
+    }
+}
+
 private extension DependencyValues {
     var appModelSetupClient: AppModelSetupClient {
         get { self[AppModelSetupClientKey.self] }
@@ -1606,6 +1601,11 @@ private extension DependencyValues {
         get { self[AppSoundClientKey.self] }
         set { self[AppSoundClientKey.self] = newValue }
     }
+
+    var appHistoryClient: AppHistoryClient {
+        get { self[AppHistoryClientKey.self] }
+        set { self[AppHistoryClientKey.self] = newValue }
+    }
 }
 
 @MainActor
@@ -1618,47 +1618,7 @@ private enum LiveAppServiceContainer {
     static let keyboardMonitorService = KeyboardMonitorService()
     static let floatingCapsuleController = FloatingCapsuleController()
     static let soundEffectService = SoundEffectService()
-}
-
-private extension AppModel {
-    static let historyDayFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = .current
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter
-    }()
-
-    static let historyArtifactFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = .current
-        formatter.dateFormat = "yyyyMMdd-HHmmss"
-        return formatter
-    }()
-
-    static var appDocumentsDirectoryURL: URL {
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            .appending(path: "MacX", directoryHint: .isDirectory)
-    }
-
-    static var modelsDirectoryURL: URL {
-        appDocumentsDirectoryURL.appending(path: "models", directoryHint: .isDirectory)
-    }
-
-    static var historyDirectoryURL: URL {
-        appDocumentsDirectoryURL.appending(path: "history", directoryHint: .isDirectory)
-    }
-
-    static var historyMediaDirectoryURL: URL {
-        historyDirectoryURL.appending(path: "media", directoryHint: .isDirectory)
-    }
-
-    static var historyTranscriptsDirectoryURL: URL {
-        historyDirectoryURL.appending(path: "transcripts", directoryHint: .isDirectory)
-    }
+    static let historyStoreService = HistoryStoreService()
 }
 
 #if DEBUG
