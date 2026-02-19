@@ -756,7 +756,7 @@ final class AppModel {
             case .pasted:
                 transientMessage = nil
             case .copiedOnly:
-                transientMessage = "Copied transcript to clipboard. Enable Accessibility for auto-paste."
+                transientMessage = "Auto-paste unavailable. Enable Accessibility to paste into the focused app automatically."
                 await postPasteFallbackNotification()
             }
 

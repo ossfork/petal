@@ -31,17 +31,19 @@ final class PasteService {
         guard pasteboard.setString(text, forType: .string) else {
             reportIssue("Could not place transcript on pasteboard.")
             logger.error("Failed to write transcript to pasteboard")
+            restorePasteboard(pasteboard, snapshot: snapshot)
             return .copiedOnly
         }
 
         guard postCommandV() else {
-            logger.info("Transcript copied only; paste automation unavailable")
+            logger.info("Paste automation unavailable; restoring clipboard snapshot")
+            restorePasteboard(pasteboard, snapshot: snapshot)
             return .copiedOnly
         }
 
         try? await Task.sleep(for: .milliseconds(180))
         restorePasteboard(pasteboard, snapshot: snapshot)
-        logger.info("Transcript pasted and pasteboard restored")
+        logger.info("Transcript pasted and clipboard restored")
 
         return .pasted
     }
