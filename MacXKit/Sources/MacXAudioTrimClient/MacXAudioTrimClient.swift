@@ -12,19 +12,21 @@ extension MacXAudioTrimClient: DependencyKey {
     public static var liveValue: Self {
         Self(
             trimSilence: { audioURL, threshold in
-                let input = try loadMonoFloatSamples(from: audioURL)
-                guard !input.samples.isEmpty else { return audioURL }
+                try await Task.detached(priority: .userInitiated) {
+                    let input = try loadMonoFloatSamples(from: audioURL)
+                    guard !input.samples.isEmpty else { return audioURL }
 
-                let clampedThreshold = max(0.0001, threshold)
-                guard let start = input.samples.firstIndex(where: { abs($0) > clampedThreshold }),
-                      let end = input.samples.lastIndex(where: { abs($0) > clampedThreshold }),
-                      start < end
-                else {
-                    return audioURL
-                }
+                    let clampedThreshold = max(0.0001, threshold)
+                    guard let start = input.samples.firstIndex(where: { abs($0) > clampedThreshold }),
+                          let end = input.samples.lastIndex(where: { abs($0) > clampedThreshold }),
+                          start < end
+                    else {
+                        return audioURL
+                    }
 
-                let trimmed = Array(input.samples[start...end])
-                return try writeMonoFloatSamples(trimmed, sampleRate: input.sampleRate, filePrefix: "macx-trim")
+                    let trimmed = Array(input.samples[start...end])
+                    return try writeMonoFloatSamples(trimmed, sampleRate: input.sampleRate, filePrefix: "macx-trim")
+                }.value
             }
         )
     }

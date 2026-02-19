@@ -12,14 +12,16 @@ extension MacXAudioSpeedClient: DependencyKey {
     public static var liveValue: Self {
         Self(
             speedUp: { audioURL, rate in
-                guard rate > 1.0 else { return audioURL }
+                try await Task.detached(priority: .userInitiated) {
+                    guard rate > 1.0 else { return audioURL }
 
-                let input = try loadMonoFloatSamples(from: audioURL)
-                guard input.samples.count > 4 else { return audioURL }
+                    let input = try loadMonoFloatSamples(from: audioURL)
+                    guard input.samples.count > 4 else { return audioURL }
 
-                let outputLength = max(1, Int(Double(input.samples.count) / rate))
-                let spedUp = resample(samples: input.samples, outputLength: outputLength, speed: rate)
-                return try writeMonoFloatSamples(spedUp, sampleRate: input.sampleRate, filePrefix: "macx-speed")
+                    let outputLength = max(1, Int(Double(input.samples.count) / rate))
+                    let spedUp = resample(samples: input.samples, outputLength: outputLength, speed: rate)
+                    return try writeMonoFloatSamples(spedUp, sampleRate: input.sampleRate, filePrefix: "macx-speed")
+                }.value
             }
         )
     }

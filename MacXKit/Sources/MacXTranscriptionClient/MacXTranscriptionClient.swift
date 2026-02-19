@@ -39,7 +39,7 @@ extension MacXTranscriptionClient: DependencyKey {
                     }
                 }
 
-                let duration = audioFileDurationSeconds(workingAudioURL)
+                let duration = await audioFileDurationSecondsAsync(workingAudioURL)
                 if let speedRate = Self.autoSpeedRate(for: duration) {
                     let spedUpURL = try await speedClient.speedUp(workingAudioURL, speedRate)
                     if spedUpURL != workingAudioURL {
@@ -95,6 +95,12 @@ private func audioFileDurationSeconds(_ url: URL) -> Double {
     let sampleRate = file.fileFormat.sampleRate
     guard sampleRate > 0 else { return 0 }
     return Double(file.length) / sampleRate
+}
+
+private func audioFileDurationSecondsAsync(_ url: URL) async -> Double {
+    await Task.detached(priority: .utility) {
+        audioFileDurationSeconds(url)
+    }.value
 }
 
 private extension MacXTranscriptionClient {
