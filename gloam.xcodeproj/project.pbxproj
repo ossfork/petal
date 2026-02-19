@@ -14,6 +14,17 @@
 		A10000010000000000000005 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = A10000040000000000000005 /* Dependencies */; };
 		A10000010000000000000006 /* IssueReporting in Frameworks */ = {isa = PBXBuildFile; productRef = A10000040000000000000006 /* IssueReporting */; };
 		A10000010000000000000007 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A10000040000000000000007 /* Sparkle */; };
+		B10000010000000000000001 /* Shared in Frameworks */ = {isa = PBXBuildFile; productRef = B10000040000000000000001 /* Shared */; };
+		B10000010000000000000002 /* AudioClient in Frameworks */ = {isa = PBXBuildFile; productRef = B10000040000000000000002 /* AudioClient */; };
+		B10000010000000000000003 /* PermissionsClient in Frameworks */ = {isa = PBXBuildFile; productRef = B10000040000000000000003 /* PermissionsClient */; };
+		B10000010000000000000004 /* PasteClient in Frameworks */ = {isa = PBXBuildFile; productRef = B10000040000000000000004 /* PasteClient */; };
+		B10000010000000000000005 /* KeyboardClient in Frameworks */ = {isa = PBXBuildFile; productRef = B10000040000000000000005 /* KeyboardClient */; };
+		B10000010000000000000006 /* FloatingCapsuleClient in Frameworks */ = {isa = PBXBuildFile; productRef = B10000040000000000000006 /* FloatingCapsuleClient */; };
+		B10000010000000000000007 /* TranscriptionClient in Frameworks */ = {isa = PBXBuildFile; productRef = B10000040000000000000007 /* TranscriptionClient */; };
+		B10000010000000000000008 /* DownloadClient in Frameworks */ = {isa = PBXBuildFile; productRef = B10000040000000000000008 /* DownloadClient */; };
+		B10000010000000000000009 /* HistoryClient in Frameworks */ = {isa = PBXBuildFile; productRef = B10000040000000000000009 /* HistoryClient */; };
+		B1000001000000000000000A /* SoundClient in Frameworks */ = {isa = PBXBuildFile; productRef = B1000004000000000000000A /* SoundClient */; };
+		B1000001000000000000000B /* LogClient in Frameworks */ = {isa = PBXBuildFile; productRef = B1000004000000000000000B /* LogClient */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -55,6 +66,17 @@
 				A10000010000000000000005 /* Dependencies in Frameworks */,
 				A10000010000000000000006 /* IssueReporting in Frameworks */,
 				A10000010000000000000007 /* Sparkle in Frameworks */,
+				B10000010000000000000001 /* Shared in Frameworks */,
+				B10000010000000000000002 /* AudioClient in Frameworks */,
+				B10000010000000000000003 /* PermissionsClient in Frameworks */,
+				B10000010000000000000004 /* PasteClient in Frameworks */,
+				B10000010000000000000005 /* KeyboardClient in Frameworks */,
+				B10000010000000000000006 /* FloatingCapsuleClient in Frameworks */,
+				B10000010000000000000007 /* TranscriptionClient in Frameworks */,
+				B10000010000000000000008 /* DownloadClient in Frameworks */,
+				B10000010000000000000009 /* HistoryClient in Frameworks */,
+				B1000001000000000000000A /* SoundClient in Frameworks */,
+				B1000001000000000000000B /* LogClient in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -107,6 +129,17 @@
 				A10000040000000000000005 /* Dependencies */,
 				A10000040000000000000006 /* IssueReporting */,
 				A10000040000000000000007 /* Sparkle */,
+				B10000040000000000000001 /* Shared */,
+				B10000040000000000000002 /* AudioClient */,
+				B10000040000000000000003 /* PermissionsClient */,
+				B10000040000000000000004 /* PasteClient */,
+				B10000040000000000000005 /* KeyboardClient */,
+				B10000040000000000000006 /* FloatingCapsuleClient */,
+				B10000040000000000000007 /* TranscriptionClient */,
+				B10000040000000000000008 /* DownloadClient */,
+				B10000040000000000000009 /* HistoryClient */,
+				B1000004000000000000000A /* SoundClient */,
+				B1000004000000000000000B /* LogClient */,
 			);
 			productName = gloam;
 			productReference = 51F869592F469BEA004C06DD /* gloam.app */;
@@ -138,6 +171,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				A10000020000000000000001 /* XCLocalSwiftPackageReference "Vendor/mlx-voxtral-swift" */,
+				B10000020000000000000001 /* XCLocalSwiftPackageReference "GloamKit" */,
 				A10000030000000000000001 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
 				A10000030000000000000002 /* XCRemoteSwiftPackageReference "Sauce" */,
 				A10000030000000000000003 /* XCRemoteSwiftPackageReference "swift-dependencies" */,
@@ -347,7 +381,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.optimalapps.gloam;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -394,7 +428,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.optimalapps.gloam;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -442,6 +476,10 @@
 		A10000020000000000000001 /* XCLocalSwiftPackageReference "Vendor/mlx-voxtral-swift" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "Vendor/mlx-voxtral-swift";
+		};
+		B10000020000000000000001 /* XCLocalSwiftPackageReference "GloamKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = GloamKit;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -530,6 +568,50 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A10000030000000000000006 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		B10000040000000000000001 /* Shared */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Shared;
+		};
+		B10000040000000000000002 /* AudioClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AudioClient;
+		};
+		B10000040000000000000003 /* PermissionsClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PermissionsClient;
+		};
+		B10000040000000000000004 /* PasteClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PasteClient;
+		};
+		B10000040000000000000005 /* KeyboardClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = KeyboardClient;
+		};
+		B10000040000000000000006 /* FloatingCapsuleClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FloatingCapsuleClient;
+		};
+		B10000040000000000000007 /* TranscriptionClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TranscriptionClient;
+		};
+		B10000040000000000000008 /* DownloadClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DownloadClient;
+		};
+		B10000040000000000000009 /* HistoryClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HistoryClient;
+		};
+		B1000004000000000000000A /* SoundClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SoundClient;
+		};
+		B1000004000000000000000B /* LogClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LogClient;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

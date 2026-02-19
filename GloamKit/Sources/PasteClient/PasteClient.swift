@@ -7,6 +7,13 @@ import Sauce
 public enum PasteResult: Equatable, Sendable {
     case pasted
     case copiedOnly
+
+    public var rawValue: String {
+        switch self {
+        case .pasted: "pasted"
+        case .copiedOnly: "copied_only"
+        }
+    }
 }
 
 @DependencyClient

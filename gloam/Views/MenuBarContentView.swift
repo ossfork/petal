@@ -1,4 +1,6 @@
 import KeyboardShortcuts
+import PermissionsClient
+import Shared
 import SwiftUI
 
 struct MenuBarContentView: View {

@@ -4,7 +4,7 @@ import PackageDescription
 
 extension Target.Dependency {
     static let shared: Self = "Shared"
-    static let models: Self = "Models"
+    static let models: Self = "GloamModels"
     static let ui: Self = "UI"
     static let mlxClient: Self = "MLXClient"
     static let audioTrimClient: Self = "AudioTrimClient"
@@ -28,7 +28,7 @@ let package = Package(
     ],
     products: [
         .library(name: "Shared", targets: ["Shared"]),
-        .library(name: "Models", targets: ["Models"]),
+        .library(name: "GloamModels", targets: ["GloamModels"]),
         .library(name: "UI", targets: ["UI"]),
         .library(name: "Onboarding", targets: ["Onboarding"]),
         .library(name: "AudioClient", targets: ["AudioClient"]),
@@ -65,7 +65,7 @@ let package = Package(
             ]
         ),
         .target(
-            name: "Models",
+            name: "GloamModels",
             dependencies: [
                 .shared,
                 .permissionsClient,

@@ -8,6 +8,8 @@ import SwiftUI
 @DependencyClient
 public struct FloatingCapsuleClient: Sendable {
     public var showRecording: @Sendable () async -> Void = {}
+    public var showTrimming: @Sendable () async -> Void = {}
+    public var showSpeeding: @Sendable () async -> Void = {}
     public var updateLevel: @Sendable (Double) async -> Void = { _ in }
     public var showTranscribing: @Sendable () async -> Void = {}
     public var updateTranscriptionProgress: @Sendable (Double) async -> Void = { _ in }
@@ -21,6 +23,12 @@ extension FloatingCapsuleClient: DependencyKey {
         return Self(
             showRecording: {
                 await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.showRecording() }
+            },
+            showTrimming: {
+                await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.showTrimming() }
+            },
+            showSpeeding: {
+                await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.showSpeeding() }
             },
             updateLevel: { level in
                 await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.updateLevel(level) }
@@ -48,6 +56,8 @@ extension FloatingCapsuleClient: TestDependencyKey {
     public static var testValue: Self {
         Self(
             showRecording: {},
+            showTrimming: {},
+            showSpeeding: {},
             updateLevel: { _ in },
             showTranscribing: {},
             updateTranscriptionProgress: { _ in },
@@ -93,6 +103,16 @@ private final class LiveFloatingCapsuleRuntime {
 
     func showRecording() {
         state.phase = .recording
+        showWindowIfNeeded()
+    }
+
+    func showTrimming() {
+        state.phase = .trimming
+        showWindowIfNeeded()
+    }
+
+    func showSpeeding() {
+        state.phase = .speeding
         showWindowIfNeeded()
     }
 
