@@ -7,6 +7,7 @@ extension Target.Dependency {
     static let macXModels: Self = "MacXModels"
     static let macXUI: Self = "MacXUI"
     static let macXModelSetupClient: Self = "MacXModelSetupClient"
+    static let macXPermissionsClient: Self = "MacXPermissionsClient"
 
     static let dependencies: Self = .product(name: "Dependencies", package: "swift-dependencies")
     static let dependenciesMacros: Self = .product(name: "DependenciesMacros", package: "swift-dependencies")
@@ -58,6 +59,7 @@ let package = Package(
             name: "MacXModels",
             dependencies: [
                 .macXShared,
+                .macXPermissionsClient,
                 .dependencies,
                 .dependenciesMacros,
                 .sharing,
@@ -142,6 +144,13 @@ let package = Package(
                 .macXShared,
                 .macXModels,
                 .macXUI,
+                .macXPermissionsClient,
+                "MacXAudioClient",
+                "MacXPasteClient",
+                "MacXKeyboardClient",
+                "MacXFloatingCapsuleClient",
+                "MacXModelSetupClient",
+                "MacXTranscriptionClient",
                 .dependencies
             ]
         )
