@@ -1,4 +1,5 @@
 import AVFoundation
+import Dependencies
 import Foundation
 import os
 import VoxtralCore
@@ -7,6 +8,7 @@ import VoxtralCore
 final class TranscriptionService {
     private var pipeline: VoxtralPipeline?
     private var loadedModel: ModelOption?
+    @Dependency(\.appLogClient) private var appLogClient
     private let logger = Logger(subsystem: "com.optimalapps.macx", category: "TranscriptionService")
 
     func prepareModelIfNeeded(option: ModelOption) async throws {
@@ -122,7 +124,7 @@ final class TranscriptionService {
     }
 
     private func consoleLog(_ message: String) {
-        print("[macx][perf] \(message)")
+        appLogClient.debug("TranscriptionPerf", message)
     }
 }
 

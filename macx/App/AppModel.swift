@@ -104,6 +104,7 @@ final class AppModel {
     @ObservationIgnored @Dependency(\.appFloatingCapsuleClient) private var appFloatingCapsuleClient
     @ObservationIgnored @Dependency(\.appSoundClient) private var appSoundClient
     @ObservationIgnored @Dependency(\.appHistoryClient) private var appHistoryClient
+    @ObservationIgnored @Dependency(\.appLogClient) private var appLogClient
     @ObservationIgnored private let logger = Logger(subsystem: "com.optimalapps.macx", category: "AppModel")
 
     @ObservationIgnored private let isPreviewMode: Bool
@@ -719,6 +720,18 @@ final class AppModel {
             let pasteResult = await appPasteClient.paste(transcript)
             logger.info("Transcription completed. characters=\(transcript.count, privacy: .public), pasteResult=\(String(describing: pasteResult), privacy: .public)")
             consoleLog("Transcription completed. characters=\(transcript.count), pasteResult=\(String(describing: pasteResult))")
+            appLogClient.dumpDebug(
+                "AppModel",
+                "Transcription metrics",
+                appDumpString(
+                    [
+                        "characters": "\(transcript.count)",
+                        "audioDuration": audioDuration.formatted(.number.precision(.fractionLength(2))),
+                        "transcriptionElapsed": transcriptionElapsed.formatted(.number.precision(.fractionLength(2))),
+                        "pasteResult": pasteResult.rawValue
+                    ]
+                )
+            )
 
             let persistedPaths = persistHistoryArtifacts(
                 audioURL: audioURL,
@@ -1097,7 +1110,7 @@ final class AppModel {
     }
 
     private func consoleLog(_ message: String) {
-        print("[macx] \(message)")
+        appLogClient.debug("AppModel", message)
     }
 
     private func startTranscriptionProgressTracking(audioDuration: Double) {

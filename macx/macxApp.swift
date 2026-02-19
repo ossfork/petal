@@ -14,7 +14,6 @@ struct macxApp: App {
         NSApplication.shared.setActivationPolicy(.accessory)
         prepareDependencies { _ in }
         logger.info("macx app initialized")
-        print("[macx] app initialized")
     }
 
     var body: some Scene {
