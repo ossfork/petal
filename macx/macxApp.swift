@@ -1,4 +1,5 @@
 import Dependencies
+import Darwin
 import os
 import Sparkle
 import SwiftUI
@@ -11,6 +12,11 @@ struct macxApp: App {
     private let logger = Logger(subsystem: "com.optimalapps.macx", category: "App")
 
     init() {
+        guard SingleInstanceLock.shared.acquire() else {
+            Logger(subsystem: "com.optimalapps.macx", category: "App")
+                .error("Another macx instance is already running. exiting duplicate process.")
+            exit(0)
+        }
         NSApplication.shared.setActivationPolicy(.accessory)
         prepareDependencies { _ in }
         logger.info("macx app initialized")
@@ -36,6 +42,38 @@ struct macxApp: App {
     }
 }
 
+private final class SingleInstanceLock {
+    static let shared = SingleInstanceLock()
+
+    private var fileDescriptor: Int32 = -1
+    private let lockPath = "\(NSTemporaryDirectory())com.optimalapps.macx.lock"
+
+    private init() {}
+
+    func acquire() -> Bool {
+        if fileDescriptor != -1 {
+            return true
+        }
+
+        let descriptor = open(lockPath, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)
+        guard descriptor != -1 else { return false }
+
+        if flock(descriptor, LOCK_EX | LOCK_NB) != 0 {
+            close(descriptor)
+            return false
+        }
+
+        fileDescriptor = descriptor
+        return true
+    }
+
+    deinit {
+        guard fileDescriptor != -1 else { return }
+        flock(fileDescriptor, LOCK_UN)
+        close(fileDescriptor)
+    }
+}
+
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let updaterController = SPUStandardUpdaterController(
         startingUpdater: false,
@@ -43,8 +81,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         userDriverDelegate: nil
     )
     weak var model: AppModel?
+    private let logger = Logger(subsystem: "com.optimalapps.macx", category: "AppDelegate")
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        enforceSingleInstance()
         updaterController.startUpdater()
     }
 
@@ -57,5 +97,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 await model.handleDeepLink(command)
             }
         }
+    }
+
+    private func enforceSingleInstance() {
+        guard let bundleIdentifier = Bundle.main.bundleIdentifier else { return }
+        let running = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier)
+        guard running.count > 1 else { return }
+
+        logger.error("Detected multiple running instances. terminating pid=\(ProcessInfo.processInfo.processIdentifier, privacy: .public)")
+        NSApp.terminate(nil)
     }
 }
