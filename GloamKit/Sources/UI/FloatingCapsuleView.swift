@@ -8,6 +8,8 @@ public final class FloatingCapsuleState {
         case hidden
         case recording
         case confirmCancel
+        case trimming
+        case speeding
         case transcribing
         case error(String)
     }
@@ -43,9 +45,7 @@ public struct FloatingCapsuleView: View {
 
                     RecordingBars(level: state.level)
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(.ultraThinMaterial, in: Capsule())
+                .floatingCapsuleChrome()
             case .confirmCancel:
                 HStack(spacing: 6) {
                     Image(systemName: "escape")
@@ -61,9 +61,29 @@ public struct FloatingCapsuleView: View {
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(.ultraThinMaterial, in: Capsule())
+                .floatingCapsuleChrome()
+            case .trimming:
+                HStack(spacing: 8) {
+                    Image(systemName: "scissors")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.orange)
+
+                    Text("Trimming silence")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.primary)
+                }
+                .floatingCapsuleChrome()
+            case .speeding:
+                HStack(spacing: 8) {
+                    Image(systemName: "figure.run")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.teal)
+
+                    Text("Speeding audio")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.teal)
+                }
+                .floatingCapsuleChrome()
             case .transcribing:
                 HStack(spacing: 8) {
                     CircularProgressRing(progress: state.transcriptionProgress)
@@ -73,9 +93,7 @@ public struct FloatingCapsuleView: View {
                         .monospacedDigit()
                         .foregroundStyle(.primary)
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(.ultraThinMaterial, in: Capsule())
+                .floatingCapsuleChrome()
             case .error:
                 HStack(spacing: 8) {
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -86,9 +104,7 @@ public struct FloatingCapsuleView: View {
                         .font(.system(size: 12, weight: .semibold, design: .rounded))
                         .foregroundStyle(.primary)
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(.ultraThinMaterial, in: Capsule())
+                .floatingCapsuleChrome()
             }
         }
         .frame(width: 220, height: 52)
@@ -98,6 +114,15 @@ public struct FloatingCapsuleView: View {
     private var transcribingLabel: String {
         let percent = Int((state.transcriptionProgress * 100).rounded())
         return "Transcribing \(String(format: "%3d", percent))%"
+    }
+}
+
+private extension View {
+    func floatingCapsuleChrome() -> some View {
+        self
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(.ultraThinMaterial, in: Capsule())
     }
 }
 
