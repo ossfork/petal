@@ -9,6 +9,8 @@ final class FloatingCapsuleState {
         case hidden
         case recording
         case confirmCancel
+        case trimming
+        case speeding
         case transcribing
         case error(String)
     }
@@ -52,6 +54,16 @@ final class FloatingCapsuleController {
 
     func updateLevel(_ level: Double) {
         state.level = level
+    }
+
+    func showTrimming() {
+        state.phase = .trimming
+        showWindowIfNeeded()
+    }
+
+    func showSpeeding() {
+        state.phase = .speeding
+        showWindowIfNeeded()
     }
 
     func showTranscribing() {

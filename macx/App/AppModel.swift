@@ -12,10 +12,16 @@ import UserNotifications
 @MainActor
 @Observable
 final class AppModel {
+    enum ProcessingStage: Equatable {
+        case trimming
+        case speeding
+        case transcribing
+    }
+
     enum SessionState: Equatable {
         case idle
         case recording
-        case transcribing
+        case processing(ProcessingStage)
         case error(String)
     }
 
@@ -165,8 +171,15 @@ final class AppModel {
             return hasCompletedSetup ? "Ready" : "Setup Required"
         case .recording:
             return "REC"
-        case .transcribing:
-            return "Transcribing"
+        case let .processing(stage):
+            switch stage {
+            case .trimming:
+                return "Trimming"
+            case .speeding:
+                return "Speeding"
+            case .transcribing:
+                return "Transcribing"
+            }
         case .error:
             return "Error"
         }
@@ -178,8 +191,15 @@ final class AppModel {
             return "waveform.badge.mic"
         case .recording:
             return "record.circle.fill"
-        case .transcribing:
-            return "hourglass"
+        case let .processing(stage):
+            switch stage {
+            case .trimming:
+                return "scissors"
+            case .speeding:
+                return "figure.run"
+            case .transcribing:
+                return "hourglass"
+            }
         case .error:
             return "exclamationmark.triangle.fill"
         }
@@ -663,8 +683,8 @@ final class AppModel {
     private func stopRecordingAndTranscribe() async {
         toggleRecordingIsActive = false
         isAwaitingCancelRecordingConfirmation = false
-        sessionState = .transcribing
-        appFloatingCapsuleClient.showTranscribing()
+        sessionState = .processing(.trimming)
+        appFloatingCapsuleClient.showTrimming()
 
         do {
             let audioURL = try appAudioClient.stopRecording()
@@ -675,6 +695,13 @@ final class AppModel {
             }
 
             let audioDuration = appTranscriptionClient.audioDurationSeconds(audioURL)
+            if autoSpeedRate(for: audioDuration) != nil {
+                sessionState = .processing(.speeding)
+                appFloatingCapsuleClient.showSpeeding()
+            }
+
+            sessionState = .processing(.transcribing)
+            appFloatingCapsuleClient.showTranscribing()
             startTranscriptionProgressTracking(audioDuration: audioDuration)
             let transcriptionStart = now
 
@@ -925,7 +952,7 @@ final class AppModel {
             return
         }
 
-        if appAudioClient.isRecording() || sessionState == .transcribing {
+        if appAudioClient.isRecording() || isProcessing {
             return
         }
 
@@ -1011,6 +1038,26 @@ final class AppModel {
 
         if case .error = sessionState {
             sessionState = .idle
+        }
+    }
+
+    private var isProcessing: Bool {
+        if case .processing = sessionState {
+            return true
+        }
+        return false
+    }
+
+    private func autoSpeedRate(for audioDuration: Double) -> Double? {
+        switch audioDuration {
+        case ..<45:
+            return nil
+        case 45..<90:
+            return 1.1
+        case 90..<180:
+            return 1.2
+        default:
+            return 1.25
         }
     }
 
@@ -1219,6 +1266,8 @@ private struct AppKeyboardClient {
 
 private struct AppFloatingCapsuleClient {
     var showRecording: @MainActor () -> Void = {}
+    var showTrimming: @MainActor () -> Void = {}
+    var showSpeeding: @MainActor () -> Void = {}
     var updateLevel: @MainActor (Double) -> Void = { _ in }
     var showTranscribing: @MainActor () -> Void = {}
     var updateTranscriptionProgress: @MainActor (Double) -> Void = { _ in }
@@ -1433,6 +1482,12 @@ private enum AppFloatingCapsuleClientKey: DependencyKey {
             showRecording: {
                 LiveAppServiceContainer.floatingCapsuleController.showRecording()
             },
+            showTrimming: {
+                LiveAppServiceContainer.floatingCapsuleController.showTrimming()
+            },
+            showSpeeding: {
+                LiveAppServiceContainer.floatingCapsuleController.showSpeeding()
+            },
             updateLevel: { level in
                 LiveAppServiceContainer.floatingCapsuleController.updateLevel(level)
             },
@@ -1457,6 +1512,8 @@ private enum AppFloatingCapsuleClientKey: DependencyKey {
     static var testValue: AppFloatingCapsuleClient {
         AppFloatingCapsuleClient(
             showRecording: {},
+            showTrimming: {},
+            showSpeeding: {},
             updateLevel: { _ in },
             showTranscribing: {},
             updateTranscriptionProgress: { _ in },

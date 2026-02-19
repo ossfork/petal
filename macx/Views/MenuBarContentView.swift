@@ -9,6 +9,7 @@ struct MenuBarContentView: View {
         VStack(alignment: .leading, spacing: 14) {
             Label(model.statusTitle, systemImage: model.menuBarSymbolName)
                 .font(.headline)
+                .foregroundStyle(statusColor)
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Shortcut")
@@ -208,6 +209,21 @@ struct MenuBarContentView: View {
 
     private func accessibilityPermissionButtonTapped() {
         model.accessibilityPermissionButtonTapped()
+    }
+
+    private var statusColor: Color {
+        switch model.sessionState {
+        case .recording:
+            return .red
+        case .processing(.trimming):
+            return .orange
+        case .processing(.speeding):
+            return .teal
+        case .processing(.transcribing):
+            return .primary
+        case .idle, .error:
+            return .primary
+        }
     }
 }
 

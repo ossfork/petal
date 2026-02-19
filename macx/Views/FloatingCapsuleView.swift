@@ -41,6 +41,32 @@ struct FloatingCapsuleView: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
                 .background(.ultraThinMaterial, in: Capsule())
+            case .trimming:
+                HStack(spacing: 8) {
+                    Image(systemName: "scissors")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.orange)
+
+                    Text("Trimming silence")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.primary)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(.ultraThinMaterial, in: Capsule())
+            case .speeding:
+                HStack(spacing: 8) {
+                    Image(systemName: "figure.run")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.teal)
+
+                    Text("Speeding audio")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.teal)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(.ultraThinMaterial, in: Capsule())
             case .transcribing:
                 HStack(spacing: 8) {
                     CircularProgressRing(progress: state.transcriptionProgress)
@@ -140,6 +166,18 @@ private extension FloatingCapsuleState {
 
 #Preview("Transcribing") {
     FloatingCapsuleView(state: .makePreview(phase: .transcribing, transcriptionProgress: 0.61))
+        .padding()
+        .background(Color.black.opacity(0.08))
+}
+
+#Preview("Trimming") {
+    FloatingCapsuleView(state: .makePreview(phase: .trimming))
+        .padding()
+        .background(Color.black.opacity(0.08))
+}
+
+#Preview("Speeding") {
+    FloatingCapsuleView(state: .makePreview(phase: .speeding))
         .padding()
         .background(Color.black.opacity(0.08))
 }
