@@ -4,8 +4,7 @@ import Foundation
 import os
 import VoxtralCore
 
-@MainActor
-final class TranscriptionService {
+actor TranscriptionService {
     private var pipeline: VoxtralPipeline?
     private var loadedModel: ModelOption?
     @Dependency(\.appLogClient) private var appLogClient
@@ -97,7 +96,7 @@ final class TranscriptionService {
         logger.debug("Unloaded model pipeline")
     }
 
-    func audioDurationSeconds(for url: URL) -> Double {
+    nonisolated func audioDurationSeconds(for url: URL) -> Double {
         Self.audioDurationSeconds(url)
     }
 
