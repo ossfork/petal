@@ -29,6 +29,7 @@ final class AppModel {
     @ObservationIgnored @Shared(.selectedModelID) private var selectedModelIDStorage = ModelOption.defaultOption.rawValue
     @ObservationIgnored @Shared(.transcriptionMode) private var transcriptionModeStorage = TranscriptionMode.verbatim.rawValue
     @ObservationIgnored @Shared(.smartPrompt) private var smartPromptStorage = "Clean up filler words and repeated phrases. Return a polished version of what was said."
+    @ObservationIgnored @Shared(.saveHistory) private var saveHistoryStorage = true
     @ObservationIgnored @Shared(.transcriptHistoryDays) private var transcriptHistoryDaysStorage: [TranscriptHistoryDay] = []
 
     var hasCompletedSetup = false {
@@ -57,6 +58,19 @@ final class AppModel {
     var smartPrompt = "Clean up filler words and repeated phrases. Return a polished version of what was said." {
         didSet {
             $smartPromptStorage.withLock { $0 = smartPrompt }
+        }
+    }
+
+    var saveHistory = true {
+        didSet {
+            $saveHistoryStorage.withLock { $0 = saveHistory }
+
+            if !saveHistory {
+                transcriptHistoryDays = []
+                clearPersistedHistoryArtifacts()
+            } else {
+                ensureDataDirectories()
+            }
         }
     }
 
@@ -126,6 +140,7 @@ final class AppModel {
         selectedModelID = ModelOption.from(modelID: selectedModelIDStorage).rawValue
         transcriptionMode = TranscriptionMode(rawValue: transcriptionModeStorage) ?? .verbatim
         smartPrompt = smartPromptStorage
+        saveHistory = saveHistoryStorage
         transcriptHistoryDays = transcriptHistoryDaysStorage
 
         ensureDataDirectories()
@@ -281,6 +296,10 @@ final class AppModel {
 
     var modelsDirectoryDisplayPath: String {
         Self.modelsDirectoryURL.path
+    }
+
+    var historyDirectoryDisplayPath: String {
+        Self.historyDirectoryURL.path
     }
 
     func setupStepDisplayName(_ step: SetupStep) -> String {
@@ -489,7 +508,16 @@ final class AppModel {
     func historyMetadataText(for entry: TranscriptHistoryEntry) -> String {
         let elapsed = entry.transcriptionElapsedSeconds.formatted(.number.precision(.fractionLength(2)))
         let audio = entry.audioDurationSeconds.formatted(.number.precision(.fractionLength(2)))
-        return "\(entry.transcriptionMode.capitalized) • \(entry.modelID) • \(entry.characterCount) chars • \(elapsed)s elapsed • \(audio)s audio"
+        let persisted = entry.transcriptRelativePath != nil || entry.audioRelativePath != nil ? "saved" : "not saved"
+        return "\(entry.transcriptionMode.capitalized) • \(entry.modelID) • \(entry.characterCount) chars • \(elapsed)s elapsed • \(audio)s audio • \(persisted)"
+    }
+
+    func openHistoryFolderButtonTapped() {
+        if !FileManager.default.fileExists(atPath: Self.historyDirectoryURL.path) {
+            ensureDataDirectories()
+        }
+
+        NSWorkspace.shared.open(Self.historyDirectoryURL)
     }
 
     func handleDeepLink(_ command: MacXDeepLinkCommand) async {
@@ -654,13 +682,23 @@ final class AppModel {
             logger.info("Transcription completed. characters=\(transcript.count, privacy: .public), pasteResult=\(String(describing: pasteResult), privacy: .public)")
             consoleLog("Transcription completed. characters=\(transcript.count), pasteResult=\(String(describing: pasteResult))")
 
+            let persistedPaths = persistHistoryArtifacts(
+                audioURL: audioURL,
+                transcript: transcript,
+                timestamp: transcriptionStart,
+                mode: transcriptionMode.rawValue,
+                modelID: selectedModelOption.rawValue
+            )
+
             appendTranscriptHistory(
                 transcript: transcript,
                 modelID: selectedModelOption.rawValue,
                 mode: transcriptionMode.rawValue,
                 audioDuration: audioDuration,
                 transcriptionElapsed: transcriptionElapsed,
-                pasteResult: pasteResult
+                pasteResult: pasteResult,
+                audioRelativePath: persistedPaths?.audioRelativePath,
+                transcriptRelativePath: persistedPaths?.transcriptRelativePath
             )
 
             switch pasteResult {
@@ -1052,8 +1090,12 @@ final class AppModel {
         mode: String,
         audioDuration: Double,
         transcriptionElapsed: Double,
-        pasteResult: PasteResult
+        pasteResult: PasteResult,
+        audioRelativePath: String?,
+        transcriptRelativePath: String?
     ) {
+        guard saveHistory else { return }
+
         let timestamp = now
         let day = Self.historyDayFormatter.string(from: timestamp)
         let entry = TranscriptHistoryEntry(
@@ -1065,7 +1107,9 @@ final class AppModel {
             audioDurationSeconds: audioDuration,
             transcriptionElapsedSeconds: transcriptionElapsed,
             characterCount: transcript.count,
-            pasteResult: pasteResult.rawValue
+            pasteResult: pasteResult.rawValue,
+            audioRelativePath: audioRelativePath,
+            transcriptRelativePath: transcriptRelativePath
         )
 
         if let dayIndex = transcriptHistoryDays.firstIndex(where: { $0.day == day }) {
@@ -1082,10 +1126,48 @@ final class AppModel {
         transcriptHistoryDays.sort { $0.day > $1.day }
     }
 
+    private func persistHistoryArtifacts(
+        audioURL: URL,
+        transcript: String,
+        timestamp: Date,
+        mode: String,
+        modelID: String
+    ) -> (audioRelativePath: String, transcriptRelativePath: String)? {
+        guard saveHistory else { return nil }
+        ensureDataDirectories()
+
+        let fileManager = FileManager.default
+        let stamp = Self.historyArtifactFormatter.string(from: timestamp)
+        let safeModelID = modelID.replacingOccurrences(of: "/", with: "-")
+        let baseName = "\(stamp)-\(safeModelID)-\(mode)"
+
+        let audioTarget = Self.historyMediaDirectoryURL.appending(path: "\(baseName).wav")
+        let transcriptTarget = Self.historyTranscriptsDirectoryURL.appending(path: "\(baseName).txt")
+
+        do {
+            if fileManager.fileExists(atPath: audioTarget.path) {
+                try fileManager.removeItem(at: audioTarget)
+            }
+
+            try fileManager.copyItem(at: audioURL, to: audioTarget)
+            try transcript.write(to: transcriptTarget, atomically: true, encoding: .utf8)
+
+            return (
+                audioRelativePath: "media/\(audioTarget.lastPathComponent)",
+                transcriptRelativePath: "transcripts/\(transcriptTarget.lastPathComponent)"
+            )
+        } catch {
+            reportIssue(error)
+            return nil
+        }
+    }
+
     private func formattedHistoryEntry(_ entry: TranscriptHistoryEntry) -> String {
         let timestamp = entry.timestamp.formatted(date: .abbreviated, time: .standard)
         let elapsed = entry.transcriptionElapsedSeconds.formatted(.number.precision(.fractionLength(2)))
         let audio = entry.audioDurationSeconds.formatted(.number.precision(.fractionLength(2)))
+        let audioPath = entry.audioRelativePath ?? "not saved"
+        let transcriptPath = entry.transcriptRelativePath ?? "not saved"
 
         return """
         Timestamp: \(timestamp)
@@ -1094,6 +1176,8 @@ final class AppModel {
         Paste: \(entry.pasteResult)
         Duration: \(audio)s audio, \(elapsed)s transcription
         Characters: \(entry.characterCount)
+        Audio file: \(audioPath)
+        Transcript file: \(transcriptPath)
 
         \(entry.transcript)
         """
@@ -1103,12 +1187,22 @@ final class AppModel {
         let fileManager = FileManager.default
         let directories = [
             Self.modelsDirectoryURL,
-            Self.transcriptsDirectoryURL
+            Self.historyDirectoryURL
         ]
 
         for directory in directories {
             try? fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
         }
+
+        if saveHistory {
+            try? fileManager.createDirectory(at: Self.historyMediaDirectoryURL, withIntermediateDirectories: true)
+            try? fileManager.createDirectory(at: Self.historyTranscriptsDirectoryURL, withIntermediateDirectories: true)
+        }
+    }
+
+    private func clearPersistedHistoryArtifacts() {
+        let fileManager = FileManager.default
+        try? fileManager.removeItem(at: Self.historyDirectoryURL)
     }
 
     deinit {
@@ -1470,6 +1564,15 @@ private extension AppModel {
         return formatter
     }()
 
+    static let historyArtifactFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .current
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        return formatter
+    }()
+
     static var appDocumentsDirectoryURL: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
             .appending(path: "MacX", directoryHint: .isDirectory)
@@ -1479,8 +1582,16 @@ private extension AppModel {
         appDocumentsDirectoryURL.appending(path: "models", directoryHint: .isDirectory)
     }
 
-    static var transcriptsDirectoryURL: URL {
-        appDocumentsDirectoryURL.appending(path: "transcripts", directoryHint: .isDirectory)
+    static var historyDirectoryURL: URL {
+        appDocumentsDirectoryURL.appending(path: "history", directoryHint: .isDirectory)
+    }
+
+    static var historyMediaDirectoryURL: URL {
+        historyDirectoryURL.appending(path: "media", directoryHint: .isDirectory)
+    }
+
+    static var historyTranscriptsDirectoryURL: URL {
+        historyDirectoryURL.appending(path: "transcripts", directoryHint: .isDirectory)
     }
 }
 

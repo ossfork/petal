@@ -92,6 +92,24 @@ struct MenuBarContentView: View {
                 Text("History")
                     .font(.subheadline.weight(.semibold))
 
+                Toggle("Save History", isOn: $model.saveHistory)
+                    .font(.caption)
+
+                HStack(spacing: 12) {
+                    Text(model.historyDirectoryDisplayPath)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+
+                    Spacer()
+
+                    Button("Open Folder") {
+                        model.openHistoryFolderButtonTapped()
+                    }
+                    .font(.caption2)
+                    .buttonStyle(.link)
+                }
+
                 if model.recentTranscriptHistoryEntries.isEmpty {
                     Text("No transcripts yet.")
                         .font(.caption)

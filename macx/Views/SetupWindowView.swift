@@ -169,6 +169,22 @@ struct SetupWindowView: View {
                     .lineLimit(2)
             }
 
+            VStack(alignment: .leading, spacing: 6) {
+                Toggle("Save history to disk", isOn: $model.saveHistory)
+                    .font(.caption)
+
+                Label("History folder: \(model.historyDirectoryDisplayPath)", systemImage: "folder")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+
+                Button("Open History Folder") {
+                    model.openHistoryFolderButtonTapped()
+                }
+                .buttonStyle(.link)
+                .font(.caption)
+            }
+
             if model.isDownloadingModel || model.downloadProgress > 0 || !model.downloadStatus.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {

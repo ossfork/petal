@@ -21,13 +21,19 @@ extension SharedKey where Self == AppStorageKey<String>.Default {
     }
 }
 
+extension SharedKey where Self == AppStorageKey<Bool>.Default {
+    static var saveHistory: Self {
+        Self[.appStorage("save_history"), default: true]
+    }
+}
+
 extension SharedKey where Self == FileStorageKey<[TranscriptHistoryDay]>.Default {
     static var transcriptHistoryDays: Self {
         Self[
             .fileStorage(
                 .documentsDirectory
                     .appending(component: "MacX")
-                    .appending(component: "transcripts")
+                    .appending(component: "history")
                     .appending(component: "history.json")
             ),
             default: []

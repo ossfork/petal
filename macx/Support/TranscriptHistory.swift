@@ -17,4 +17,6 @@ nonisolated struct TranscriptHistoryEntry: Codable, Identifiable, Equatable, Sen
     var transcriptionElapsedSeconds: Double
     var characterCount: Int
     var pasteResult: String
+    var audioRelativePath: String?
+    var transcriptRelativePath: String?
 }
