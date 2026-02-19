@@ -79,15 +79,17 @@ final class AppModel {
     var accessibilityAuthorized = false
 
     @ObservationIgnored @Dependency(\.continuousClock) private var clock
+    @ObservationIgnored @Dependency(\.date.now) private var now
+    @ObservationIgnored @Dependency(\.uuid) private var uuid
     @ObservationIgnored @Dependency(\.appModelSetupClient) private var modelSetupClient
     @ObservationIgnored @Dependency(\.appTranscriptionClient) private var appTranscriptionClient
     @ObservationIgnored @Dependency(\.appPasteClient) private var appPasteClient
+    @ObservationIgnored @Dependency(\.appPermissionsClient) private var appPermissionsClient
+    @ObservationIgnored @Dependency(\.appAudioClient) private var appAudioClient
+    @ObservationIgnored @Dependency(\.appKeyboardClient) private var appKeyboardClient
+    @ObservationIgnored @Dependency(\.appFloatingCapsuleClient) private var appFloatingCapsuleClient
     @ObservationIgnored private let logger = Logger(subsystem: "com.optimalapps.macx", category: "AppModel")
 
-    @ObservationIgnored private let permissionsService: PermissionsService
-    @ObservationIgnored private let audioCaptureService: AudioCaptureService
-    @ObservationIgnored private let keyboardMonitorService: KeyboardMonitorService
-    @ObservationIgnored private let floatingCapsuleController: FloatingCapsuleController
     @ObservationIgnored private let isPreviewMode: Bool
 
     @ObservationIgnored private var didBootstrap = false
@@ -108,10 +110,6 @@ final class AppModel {
     }
 
     init(isPreviewMode: Bool = AppModel.isRunningInSwiftUIPreview) {
-        permissionsService = PermissionsService()
-        audioCaptureService = AudioCaptureService()
-        keyboardMonitorService = KeyboardMonitorService()
-        floatingCapsuleController = FloatingCapsuleController()
         self.isPreviewMode = isPreviewMode
 
         if isPreviewMode {
@@ -431,7 +429,7 @@ final class AppModel {
             return
         }
 
-        let granted = await permissionsService.requestMicrophonePermission()
+        let granted = await appPermissionsClient.requestMicrophonePermission()
         refreshPermissionStatus()
         logger.info("Microphone permission request resolved. granted=\(granted, privacy: .public), authorized=\(self.microphoneAuthorized, privacy: .public)")
         consoleLog("Microphone permission request resolved. granted=\(granted), authorized=\(self.microphoneAuthorized)")
@@ -442,7 +440,7 @@ final class AppModel {
         }
 
         if microphonePermissionState == .denied {
-            permissionsService.openMicrophonePrivacySettings()
+            appPermissionsClient.openMicrophonePrivacySettings()
             lastError = "Enable microphone access in System Settings, then return to MacX."
             return
         }
@@ -457,13 +455,13 @@ final class AppModel {
             return
         }
 
-        permissionsService.promptForAccessibilityPermission()
+        appPermissionsClient.promptForAccessibilityPermission()
         refreshPermissionStatus()
         logger.info("Accessibility permission prompt shown. authorized=\(self.accessibilityAuthorized, privacy: .public)")
         consoleLog("Accessibility permission prompt shown. authorized=\(self.accessibilityAuthorized)")
 
         if !accessibilityAuthorized {
-            permissionsService.openAccessibilityPrivacySettings()
+            appPermissionsClient.openAccessibilityPrivacySettings()
             transientMessage = "Enable Accessibility to allow automatic paste."
         }
     }
@@ -521,11 +519,11 @@ final class AppModel {
             return
         }
 
-        if toggleRecordingIsActive, !audioCaptureService.isRecording {
+        if toggleRecordingIsActive, !appAudioClient.isRecording() {
             toggleRecordingIsActive = false
         }
 
-        if toggleRecordingIsActive, audioCaptureService.isRecording {
+        if toggleRecordingIsActive, appAudioClient.isRecording() {
             toggleRecordingIsActive = false
             ignoreNextShortcutKeyUp = true
             logger.info("Toggle recording stop requested")
@@ -539,7 +537,7 @@ final class AppModel {
         }
 
         pushToTalkIsActive = true
-        currentShortcutPressStart = Date()
+        currentShortcutPressStart = now
 
         if !microphoneAuthorized {
             await microphonePermissionButtonTapped()
@@ -550,14 +548,14 @@ final class AppModel {
                 transientMessage = "Enable microphone access to record."
                 pushToTalkIsActive = false
                 currentShortcutPressStart = nil
-                floatingCapsuleController.showError("Microphone denied")
+                appFloatingCapsuleClient.showError("Microphone denied")
                 await hideCapsuleAfterDelay()
                 return
             }
         }
 
         do {
-            try audioCaptureService.startRecording { [weak self] level in
+            try appAudioClient.startRecording { [weak self] level in
                 guard let self else { return }
                 Task { @MainActor [self, level] in
                     self.recordingLevelDidUpdate(level)
@@ -566,7 +564,7 @@ final class AppModel {
 
             isAwaitingCancelRecordingConfirmation = false
             sessionState = .recording
-            floatingCapsuleController.showRecording()
+            appFloatingCapsuleClient.showRecording()
             logger.info("Recording started")
             consoleLog("Recording started")
         } catch {
@@ -575,7 +573,7 @@ final class AppModel {
             lastError = error.localizedDescription
             pushToTalkIsActive = false
             currentShortcutPressStart = nil
-            floatingCapsuleController.showError("Recording failed")
+            appFloatingCapsuleClient.showError("Recording failed")
             logger.error("Recording failed to start: \(error.localizedDescription, privacy: .public)")
             consoleLog("Recording failed to start: \(error.localizedDescription)")
             await hideCapsuleAfterDelay()
@@ -602,11 +600,11 @@ final class AppModel {
 
         pushToTalkIsActive = false
 
-        guard audioCaptureService.isRecording else {
+        guard appAudioClient.isRecording() else {
             return
         }
 
-        let holdDuration = Date().timeIntervalSince(currentShortcutPressStart ?? Date())
+        let holdDuration = now.timeIntervalSince(currentShortcutPressStart ?? now)
         currentShortcutPressStart = nil
 
         if holdDuration < toggleActivationThresholdSeconds {
@@ -625,10 +623,10 @@ final class AppModel {
         toggleRecordingIsActive = false
         isAwaitingCancelRecordingConfirmation = false
         sessionState = .transcribing
-        floatingCapsuleController.showTranscribing()
+        appFloatingCapsuleClient.showTranscribing()
 
         do {
-            let audioURL = try audioCaptureService.stopRecording()
+            let audioURL = try appAudioClient.stopRecording()
             defer { try? FileManager.default.removeItem(at: audioURL) }
 
             guard let selectedModelOption else {
@@ -637,7 +635,7 @@ final class AppModel {
 
             let audioDuration = appTranscriptionClient.audioDurationSeconds(audioURL)
             startTranscriptionProgressTracking(audioDuration: audioDuration)
-            let transcriptionStart = Date()
+            let transcriptionStart = now
 
             let transcript = try await appTranscriptionClient.transcribe(
                 audioURL,
@@ -645,7 +643,7 @@ final class AppModel {
                 transcriptionMode,
                 transcriptionMode == .smart ? smartPrompt : nil
             )
-            let transcriptionElapsed = Date().timeIntervalSince(transcriptionStart)
+            let transcriptionElapsed = now.timeIntervalSince(transcriptionStart)
             updateTranscriptionSpeedEstimate(audioDuration: audioDuration, elapsed: transcriptionElapsed)
             stopTranscriptionProgressTracking(finalProgress: 1)
 
@@ -678,7 +676,7 @@ final class AppModel {
             transientMessage = "Transcription failed."
             sessionState = .error(error.localizedDescription)
             stopTranscriptionProgressTracking()
-            floatingCapsuleController.showError("Transcription failed")
+            appFloatingCapsuleClient.showError("Transcription failed")
             logger.error("Transcription failed: \(error.localizedDescription, privacy: .public)")
             consoleLog("Transcription failed: \(error.localizedDescription)")
         }
@@ -736,8 +734,8 @@ final class AppModel {
         if isPreviewMode { return }
         refreshPermissionStatus()
 
-        if permissionsService.microphonePermissionState() == .notDetermined {
-            _ = await permissionsService.requestMicrophonePermission()
+        if appPermissionsClient.microphonePermissionState() == .notDetermined {
+            _ = await appPermissionsClient.requestMicrophonePermission()
             refreshPermissionStatus()
         }
 
@@ -745,7 +743,7 @@ final class AppModel {
         didAutoPromptAccessibilityInSetup = true
 
         if !accessibilityAuthorized {
-            permissionsService.promptForAccessibilityPermission()
+            appPermissionsClient.promptForAccessibilityPermission()
             refreshPermissionStatus()
         }
     }
@@ -769,7 +767,7 @@ final class AppModel {
 
     private func registerKeyboardMonitor() {
         if isPreviewMode { return }
-        keyboardMonitorService.start { [weak self] keyPress in
+        appKeyboardClient.start { [weak self] keyPress in
             guard let self else { return }
             Task { @MainActor [weak self] in
                 self?.handleMonitoredKeyPress(keyPress)
@@ -777,8 +775,8 @@ final class AppModel {
         }
     }
 
-    private func handleMonitoredKeyPress(_ keyPress: KeyboardMonitorService.KeyPress) {
-        guard case .recording = sessionState, audioCaptureService.isRecording else { return }
+    private func handleMonitoredKeyPress(_ keyPress: AppKeyPress) {
+        guard case .recording = sessionState, appAudioClient.isRecording() else { return }
 
         if isAwaitingCancelRecordingConfirmation {
             resolveCancelRecordingConfirmation(with: keyPress)
@@ -791,7 +789,7 @@ final class AppModel {
 
     private func presentCancelRecordingConfirmation() {
         isAwaitingCancelRecordingConfirmation = true
-        floatingCapsuleController.showCancelConfirmation()
+        appFloatingCapsuleClient.showCancelConfirmation()
         logger.info("Recording cancel confirmation shown")
         consoleLog("Recording cancel confirmation shown")
     }
@@ -800,17 +798,17 @@ final class AppModel {
         guard isAwaitingCancelRecordingConfirmation else { return }
 
         isAwaitingCancelRecordingConfirmation = false
-        guard case .recording = sessionState, audioCaptureService.isRecording else {
-            floatingCapsuleController.hide()
+        guard case .recording = sessionState, appAudioClient.isRecording() else {
+            appFloatingCapsuleClient.hide()
             return
         }
 
-        floatingCapsuleController.showRecording()
+        appFloatingCapsuleClient.showRecording()
         logger.info("Recording cancel confirmation dismissed")
         consoleLog("Recording cancel confirmation dismissed")
     }
 
-    private func resolveCancelRecordingConfirmation(with keyPress: KeyboardMonitorService.KeyPress) {
+    private func resolveCancelRecordingConfirmation(with keyPress: AppKeyPress) {
         switch keyPress {
         case .character("y"):
             cancelRecordingFromConfirmation()
@@ -820,12 +818,12 @@ final class AppModel {
     }
 
     private func cancelRecordingFromConfirmation() {
-        guard audioCaptureService.isRecording else {
+        guard appAudioClient.isRecording() else {
             isAwaitingCancelRecordingConfirmation = false
             return
         }
 
-        audioCaptureService.cancelRecording()
+        appAudioClient.cancelRecording()
 
         isAwaitingCancelRecordingConfirmation = false
         pushToTalkIsActive = false
@@ -834,16 +832,16 @@ final class AppModel {
         currentShortcutPressStart = nil
         sessionState = .idle
         transientMessage = "Recording canceled."
-        floatingCapsuleController.hide()
+        appFloatingCapsuleClient.hide()
         logger.info("Recording canceled from keyboard confirmation")
         consoleLog("Recording canceled from keyboard confirmation")
     }
 
     private func refreshPermissionStatus() {
         if isPreviewMode { return }
-        microphonePermissionState = permissionsService.microphonePermissionState()
+        microphonePermissionState = appPermissionsClient.microphonePermissionState()
         microphoneAuthorized = microphonePermissionState == .authorized
-        accessibilityAuthorized = permissionsService.hasAccessibilityPermission()
+        accessibilityAuthorized = appPermissionsClient.hasAccessibilityPermission()
     }
 
     private func showSetupWindow() {
@@ -875,7 +873,7 @@ final class AppModel {
             return
         }
 
-        if audioCaptureService.isRecording || sessionState == .transcribing {
+        if appAudioClient.isRecording() || sessionState == .transcribing {
             return
         }
 
@@ -886,7 +884,7 @@ final class AppModel {
         }
 
         do {
-            try audioCaptureService.startRecording { [weak self] level in
+            try appAudioClient.startRecording { [weak self] level in
                 guard let self else { return }
                 Task { @MainActor [self, level] in
                     self.recordingLevelDidUpdate(level)
@@ -900,14 +898,14 @@ final class AppModel {
             currentShortcutPressStart = nil
             sessionState = .recording
             transientMessage = "Listening... use macx://stop to transcribe."
-            floatingCapsuleController.showRecording()
+            appFloatingCapsuleClient.showRecording()
             logger.info("Recording started from deep link")
             consoleLog("Recording started from deep link")
         } catch {
             reportIssue(error)
             sessionState = .error(error.localizedDescription)
             lastError = error.localizedDescription
-            floatingCapsuleController.showError("Recording failed")
+            appFloatingCapsuleClient.showError("Recording failed")
             logger.error("Deep link start failed: \(error.localizedDescription, privacy: .public)")
             consoleLog("Deep link start failed: \(error.localizedDescription)")
             await hideCapsuleAfterDelay()
@@ -915,14 +913,14 @@ final class AppModel {
     }
 
     private func stopRecordingFromDeepLink() async {
-        guard audioCaptureService.isRecording else { return }
+        guard appAudioClient.isRecording() else { return }
         logger.info("Stopping recording from deep link")
         consoleLog("Stopping recording from deep link")
         await stopRecordingAndTranscribe()
     }
 
     private func toggleRecordingFromDeepLink() async {
-        if audioCaptureService.isRecording {
+        if appAudioClient.isRecording() {
             await stopRecordingFromDeepLink()
         } else {
             await startRecordingFromDeepLink()
@@ -931,7 +929,7 @@ final class AppModel {
 
     private func recordingLevelDidUpdate(_ level: Double) {
         guard case .recording = sessionState else { return }
-        floatingCapsuleController.updateLevel(level)
+        appFloatingCapsuleClient.updateLevel(level)
     }
 
     private func warmModelTask() async {
@@ -956,7 +954,7 @@ final class AppModel {
         try? await clock.sleep(for: .milliseconds(300))
         isAwaitingCancelRecordingConfirmation = false
         stopTranscriptionProgressTracking()
-        floatingCapsuleController.hide()
+        appFloatingCapsuleClient.hide()
 
         if case .error = sessionState {
             sessionState = .idle
@@ -986,7 +984,7 @@ final class AppModel {
         content.body = "Transcript copied to clipboard. Paste manually with Command+V."
 
         let request = UNNotificationRequest(
-            identifier: UUID().uuidString,
+            identifier: uuid().uuidString,
             content: content,
             trigger: nil
         )
@@ -1005,15 +1003,15 @@ final class AppModel {
     private func startTranscriptionProgressTracking(audioDuration: Double) {
         stopTranscriptionProgressTracking()
         let expectedDuration = estimatedTranscriptionDuration(for: audioDuration)
-        let start = Date()
+        let start = now
 
         transcriptionProgressTask = Task { [weak self] in
             guard let self else { return }
 
             while !Task.isCancelled {
-                let elapsed = Date().timeIntervalSince(start)
+                let elapsed = now.timeIntervalSince(start)
                 let progress = min(max(elapsed / expectedDuration, 0), 0.97)
-                self.floatingCapsuleController.updateTranscriptionProgress(progress)
+                self.appFloatingCapsuleClient.updateTranscriptionProgress(progress)
 
                 try? await self.clock.sleep(for: .milliseconds(120))
             }
@@ -1025,7 +1023,7 @@ final class AppModel {
         transcriptionProgressTask = nil
 
         if let finalProgress {
-            floatingCapsuleController.updateTranscriptionProgress(finalProgress)
+            appFloatingCapsuleClient.updateTranscriptionProgress(finalProgress)
         }
     }
 
@@ -1052,11 +1050,11 @@ final class AppModel {
         transcriptionElapsed: Double,
         pasteResult: PasteResult
     ) {
-        let now = Date()
-        let day = Self.historyDayFormatter.string(from: now)
+        let timestamp = now
+        let day = Self.historyDayFormatter.string(from: timestamp)
         let entry = TranscriptHistoryEntry(
-            id: UUID(),
-            timestamp: now,
+            id: uuid(),
+            timestamp: timestamp,
             transcript: transcript,
             modelID: modelID,
             transcriptionMode: mode,
@@ -1112,7 +1110,6 @@ final class AppModel {
     deinit {
         transcriptionProgressTask?.cancel()
         permissionMonitorTask?.cancel()
-        keyboardMonitorService.stop()
     }
 }
 
@@ -1135,6 +1132,43 @@ private struct AppTranscriptionClient {
 
 private struct AppPasteClient {
     var paste: @MainActor (String) async -> PasteResult = { _ in .copiedOnly }
+}
+
+private struct AppPermissionsClient {
+    var microphonePermissionState: @MainActor () -> MicrophonePermissionState = { .notDetermined }
+    var requestMicrophonePermission: @MainActor () async -> Bool = { false }
+    var hasAccessibilityPermission: @MainActor () -> Bool = { false }
+    var promptForAccessibilityPermission: @MainActor () -> Void = {}
+    var openMicrophonePrivacySettings: @MainActor () -> Void = {}
+    var openAccessibilityPrivacySettings: @MainActor () -> Void = {}
+}
+
+private struct AppAudioClient {
+    var isRecording: @MainActor () -> Bool = { false }
+    var startRecording: @MainActor (@escaping @Sendable (Double) -> Void) throws -> Void
+    var stopRecording: @MainActor () throws -> URL
+    var cancelRecording: @MainActor () -> Void = {}
+}
+
+private enum AppKeyPress: Equatable, Sendable {
+    case escape
+    case character(Character)
+    case other
+}
+
+private struct AppKeyboardClient {
+    var start: @MainActor (@escaping @Sendable (AppKeyPress) -> Void) -> Void = { _ in }
+    var stop: @MainActor () -> Void = {}
+}
+
+private struct AppFloatingCapsuleClient {
+    var showRecording: @MainActor () -> Void = {}
+    var updateLevel: @MainActor (Double) -> Void = { _ in }
+    var showTranscribing: @MainActor () -> Void = {}
+    var updateTranscriptionProgress: @MainActor (Double) -> Void = { _ in }
+    var showCancelConfirmation: @MainActor () -> Void = {}
+    var showError: @MainActor (String) -> Void = { _ in }
+    var hide: @MainActor () -> Void = {}
 }
 
 private enum AppModelSetupClientKey: DependencyKey {
@@ -1210,6 +1244,139 @@ private enum AppPasteClientKey: DependencyKey {
     }
 }
 
+private enum AppPermissionsClientKey: DependencyKey {
+    static var liveValue: AppPermissionsClient {
+        AppPermissionsClient(
+            microphonePermissionState: {
+                LiveAppServiceContainer.permissionsService.microphonePermissionState()
+            },
+            requestMicrophonePermission: {
+                await LiveAppServiceContainer.permissionsService.requestMicrophonePermission()
+            },
+            hasAccessibilityPermission: {
+                LiveAppServiceContainer.permissionsService.hasAccessibilityPermission()
+            },
+            promptForAccessibilityPermission: {
+                LiveAppServiceContainer.permissionsService.promptForAccessibilityPermission()
+            },
+            openMicrophonePrivacySettings: {
+                LiveAppServiceContainer.permissionsService.openMicrophonePrivacySettings()
+            },
+            openAccessibilityPrivacySettings: {
+                LiveAppServiceContainer.permissionsService.openAccessibilityPrivacySettings()
+            }
+        )
+    }
+
+    static var testValue: AppPermissionsClient {
+        AppPermissionsClient(
+            microphonePermissionState: { .authorized },
+            requestMicrophonePermission: { true },
+            hasAccessibilityPermission: { true },
+            promptForAccessibilityPermission: {},
+            openMicrophonePrivacySettings: {},
+            openAccessibilityPrivacySettings: {}
+        )
+    }
+}
+
+private enum AppAudioClientKey: DependencyKey {
+    static var liveValue: AppAudioClient {
+        AppAudioClient(
+            isRecording: {
+                LiveAppServiceContainer.audioCaptureService.isRecording
+            },
+            startRecording: { levelHandler in
+                try LiveAppServiceContainer.audioCaptureService.startRecording(levelHandler: levelHandler)
+            },
+            stopRecording: {
+                try LiveAppServiceContainer.audioCaptureService.stopRecording()
+            },
+            cancelRecording: {
+                LiveAppServiceContainer.audioCaptureService.cancelRecording()
+            }
+        )
+    }
+
+    static var testValue: AppAudioClient {
+        AppAudioClient(
+            isRecording: { false },
+            startRecording: { _ in },
+            stopRecording: { URL(fileURLWithPath: "/dev/null") },
+            cancelRecording: {}
+        )
+    }
+}
+
+private enum AppKeyboardClientKey: DependencyKey {
+    static var liveValue: AppKeyboardClient {
+        AppKeyboardClient(
+            start: { handler in
+                LiveAppServiceContainer.keyboardMonitorService.start { keyPress in
+                    switch keyPress {
+                    case .escape:
+                        handler(.escape)
+                    case let .character(character):
+                        handler(.character(character))
+                    case .other:
+                        handler(.other)
+                    }
+                }
+            },
+            stop: {
+                LiveAppServiceContainer.keyboardMonitorService.stop()
+            }
+        )
+    }
+
+    static var testValue: AppKeyboardClient {
+        AppKeyboardClient(
+            start: { _ in },
+            stop: {}
+        )
+    }
+}
+
+private enum AppFloatingCapsuleClientKey: DependencyKey {
+    static var liveValue: AppFloatingCapsuleClient {
+        AppFloatingCapsuleClient(
+            showRecording: {
+                LiveAppServiceContainer.floatingCapsuleController.showRecording()
+            },
+            updateLevel: { level in
+                LiveAppServiceContainer.floatingCapsuleController.updateLevel(level)
+            },
+            showTranscribing: {
+                LiveAppServiceContainer.floatingCapsuleController.showTranscribing()
+            },
+            updateTranscriptionProgress: { progress in
+                LiveAppServiceContainer.floatingCapsuleController.updateTranscriptionProgress(progress)
+            },
+            showCancelConfirmation: {
+                LiveAppServiceContainer.floatingCapsuleController.showCancelConfirmation()
+            },
+            showError: { message in
+                LiveAppServiceContainer.floatingCapsuleController.showError(message)
+            },
+            hide: {
+                LiveAppServiceContainer.floatingCapsuleController.hide()
+            }
+        )
+    }
+
+    static var testValue: AppFloatingCapsuleClient {
+        AppFloatingCapsuleClient(
+            showRecording: {},
+            updateLevel: { _ in },
+            showTranscribing: {},
+            updateTranscriptionProgress: { _ in },
+            showCancelConfirmation: {},
+            showError: { _ in },
+            hide: {}
+        )
+    }
+}
+
 private extension DependencyValues {
     var appModelSetupClient: AppModelSetupClient {
         get { self[AppModelSetupClientKey.self] }
@@ -1225,6 +1392,26 @@ private extension DependencyValues {
         get { self[AppPasteClientKey.self] }
         set { self[AppPasteClientKey.self] = newValue }
     }
+
+    var appPermissionsClient: AppPermissionsClient {
+        get { self[AppPermissionsClientKey.self] }
+        set { self[AppPermissionsClientKey.self] = newValue }
+    }
+
+    var appAudioClient: AppAudioClient {
+        get { self[AppAudioClientKey.self] }
+        set { self[AppAudioClientKey.self] = newValue }
+    }
+
+    var appKeyboardClient: AppKeyboardClient {
+        get { self[AppKeyboardClientKey.self] }
+        set { self[AppKeyboardClientKey.self] = newValue }
+    }
+
+    var appFloatingCapsuleClient: AppFloatingCapsuleClient {
+        get { self[AppFloatingCapsuleClientKey.self] }
+        set { self[AppFloatingCapsuleClientKey.self] = newValue }
+    }
 }
 
 @MainActor
@@ -1232,6 +1419,10 @@ private enum LiveAppServiceContainer {
     static let modelSetupService = ModelSetupService()
     static let transcriptionService = TranscriptionService()
     static let pasteService = PasteService()
+    static let permissionsService = PermissionsService()
+    static let audioCaptureService = AudioCaptureService()
+    static let keyboardMonitorService = KeyboardMonitorService()
+    static let floatingCapsuleController = FloatingCapsuleController()
 }
 
 private extension AppModel {
