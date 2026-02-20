@@ -1,22 +1,22 @@
-import GloamShared
+import Shared
 import Testing
 @testable import GloamModels
 
 @MainActor
 @Test
 func invalidModelSelectionNormalizesToDefault() {
-    let model = GloamSetupModel()
+    let model = OnboardingSetupModel()
     model.selectedModelID = "invalid-model-id"
-    #expect(model.selectedModelID == GloamModelOption.defaultOption.rawValue)
+    #expect(model.selectedModelID == ModelOption.defaultOption.rawValue)
 }
 
 @MainActor
 @Test
 func shortcutStepRequiresConfiguredShortcut() {
-    let model = GloamSetupModel()
+    let model = OnboardingSetupModel()
     model.setupStep = .shortcut
 
-    let action = model.setupPrimaryButtonTapped(hasConfiguredShortcut: false)
+    let action = model.onboardingPrimaryButtonTapped(hasConfiguredShortcut: false)
 
     #expect(action == .none)
     #expect(model.lastError == "Set a push-to-talk shortcut before continuing.")
@@ -25,13 +25,13 @@ func shortcutStepRequiresConfiguredShortcut() {
 @MainActor
 @Test
 func downloadStepCompletesWhenDownloadedAndAuthorized() {
-    let model = GloamSetupModel()
+    let model = OnboardingSetupModel()
     model.setupStep = .download
     model.microphoneAuthorized = true
     model.accessibilityAuthorized = true
     model.setModelDownloaded(true)
 
-    let action = model.setupPrimaryButtonTapped(hasConfiguredShortcut: true)
+    let action = model.onboardingPrimaryButtonTapped(hasConfiguredShortcut: true)
 
     #expect(action == .completed)
     #expect(model.hasCompletedSetup)

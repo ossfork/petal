@@ -34,7 +34,7 @@ struct MenuBarContentView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
-                Button(model.hasCompletedSetup ? "Change Model…" : "Complete Setup…") {
+                Button(model.hasCompletedSetup ? "Change Model…" : "Open Onboarding…") {
                     model.changeModelButtonTapped()
                 }
             }

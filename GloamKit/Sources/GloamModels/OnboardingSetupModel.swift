@@ -5,8 +5,8 @@ import Sharing
 
 @MainActor
 @Observable
-public final class SetupModel {
-    public enum SetupStep: Int, CaseIterable, Sendable {
+public final class OnboardingSetupModel {
+    public enum OnboardingStep: Int, CaseIterable, Sendable {
         case model
         case shortcut
         case download
@@ -46,7 +46,7 @@ public final class SetupModel {
         }
     }
 
-    public var setupStep: SetupStep = .model
+    public var setupStep: OnboardingStep = .model
     public var isDownloadingModel = false
     public var downloadProgress = 0.0
     public var downloadStatus = ""
@@ -63,18 +63,18 @@ public final class SetupModel {
         selectedModelID = ModelOption.from(modelID: selectedModelIDStorage).rawValue
         transcriptionMode = TranscriptionMode(rawValue: transcriptionModeStorage) ?? .verbatim
         smartPrompt = smartPromptStorage
-        beginSetupFlow()
+        beginOnboardingFlow()
     }
 
     public var selectedModelOption: ModelOption? {
         ModelOption(rawValue: selectedModelID)
     }
 
-    public var setupStepItems: [SetupStep] {
-        SetupStep.allCases
+    public var onboardingStepItems: [OnboardingStep] {
+        OnboardingStep.allCases
     }
 
-    public var setupPrimaryButtonTitle: String {
+    public var onboardingPrimaryButtonTitle: String {
         switch setupStep {
         case .model, .shortcut:
             return "Continue"
@@ -106,15 +106,15 @@ public final class SetupModel {
         }
     }
 
-    public var setupPrimaryButtonDisabled: Bool {
+    public var onboardingPrimaryButtonDisabled: Bool {
         isDownloadingModel
     }
 
-    public var setupCanGoBack: Bool {
+    public var onboardingCanGoBack: Bool {
         setupStep != .model && !isDownloadingModel
     }
 
-    public var setupStepTitle: String {
+    public var onboardingStepTitle: String {
         switch setupStep {
         case .model:
             return "Choose Model"
@@ -125,7 +125,7 @@ public final class SetupModel {
         }
     }
 
-    public var setupStepDescription: String {
+    public var onboardingStepDescription: String {
         switch setupStep {
         case .model:
             return "Pick a Voxtral Mini model. You can change this later from the menu bar."
@@ -136,7 +136,7 @@ public final class SetupModel {
         }
     }
 
-    public var setupDownloadSummaryText: String {
+    public var onboardingDownloadSummaryText: String {
         let percent = Int((downloadProgress * 100).rounded())
 
         if let downloadSpeedText {
@@ -146,7 +146,7 @@ public final class SetupModel {
         return "\(percent)%"
     }
 
-    public func setupStepDisplayName(_ step: SetupStep) -> String {
+    public func onboardingStepDisplayName(_ step: OnboardingStep) -> String {
         switch step {
         case .model:
             return "Model"
@@ -166,15 +166,15 @@ public final class SetupModel {
         isSelectedModelDownloaded = downloaded
     }
 
-    public func beginSetupFlow() {
+    public func beginOnboardingFlow() {
         setupStep = .model
         downloadSpeedText = nil
         downloadProgress = isSelectedModelDownloaded ? 1 : 0
         downloadStatus = isSelectedModelDownloaded ? "Model already downloaded." : ""
     }
 
-    public func setupBackButtonTapped() {
-        guard setupCanGoBack else { return }
+    public func onboardingBackButtonTapped() {
+        guard onboardingCanGoBack else { return }
 
         switch setupStep {
         case .model:
@@ -188,7 +188,7 @@ public final class SetupModel {
         lastError = nil
     }
 
-    public func setupPrimaryButtonTapped(hasConfiguredShortcut: Bool) -> SetupPrimaryAction {
+    public func onboardingPrimaryButtonTapped(hasConfiguredShortcut: Bool) -> OnboardingPrimaryAction {
         switch setupStep {
         case .model:
             guard selectedModelOption != nil else {
@@ -233,7 +233,7 @@ public final class SetupModel {
     }
 }
 
-public enum SetupPrimaryAction: Sendable, Equatable {
+public enum OnboardingPrimaryAction: Sendable, Equatable {
     case none
     case advanced
     case requestPermissions

@@ -1,31 +1,28 @@
 import Testing
-@testable import GloamShared
+@testable import Shared
 @testable import GloamModels
-@testable import GloamUI
-@testable import GloamAudioClient
-@testable import GloamPermissionsClient
-@testable import GloamPasteClient
-@testable import GloamKeyboardClient
-@testable import GloamFloatingCapsuleClient
-@testable import GloamAudioTrimClient
-@testable import GloamAudioSpeedClient
-@testable import GloamModelSetupClient
-@testable import GloamTranscriptionClient
+@testable import UI
+@testable import AudioClient
+@testable import PermissionsClient
+@testable import PasteClient
+@testable import KeyboardClient
+@testable import FloatingCapsuleClient
+@testable import AudioTrimClient
+@testable import AudioSpeedClient
+@testable import TranscriptionClient
 
 @Test
 func modulesCompile() {
-    _ = GloamShared.self
-    _ = GloamModels.self
-    _ = GloamUI.self
-    _ = GloamAudioClient.self
-    _ = GloamPermissionsClient.self
-    _ = GloamPasteClient.self
-    _ = GloamKeyboardClient.self
-    _ = GloamFloatingCapsuleClient.self
-    _ = GloamAudioTrimClient.self
-    _ = GloamAudioSpeedClient.self
-    _ = GloamModelSetupClient.self
-    _ = GloamTranscriptionClient.self
-    _ = GloamModelOption.defaultOption
-    _ = GloamTranscriptionMode.verbatim
+    _ = ModelOption.defaultOption
+    _ = TranscriptionMode.verbatim
+    _ = KitAppModel.self
+    _ = FloatingCapsuleView.self
+    _ = AudioClient.self
+    _ = PermissionsClient.self
+    _ = PasteClient.self
+    _ = KeyboardClient.self
+    _ = FloatingCapsuleClient.self
+    _ = AudioTrimClient.self
+    _ = AudioSpeedClient.self
+    _ = TranscriptionClient.self
 }

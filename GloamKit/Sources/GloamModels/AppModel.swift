@@ -3,14 +3,14 @@ import Observation
 @MainActor
 @Observable
 public final class KitAppModel {
-    public let setupModel: SetupModel
+    public let onboardingSetupModel: OnboardingSetupModel
     public let recordingModel: RecordingSessionModel
 
     public init(
-        setupModel: SetupModel = SetupModel(),
+        onboardingSetupModel: OnboardingSetupModel = OnboardingSetupModel(),
         recordingModel: RecordingSessionModel = RecordingSessionModel()
     ) {
-        self.setupModel = setupModel
+        self.onboardingSetupModel = onboardingSetupModel
         self.recordingModel = recordingModel
     }
 }

@@ -9,14 +9,17 @@ import Shared
 
 @MainActor
 @Observable
-public final class SetupModel {
-    public enum Step: Int, CaseIterable, Sendable {
+public final class OnboardingModel {
+    public enum Page: Int, CaseIterable, Sendable {
+        case welcome
         case model
         case shortcut
+        case microphone
+        case accessibility
+        case historyRetention
         case download
     }
 
-    public var step: Step = .model
     public var selectedModelID: String = ModelOption.defaultOption.rawValue {
         didSet {
             let normalized = ModelOption.from(modelID: selectedModelID).rawValue
@@ -55,7 +58,6 @@ public final class SetupModel {
     @ObservationIgnored @Shared(.hasCompletedSetup) private var hasCompletedSetupStorage = false
     @ObservationIgnored @Shared(.historyRetentionMode) private var historyRetentionModeStorage = HistoryRetentionMode.both.rawValue
 
-    @ObservationIgnored private var didAutoPromptAccessibility = false
     @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
     @ObservationIgnored private let isPreviewMode: Bool
 
@@ -92,18 +94,8 @@ public final class SetupModel {
         return downloadClient.isModelDownloaded(selectedModelOption)
     }
 
-    public var shortcutDisplayText: String {
-        guard let shortcut = KeyboardShortcuts.getShortcut(for: .pushToTalk) else {
-            return "No shortcut set"
-        }
-
-        let modifiers = shortcut.modifiers.ks_symbolicRepresentation
-        let key = Sauce.shared.key(for: shortcut.carbonKeyCode)?.rawValue.uppercased() ?? "?"
-        return "Current: \(modifiers)\(key)"
-    }
-
-    public var shortcutUsageText: String {
-        "Tap and release quickly to toggle recording. Hold for at least 2 seconds for push-to-talk."
+    public var hasConfiguredShortcut: Bool {
+        KeyboardShortcuts.getShortcut(for: .pushToTalk) != nil
     }
 
     public var currentModelSummary: String {
@@ -113,52 +105,6 @@ public final class SetupModel {
 
     public var modelsDirectoryDisplayPath: String {
         historyClient.modelsDirectoryPath()
-    }
-
-    public var historyDirectoryDisplayPath: String {
-        historyClient.historyDirectoryPath()
-    }
-
-    public var primaryButtonTitle: String {
-        switch step {
-        case .model:
-            return "Continue"
-        case .shortcut:
-            return "Continue"
-        case .download:
-            if isDownloadingModel {
-                return "Downloading..."
-            }
-
-            if !microphoneAuthorized {
-                switch microphonePermissionState {
-                case .authorized:
-                    break
-                case .notDetermined:
-                    return "Grant Microphone"
-                case .denied:
-                    return "Open Mic Settings"
-                }
-            }
-
-            if !accessibilityAuthorized {
-                return "Enable Accessibility"
-            }
-
-            if isSelectedModelDownloaded {
-                return "Finish Setup"
-            }
-
-            return "Download Model"
-        }
-    }
-
-    public var primaryButtonDisabled: Bool {
-        isDownloadingModel
-    }
-
-    public var canGoBack: Bool {
-        step != .model && !isDownloadingModel
     }
 
     public var downloadSummaryText: String {
@@ -192,45 +138,6 @@ public final class SetupModel {
     public func selectedModelChanged() {
         transientMessage = nil
         lastError = nil
-    }
-
-    public func backButtonTapped() {
-        guard canGoBack else { return }
-
-        switch step {
-        case .model:
-            break
-        case .shortcut:
-            step = .model
-        case .download:
-            step = .shortcut
-        }
-
-        lastError = nil
-    }
-
-    public func primaryButtonTapped() async {
-        switch step {
-        case .model:
-            guard selectedModelOption != nil else {
-                lastError = "Please select a valid model."
-                return
-            }
-
-            step = .shortcut
-            lastError = nil
-        case .shortcut:
-            guard hasConfiguredShortcut else {
-                lastError = "Set a push-to-talk shortcut before continuing."
-                return
-            }
-
-            step = .download
-            lastError = nil
-            await requestPermissionsIfNeeded()
-        case .download:
-            await downloadStepPrimaryButtonTapped()
-        }
     }
 
     public func microphonePermissionButtonTapped() async {
@@ -270,45 +177,7 @@ public final class SetupModel {
         }
     }
 
-    public func openHistoryFolderButtonTapped() {
-        let opened = historyClient.openHistoryFolder(historyRetentionMode)
-        if !opened {
-            transientMessage = "History retention is off."
-        }
-    }
-
-    // MARK: - Private
-
-    private var hasConfiguredShortcut: Bool {
-        KeyboardShortcuts.getShortcut(for: .pushToTalk) != nil
-    }
-
-    private func downloadStepPrimaryButtonTapped() async {
-        if !microphoneAuthorized {
-            await microphonePermissionButtonTapped()
-            await refreshPermissionStatusAsync()
-            guard microphoneAuthorized else { return }
-        }
-
-        if !accessibilityAuthorized {
-            await ensureAccessibilityPermission()
-            guard accessibilityAuthorized else { return }
-        }
-
-        guard let option = selectedModelOption else {
-            lastError = "Please select a valid model."
-            return
-        }
-
-        if downloadClient.isModelDownloaded(option) {
-            completeSetup()
-            return
-        }
-
-        await downloadModel()
-    }
-
-    private func downloadModel() async {
+    public func downloadModel() async {
         guard let option = selectedModelOption else {
             lastError = "Please select a valid model."
             return
@@ -346,30 +215,13 @@ public final class SetupModel {
         }
     }
 
-    private func completeSetup() {
+    public func completeSetup() {
         $hasCompletedSetupStorage.withLock { $0 = true }
         permissionMonitorTask?.cancel()
         onCompleted?()
     }
 
-    private func requestPermissionsIfNeeded() async {
-        if isPreviewMode { return }
-        await refreshPermissionStatusAsync()
-
-        let micState = await permissionsClient.microphonePermissionState()
-        if micState == .notDetermined {
-            _ = await permissionsClient.requestMicrophonePermission()
-            await refreshPermissionStatusAsync()
-        }
-
-        guard !didAutoPromptAccessibility else { return }
-        didAutoPromptAccessibility = true
-
-        if !accessibilityAuthorized {
-            await permissionsClient.promptForAccessibilityPermission()
-            await refreshPermissionStatusAsync()
-        }
-    }
+    // MARK: - Private
 
     private func ensureAccessibilityPermission() async {
         if isPreviewMode {
@@ -424,13 +276,11 @@ public final class SetupModel {
 // MARK: - Preview Support
 
 #if DEBUG
-extension SetupModel {
+extension OnboardingModel {
     public static func makePreview(
-        step: Step = .model,
-        configure: (SetupModel) -> Void = { _ in }
-    ) -> SetupModel {
-        let model = SetupModel(isPreviewMode: true)
-        model.step = step
+        configure: (OnboardingModel) -> Void = { _ in }
+    ) -> OnboardingModel {
+        let model = OnboardingModel(isPreviewMode: true)
         configure(model)
         return model
     }

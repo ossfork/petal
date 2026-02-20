@@ -1,25 +1,25 @@
 import Testing
-@testable import GloamShared
+@testable import Shared
 
 @Test
 func modelOptionFallbackUsesDefault() {
-    #expect(GloamModelOption.from(modelID: "unknown-id") == .defaultOption)
+    #expect(ModelOption.from(modelID: "unknown-id") == .defaultOption)
 }
 
 @Test
 func modelOptionDescriptorMatchesRawValue() {
-    for option in GloamModelOption.allCases {
+    for option in ModelOption.allCases {
         #expect(option.descriptor.id == option.rawValue)
     }
 }
 
 @Test
 func defaultModelRemainsRecommended() {
-    #expect(GloamModelOption.defaultOption.isRecommended)
+    #expect(ModelOption.defaultOption.isRecommended)
 }
 
 @Test
 func transcriptionModeDisplayTextStable() {
-    #expect(GloamTranscriptionMode.verbatim.displayName == "Verbatim")
-    #expect(GloamTranscriptionMode.smart.displayName == "Smart")
+    #expect(TranscriptionMode.verbatim.displayName == "Verbatim")
+    #expect(TranscriptionMode.smart.displayName == "Smart")
 }

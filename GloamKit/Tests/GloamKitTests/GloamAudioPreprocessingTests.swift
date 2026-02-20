@@ -1,12 +1,12 @@
 import AVFoundation
 import Dependencies
 import Foundation
-import GloamShared
+import Shared
 import Testing
-@testable import GloamAudioSpeedClient
-@testable import GloamAudioTrimClient
-@testable import GloamMLXClient
-@testable import GloamTranscriptionClient
+@testable import AudioSpeedClient
+@testable import AudioTrimClient
+@testable import MLXClient
+@testable import TranscriptionClient
 
 @Test
 func trimSilenceRemovesLeadingAndTrailingSections() async throws {
@@ -16,7 +16,7 @@ func trimSilenceRemovesLeadingAndTrailingSections() async throws {
     let inputURL = try writeAudio(samples: silence + tone + silence, sampleRate: sampleRate, prefix: "trim-input")
     defer { try? FileManager.default.removeItem(at: inputURL) }
 
-    let outputURL = try await GloamAudioTrimClient.liveValue.trimSilence(inputURL, 0.01)
+    let outputURL = try await AudioTrimClient.liveValue.trimSilence(inputURL, 0.01)
     defer { try? FileManager.default.removeItem(at: outputURL) }
 
     #expect(outputURL != inputURL)
@@ -35,7 +35,7 @@ func speedUpReducesDurationAtExpectedRate() async throws {
     let inputURL = try writeAudio(samples: samples, sampleRate: sampleRate, prefix: "speed-input")
     defer { try? FileManager.default.removeItem(at: inputURL) }
 
-    let outputURL = try await GloamAudioSpeedClient.liveValue.speedUp(inputURL, 1.25)
+    let outputURL = try await AudioSpeedClient.liveValue.speedUp(inputURL, 1.25)
     defer { try? FileManager.default.removeItem(at: outputURL) }
 
     #expect(outputURL != inputURL)
@@ -57,7 +57,7 @@ func transcriptionClientUsesTrimAndSpeedDependenciesBeforeMLX() async throws {
     defer { try? FileManager.default.removeItem(at: audioURL) }
 
     let output = try await withDependencies {
-        $0.mlxClient = GloamMLXClient(
+        $0.mlxClient = MLXClient(
             isModelDownloaded: { _ in true },
             downloadModel: { _, _ in },
             prepareModelIfNeeded: { _ in
@@ -78,7 +78,7 @@ func transcriptionClientUsesTrimAndSpeedDependenciesBeforeMLX() async throws {
             return url
         }
     } operation: {
-        try await GloamTranscriptionClient.liveValue.transcribe(audioURL, .mini3b, .verbatim, nil)
+        try await TranscriptionClient.liveValue.transcribe(audioURL, .mini3b, .verbatim, nil)
     }
 
     #expect(output == "ok")

@@ -91,7 +91,7 @@ final class AppModel {
     var microphoneAuthorized = false
     var accessibilityAuthorized = false
 
-    var setupModel: SetupModel?
+    var onboardingModel: OnboardingModel?
 
     @ObservationIgnored @Dependency(\.continuousClock) private var clock
     @ObservationIgnored @Dependency(\.date.now) private var now
@@ -116,7 +116,7 @@ final class AppModel {
     @ObservationIgnored private var isAwaitingCancelRecordingConfirmation = false
     @ObservationIgnored private var ignoreNextShortcutKeyUp = false
     @ObservationIgnored private var currentShortcutPressStart: Date?
-    @ObservationIgnored private var setupWindowController: SetupWindowController?
+    @ObservationIgnored private var onboardingWindowController: OnboardingWindowController?
     @ObservationIgnored private var settingsWindowController: SettingsWindowController?
     @ObservationIgnored private var transcriptionProgressTask: Task<Void, Never>?
     @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
@@ -234,8 +234,8 @@ final class AppModel {
 
     func changeModelButtonTapped() {
         if isPreviewMode { return }
-        beginSetupFlow()
-        showSetupWindow()
+        beginOnboardingFlow()
+        showOnboardingWindow()
     }
 
     func openSettingsWindow() {
@@ -258,9 +258,9 @@ final class AppModel {
         }
 
         hasCompletedSetup = false
-        beginSetupFlow()
+        beginOnboardingFlow()
         try? await clock.sleep(for: .milliseconds(150))
-        showSetupWindow()
+        showOnboardingWindow()
     }
 
     // MARK: - Permissions (runtime)
@@ -384,8 +384,8 @@ final class AppModel {
 
         guard hasCompletedSetup else {
             transientMessage = "Complete setup before recording."
-            beginSetupFlow()
-            showSetupWindow()
+            beginOnboardingFlow()
+            showOnboardingWindow()
             return
         }
 
@@ -585,38 +585,38 @@ final class AppModel {
 
     // MARK: - Private: Setup Flow
 
-    func beginSetupFlow() {
-        guard setupModel == nil else { return }
-        let model = SetupModel()
+    func beginOnboardingFlow() {
+        guard onboardingModel == nil else { return }
+        let model = OnboardingModel()
         model.onCompleted = { [weak self] in
-            self?.handleSetupCompleted()
+            self?.handleOnboardingCompleted()
         }
-        setupModel = model
+        onboardingModel = model
     }
 
-    private func handleSetupCompleted() {
+    private func handleOnboardingCompleted() {
         hasCompletedSetup = true
         selectedModelID = selectedModelIDStorage
         transientMessage = "Gloam is ready. Quick tap to toggle listening, or hold for push-to-talk."
-        setupWindowController?.close()
-        setupModel = nil
-        logger.info("Setup completed")
-        consoleLog("Setup completed")
+        onboardingWindowController?.close()
+        onboardingModel = nil
+        logger.info("Onboarding completed")
+        consoleLog("Onboarding completed")
         Task { await warmModelTask() }
     }
 
-    private func showSetupWindow() {
+    private func showOnboardingWindow() {
         if isPreviewMode { return }
-        guard let setupModel else { return }
+        guard let onboardingModel else { return }
 
-        let controller = SetupWindowController(setupModel: setupModel)
-        setupWindowController = controller
+        let controller = OnboardingWindowController(onboardingModel: onboardingModel)
+        onboardingWindowController = controller
 
-        if let setupWindow = controller.window {
+        if let onboardingWindow = controller.window {
             for window in NSApp.windows {
                 guard
-                    window !== setupWindow,
-                    window.identifier?.rawValue == "GloamSetupWindow"
+                    window !== onboardingWindow,
+                    window.identifier?.rawValue == "GloamOnboardingWindow"
                 else { continue }
                 window.close()
             }
@@ -780,8 +780,8 @@ final class AppModel {
     private func startRecordingFromDeepLink() async {
         guard hasCompletedSetup else {
             transientMessage = "Complete setup before recording."
-            beginSetupFlow()
-            showSetupWindow()
+            beginOnboardingFlow()
+            showOnboardingWindow()
             return
         }
 

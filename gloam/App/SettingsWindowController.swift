@@ -584,7 +584,7 @@ private final class GeneralSettingsPaneView: SettingsPaneView {
         modelValueLabel.textColor = SettingsPalette.textSecondary
         modelValueLabel.lineBreakMode = .byTruncatingTail
 
-        let setupButton = makePrimaryButton("Open Setup Assistant", action: #selector(openSetupAssistant))
+        let setupButton = makePrimaryButton("Open Onboarding", action: #selector(openSetupAssistant))
         let historyButton = makePrimaryButton("Open History Folder", action: #selector(openHistoryFolder))
 
         card.stack.addArrangedSubview(makeKeyValueRow(title: "Status", trailing: statusValueLabel))
@@ -669,7 +669,7 @@ private final class ModelSettingsPaneView: SettingsPaneView {
 
         downloadedLabel.font = NSFont.systemFont(ofSize: 12, weight: .semibold)
 
-        let setupButton = makePrimaryButton("Download or Switch in Setup", action: #selector(openSetupAssistant))
+        let setupButton = makePrimaryButton("Download or Switch in Onboarding", action: #selector(openSetupAssistant))
 
         card.stack.addArrangedSubview(makeKeyValueRow(title: "Selected Model", trailing: modelPopup))
         card.stack.addArrangedSubview(makeRowLine())
@@ -679,7 +679,7 @@ private final class ModelSettingsPaneView: SettingsPaneView {
         card.stack.addArrangedSubview(makeRowLine())
         card.stack.addArrangedSubview(makeKeyValueRow(title: "Download Status", trailing: downloadedLabel))
         card.stack.addArrangedSubview(makeRowLine())
-        card.stack.addArrangedSubview(makeKeyValueRow(title: "Setup Assistant", trailing: setupButton))
+        card.stack.addArrangedSubview(makeKeyValueRow(title: "Onboarding", trailing: setupButton))
     }
 
     @available(*, unavailable)
