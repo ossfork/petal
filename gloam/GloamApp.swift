@@ -6,12 +6,17 @@ import SwiftUI
 
 @main
 struct GloamApp: App {
-    @State private var model = AppModel()
+    @State private var model: AppModel
+    @State private var menuBarViewModel: MenuBarContentViewModel
     @State private var updatesModel: CheckForUpdatesModel?
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     private let logger = Logger(subsystem: "com.optimalapps.gloam", category: "App")
 
     init() {
+        let appModel = AppModel()
+        _model = State(initialValue: appModel)
+        _menuBarViewModel = State(initialValue: MenuBarContentViewModel(appModel: appModel))
+
         guard SingleInstanceLock.shared.acquire() else {
             Logger(subsystem: "com.optimalapps.gloam", category: "App")
                 .error("Another gloam instance is already running. exiting duplicate process.")
@@ -24,13 +29,14 @@ struct GloamApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MenuBarContentView(model: model, updatesModel: updatesModel)
+            MenuBarContentView(viewModel: menuBarViewModel)
         } label: {
             Label("Gloam", systemImage: model.menuBarSymbolName)
                 .onAppear {
                     appDelegate.model = model
                     if updatesModel == nil {
                         updatesModel = CheckForUpdatesModel(updater: appDelegate.updaterController.updater)
+                        menuBarViewModel.setUpdatesModel(updatesModel)
                     }
                 }
         }

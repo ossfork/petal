@@ -1,264 +1,130 @@
-import KeyboardShortcuts
-import PermissionsClient
+import MacControlCenterUI
 import Shared
 import SwiftUI
 
 struct MenuBarContentView: View {
-    @Bindable var model: AppModel
-    var updatesModel: CheckForUpdatesModel? = nil
+    @Bindable var viewModel: MenuBarContentViewModel
+
+    @State private var isPresented = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Label(model.statusTitle, systemImage: model.menuBarSymbolName)
-                .font(.headline)
-                .foregroundStyle(statusColor)
+        MacControlCenterMenu(isPresented: $isPresented) {
+            MenuSection("Status", divider: false)
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Shortcut")
-                    .font(.subheadline.weight(.semibold))
-                KeyboardShortcuts.Recorder("Push to talk", name: .pushToTalk)
-                Text(model.shortcutDisplayText)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text(model.shortcutUsageText)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            HStack {
+                Label(viewModel.statusTitle, systemImage: viewModel.statusSymbolName)
+                    .foregroundStyle(viewModel.statusColor)
+                Spacer()
             }
 
-            Divider()
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Model")
-                    .font(.subheadline.weight(.semibold))
-                Text(model.currentModelSummary)
+            if let error = viewModel.statusErrorMessage {
+                Text(error)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                Button(model.hasCompletedSetup ? "Change Model…" : "Open Onboarding…") {
-                    model.changeModelButtonTapped()
-                }
+                    .foregroundStyle(.red)
             }
 
-            Divider()
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Mode")
-                    .font(.subheadline.weight(.semibold))
-
-                Picker("Mode", selection: $model.transcriptionMode) {
-                    ForEach(TranscriptionMode.allCases) { mode in
-                        Text(mode.displayName).tag(mode)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-
-                Text(model.transcriptionMode.description)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                if model.transcriptionMode == .smart {
-                    TextField("Custom instruction…", text: $model.smartPrompt, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.caption)
-                        .lineLimit(2...4)
-                }
-            }
-
-            Divider()
-
-            VStack(alignment: .leading, spacing: 6) {
-                permissionRow(
-                    title: "Microphone",
-                    isGranted: model.microphoneAuthorized,
-                    actionTitle: "Grant",
-                    action: microphonePermissionButtonTapped
-                )
-
-                permissionRow(
-                    title: "Accessibility",
-                    isGranted: model.accessibilityAuthorized,
-                    actionTitle: "Enable",
-                    action: accessibilityPermissionButtonTapped
-                )
-            }
-
-            if let message = model.transientMessage {
+            if let message = viewModel.transientMessage {
                 Text(message)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
-            Divider()
+            if viewModel.shouldShowPermissionsSection {
+                MenuSection("Permissions")
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("History")
-                    .font(.subheadline.weight(.semibold))
-
-                Picker("Retention", selection: $model.historyRetentionMode) {
-                    ForEach(HistoryRetentionMode.allCases) { mode in
-                        Text(mode.displayName).tag(mode)
+                if viewModel.needsMicrophonePermission {
+                    MenuCommand("Grant Microphone Access") {
+                        viewModel.requestMicrophonePermission()
                     }
                 }
-                .pickerStyle(.menu)
-                .labelsHidden()
 
-                HStack(spacing: 12) {
-                    Text(model.historyDirectoryDisplayPath)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-
-                    Spacer()
-
-                    Button("Open Folder") {
-                        model.openHistoryFolderButtonTapped()
+                if viewModel.needsAccessibilityPermission {
+                    MenuCommand("Enable Accessibility Access") {
+                        viewModel.requestAccessibilityPermission()
                     }
-                    .font(.caption2)
-                    .buttonStyle(.link)
                 }
+            }
 
-                if !model.historyRetentionMode.keepsHistory {
-                    Text("History retention is off.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else if model.recentTranscriptHistoryEntries.isEmpty {
-                    Text("No transcripts yet.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 8) {
-                            ForEach(model.recentTranscriptHistoryEntries) { entry in
-                                VStack(alignment: .leading, spacing: 4) {
-                                    HStack(alignment: .top) {
-                                        Text(model.historyTimestampText(for: entry))
-                                            .font(.caption2)
-                                            .foregroundStyle(.secondary)
+            if viewModel.shouldShowHistoryMenu {
+                MenuSection("History")
 
-                                        Spacer()
-
-                                        Button("Copy") {
-                                            model.copyTranscriptHistoryButtonTapped(entry.id)
-                                        }
-                                        .font(.caption2)
-                                        .buttonStyle(.link)
-
-                                        if entry.audioRelativePath != nil {
-                                            Button("Play") {
-                                                model.playHistoryAudioButtonTapped(entry.id)
-                                            }
-                                            .font(.caption2)
-                                            .buttonStyle(.link)
-                                        }
-                                    }
-
-                                    Text(model.historyMetadataText(for: entry))
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
-
-                                    Text(entry.transcript.isEmpty ? "Transcript not retained." : entry.transcript)
+                Menu("Recent Transcripts") {
+                    if viewModel.historyMenuItems.isEmpty {
+                        Text("No transcripts yet")
+                    } else {
+                        ForEach(viewModel.historyMenuItems) { item in
+                            Button {
+                                viewModel.copyHistoryEntry(item.id)
+                            } label: {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(item.title)
+                                    Text(item.subtitle)
                                         .font(.caption)
-                                        .lineLimit(2)
-                                }
-
-                                if entry.id != model.recentTranscriptHistoryEntries.last?.id {
-                                    Divider()
                                 }
                             }
                         }
                     }
-                    .frame(maxHeight: 190)
                 }
             }
 
-            Divider()
-
-            if let updatesModel {
-                Button("Check for Updates…") {
-                    updatesModel.checkForUpdates()
+            MenuSection(divider: true) {
+                if viewModel.showsCheckForUpdates {
+                    MenuCommand("Check for Updates…") {
+                        viewModel.checkForUpdates()
+                    }
+                    .disabled(!viewModel.canCheckForUpdates)
                 }
-                .disabled(!updatesModel.canCheckForUpdates)
-                Divider()
+
+                MenuCommand("Settings…") {
+                    viewModel.openSettings()
+                }
+
+                MenuCommand("Quit Gloam") {
+                    viewModel.quit()
+                }
             }
-
-            Button("Settings…") {
-                model.openSettingsWindow()
-            }
-
-            Divider()
-
-            Button("Quit Gloam") {
-                NSApplication.shared.terminate(nil)
-            }
-        }
-        .padding(14)
-        .frame(width: 320)
-    }
-
-    private func permissionRow(title: String, isGranted: Bool, actionTitle: String, action: @escaping () -> Void) -> some View {
-        HStack {
-            Label(title, systemImage: isGranted ? "checkmark.circle.fill" : "xmark.circle")
-                .foregroundStyle(isGranted ? .green : .secondary)
-
-            Spacer()
-
-            if !isGranted {
-                Button(actionTitle, action: action)
-                    .buttonStyle(.link)
-            }
-        }
-        .font(.caption)
-    }
-
-    private func microphonePermissionButtonTapped() {
-        Task { await model.microphonePermissionButtonTapped() }
-    }
-
-    private func accessibilityPermissionButtonTapped() {
-        model.accessibilityPermissionButtonTapped()
-    }
-
-    private var statusColor: Color {
-        switch model.sessionState {
-        case .recording:
-            return .red
-        case .processing(.trimming):
-            return .orange
-        case .processing(.speeding):
-            return .teal
-        case .processing(.transcribing):
-            return .primary
-        case .idle, .error:
-            return .primary
         }
     }
 }
 
 #Preview("Ready") {
-    MenuBarContentView(model: .makePreview())
-        .padding()
+    let model = AppModel.makePreview()
+    MenuBarContentView(viewModel: MenuBarContentViewModel(appModel: model))
 }
 
-#Preview("Setup Required") {
-    MenuBarContentView(
-        model: .makePreview { model in
-            model.hasCompletedSetup = false
-            model.microphonePermissionState = .notDetermined
-            model.microphoneAuthorized = false
-            model.accessibilityAuthorized = false
-            model.transientMessage = "Complete setup to start recording."
-        }
-    )
-    .padding()
+#Preview("Needs Permissions") {
+    let model = AppModel.makePreview { model in
+        model.microphoneAuthorized = false
+        model.accessibilityAuthorized = false
+        model.transientMessage = "Permissions are required before recording."
+    }
+
+    MenuBarContentView(viewModel: MenuBarContentViewModel(appModel: model))
 }
 
-#Preview("Recording") {
-    MenuBarContentView(
-        model: .makePreview { model in
-            model.sessionState = .recording
-            model.transientMessage = "Listening... press shortcut again to stop."
-        }
-    )
-    .padding()
+#Preview("With History") {
+    let model = AppModel.makePreview { model in
+        model.transcriptHistoryDays = [
+            TranscriptHistoryDay(
+                day: "2026-02-20",
+                entries: [
+                    TranscriptHistoryEntry(
+                        id: UUID(),
+                        timestamp: Date(),
+                        transcript: "This transcript should copy from the history submenu.",
+                        modelID: "whisper-large-v3",
+                        transcriptionMode: "smart",
+                        audioDurationSeconds: 5.8,
+                        transcriptionElapsedSeconds: 1.9,
+                        characterCount: 57,
+                        pasteResult: "pasted",
+                        audioRelativePath: "audio/clip1.m4a",
+                        transcriptRelativePath: "transcripts/clip1.txt"
+                    )
+                ]
+            )
+        ]
+    }
+
+    MenuBarContentView(viewModel: MenuBarContentViewModel(appModel: model))
 }

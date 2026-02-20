@@ -4,6 +4,7 @@ import Observation
 import Onboarding
 import Sparkle
 import Shared
+import SwiftUI
 
 @MainActor
 @Observable
@@ -54,6 +55,18 @@ final class SettingsViewModel {
                 "clock.arrow.circlepath"
             case .about:
                 "info.circle.fill"
+            }
+        }
+
+        var fill: Color {
+            switch self {
+            case .general: .indigo
+            case .model: .purple
+            case .shortcut: .blue
+            case .transcription: .orange
+            case .permissions: .green
+            case .history: .teal
+            case .about: .gray
             }
         }
     }

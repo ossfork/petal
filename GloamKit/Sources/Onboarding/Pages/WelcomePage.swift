@@ -40,25 +40,6 @@ struct WelcomePage: View {
             }
         }
     }
-
-    private func featureRow(symbol: String, title: String, description: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: symbol)
-                .font(.headline)
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(.white)
-                .frame(width: 22)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.headline)
-
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
 }
 
 #Preview("Welcome Page") {

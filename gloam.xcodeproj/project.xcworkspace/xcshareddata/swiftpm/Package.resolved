@@ -1,5 +1,5 @@
 {
-  "originHash" : "de4097c42a4208d5c902b8b24a5168c6c130bed5d9f8baaa0206207fb1e86cf2",
+  "originHash" : "a26668869cf57fea25dc43954603835cee8e7f4a69ff0df8a50c913506aa9486",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -17,6 +17,24 @@
       "state" : {
         "revision" : "1aef85578fdd4f9eaeeb8d53b7b4fc31bf08fe27",
         "version" : "2.4.0"
+      }
+    },
+    {
+      "identity" : "maccontrolcenterui",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/orchetect/MacControlCenterUI",
+      "state" : {
+        "revision" : "dea72a51feaae72ca2d88a7af24d86110e002eaa",
+        "version" : "2.7.3"
+      }
+    },
+    {
+      "identity" : "menubarextraaccess",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/orchetect/MenuBarExtraAccess",
+      "state" : {
+        "revision" : "707dff6f55217b3ef5b6be84ced3e83511d4df5c",
+        "version" : "1.2.2"
       }
     },
     {

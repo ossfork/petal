@@ -1,16 +1,7 @@
 import SwiftUI
 
 public extension View {
-    func capsulePill<S: ShapeStyle>(
-        horizontalPadding: CGFloat,
-        verticalPadding: CGFloat,
-        fill: S
-    ) -> some View {
-        padding(.horizontal, horizontalPadding)
-            .padding(.vertical, verticalPadding)
-            .background(fill, in: Capsule())
-    }
-
+    @ViewBuilder
     func slideIn(
         active: Bool,
         offset: CGFloat = 20,
@@ -26,6 +17,9 @@ public extension View {
             .blur(radius: active ? 0 : blur)
             .offset(y: active ? 0 : offset)
             .scaleEffect(active ? 1 : scale)
-            .animation(animation.speed(duration).delay(delay), value: active)
+            .animation(
+                animation.speed(duration).delay(delay),
+                value: active
+            )
     }
 }

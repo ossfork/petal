@@ -91,16 +91,8 @@ public final class OnboardingModel {
         modelDownloadViewModel.selectedModelOption
     }
 
-    public var isSelectedModelDownloaded: Bool {
-        modelDownloadViewModel.isSelectedModelDownloaded
-    }
-
     public var hasConfiguredShortcut: Bool {
         KeyboardShortcuts.getShortcut(for: .pushToTalk) != nil
-    }
-
-    public var downloadSummaryText: String {
-        modelDownloadViewModel.downloadSummaryText
     }
 
     public var microphonePermissionActionTitle: String {

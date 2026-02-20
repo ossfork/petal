@@ -40,13 +40,30 @@ struct OnboardingPageContainer<Content: View>: View {
             }
             .scrollIndicators(.hidden)
 
-            OnboardingActionBar(
-                showBack: showBack,
-                backAction: backAction,
-                primaryTitle: primaryTitle,
-                primaryDisabled: primaryDisabled,
-                primaryAction: primaryAction
-            )
+            VStack(spacing: 0) {
+                Divider().overlay(.white.opacity(0.08))
+                HStack(spacing: 10) {
+                    if showBack, let backAction {
+                        LongButton("Back", symbol: "chevron.left", variant: .secondary) {
+                            backAction()
+                        }
+                        .fixedSize()
+                    }
+                    Spacer()
+                    LongButton(primaryTitle, variant: .primary) {
+                        primaryAction()
+                    }
+                    .fixedSize()
+                    .disabled(primaryDisabled)
+                }
+                .padding(.horizontal, 28)
+                .padding(.vertical, 18)
+                .background(.regularMaterial)
+                .overlay {
+                    Color.black.opacity(0.22)
+                        .allowsHitTesting(false)
+                }
+            }
             .slideIn(active: isAnimating, delay: primaryActionDelay)
         }
         .onAppear { isAnimating = true }

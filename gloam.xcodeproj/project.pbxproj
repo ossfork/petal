@@ -14,6 +14,7 @@
 		A10000010000000000000005 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = A10000040000000000000005 /* Dependencies */; };
 		A10000010000000000000006 /* IssueReporting in Frameworks */ = {isa = PBXBuildFile; productRef = A10000040000000000000006 /* IssueReporting */; };
 		A10000010000000000000007 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A10000040000000000000007 /* Sparkle */; };
+		A10000010000000000000008 /* MacControlCenterUI in Frameworks */ = {isa = PBXBuildFile; productRef = A10000040000000000000008 /* MacControlCenterUI */; };
 		B10000010000000000000001 /* Shared in Frameworks */ = {isa = PBXBuildFile; productRef = B10000040000000000000001 /* Shared */; };
 		B10000010000000000000002 /* AudioClient in Frameworks */ = {isa = PBXBuildFile; productRef = B10000040000000000000002 /* AudioClient */; };
 		B10000010000000000000003 /* PermissionsClient in Frameworks */ = {isa = PBXBuildFile; productRef = B10000040000000000000003 /* PermissionsClient */; };
@@ -69,6 +70,7 @@
 				A10000010000000000000005 /* Dependencies in Frameworks */,
 				A10000010000000000000006 /* IssueReporting in Frameworks */,
 				A10000010000000000000007 /* Sparkle in Frameworks */,
+				A10000010000000000000008 /* MacControlCenterUI in Frameworks */,
 				B10000010000000000000001 /* Shared in Frameworks */,
 				B10000010000000000000002 /* AudioClient in Frameworks */,
 				B10000010000000000000003 /* PermissionsClient in Frameworks */,
@@ -135,6 +137,7 @@
 				A10000040000000000000005 /* Dependencies */,
 				A10000040000000000000006 /* IssueReporting */,
 				A10000040000000000000007 /* Sparkle */,
+				A10000040000000000000008 /* MacControlCenterUI */,
 				B10000040000000000000001 /* Shared */,
 				B10000040000000000000002 /* AudioClient */,
 				B10000040000000000000003 /* PermissionsClient */,
@@ -187,6 +190,7 @@
 				A10000030000000000000004 /* XCRemoteSwiftPackageReference "swift-sharing" */,
 				A10000030000000000000005 /* XCRemoteSwiftPackageReference "xctest-dynamic-overlay" */,
 				A10000030000000000000006 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				A10000030000000000000007 /* XCRemoteSwiftPackageReference "MacControlCenterUI" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 51F8695A2F469BEA004C06DD /* Products */;
@@ -541,6 +545,14 @@
 				minimumVersion = 2.8.1;
 			};
 		};
+		A10000030000000000000007 /* XCRemoteSwiftPackageReference "MacControlCenterUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/orchetect/MacControlCenterUI";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.7.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -577,6 +589,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A10000030000000000000006 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		A10000040000000000000008 /* MacControlCenterUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000030000000000000007 /* XCRemoteSwiftPackageReference "MacControlCenterUI" */;
+			productName = MacControlCenterUI;
 		};
 		B10000040000000000000001 /* Shared */ = {
 			isa = XCSwiftPackageProductDependency;

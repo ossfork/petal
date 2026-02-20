@@ -87,11 +87,11 @@ struct MicrophonePermissionPage: View {
     @ViewBuilder
     private var actionButton: some View {
         if model.microphoneAuthorized {
-            ComposeSecondaryButton("Continue", systemImage: "checkmark.circle.fill") {
+            LongButton("Continue", symbol: "checkmark.circle.fill", variant: .secondary) {
                 onComplete()
             }
         } else {
-            ComposeSecondaryButton(model.microphonePermissionActionTitle, systemImage: "mic.fill") {
+            LongButton(model.microphonePermissionActionTitle, symbol: "mic.fill", variant: .secondary) {
                 Task { await model.microphonePermissionButtonTapped() }
             }
         }

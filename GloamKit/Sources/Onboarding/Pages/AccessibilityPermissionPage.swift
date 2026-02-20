@@ -95,11 +95,11 @@ struct AccessibilityPermissionPage: View {
     @ViewBuilder
     private var actionButton: some View {
         if model.accessibilityAuthorized {
-            ComposeSecondaryButton("Continue", systemImage: "checkmark.circle.fill") {
+            LongButton("Continue", symbol: "checkmark.circle.fill", variant: .secondary) {
                 onComplete()
             }
         } else {
-            ComposeSecondaryButton("Enable Accessibility", systemImage: "figure.wave") {
+            LongButton("Enable Accessibility", symbol: "figure.wave", variant: .secondary) {
                 model.accessibilityPermissionButtonTapped()
             }
         }
