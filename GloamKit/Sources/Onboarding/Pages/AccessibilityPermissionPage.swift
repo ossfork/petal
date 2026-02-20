@@ -55,18 +55,11 @@ struct AccessibilityPermissionPage: View {
 
     private var iconStack: some View {
         ZStack {
-            if NSImage(named: "accessibility") != nil {
-                Image("accessibility")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 76, height: 76)
-                    .offset(x: 48)
-            } else {
-                Image(systemName: "accessibility.fill")
-                    .font(.system(size: 40))
-                    .foregroundStyle(.white)
-                    .offset(x: 48)
-            }
+            Image("accessibility")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 76, height: 76)
+                .offset(x: 48)
 
             onboardingAppIcon()
                 .resizable()
@@ -94,11 +87,7 @@ struct AccessibilityPermissionPage: View {
 
     @ViewBuilder
     private var actionButton: some View {
-        if model.accessibilityAuthorized {
-            LongButton("Continue", symbol: "checkmark.circle.fill", variant: .secondary) {
-                onComplete()
-            }
-        } else {
+        if !model.accessibilityAuthorized {
             LongButton("Enable Accessibility", symbol: "figure.wave", variant: .secondary) {
                 model.accessibilityPermissionButtonTapped()
             }
