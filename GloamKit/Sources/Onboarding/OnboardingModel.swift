@@ -1,6 +1,5 @@
 import Dependencies
 import DownloadClient
-import HistoryClient
 import KeyboardShortcuts
 import Observation
 import PermissionsClient
@@ -51,7 +50,6 @@ public final class OnboardingModel {
 
     @ObservationIgnored @Dependency(\.downloadClient) private var downloadClient
     @ObservationIgnored @Dependency(\.permissionsClient) private var permissionsClient
-    @ObservationIgnored @Dependency(\.historyClient) private var historyClient
     @ObservationIgnored @Dependency(\.continuousClock) private var clock
 
     @ObservationIgnored @Shared(.selectedModelID) private var selectedModelIDStorage = ModelOption.defaultOption.rawValue
@@ -96,15 +94,6 @@ public final class OnboardingModel {
 
     public var hasConfiguredShortcut: Bool {
         KeyboardShortcuts.getShortcut(for: .pushToTalk) != nil
-    }
-
-    public var currentModelSummary: String {
-        guard let selectedModelOption else { return "No model selected" }
-        return "\(selectedModelOption.displayName) - \(selectedModelOption.sizeLabel)"
-    }
-
-    public var modelsDirectoryDisplayPath: String {
-        historyClient.modelsDirectoryPath()
     }
 
     public var downloadSummaryText: String {

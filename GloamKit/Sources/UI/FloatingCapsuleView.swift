@@ -133,17 +133,17 @@ private struct RecordingBars: View {
 
     var body: some View {
         HStack(spacing: 2) {
-            ForEach(Array(pattern.enumerated()), id: \.offset) { index, value in
+            ForEach(Array(pattern.enumerated()), id: \.offset) { _, value in
                 RoundedRectangle(cornerRadius: 1)
                     .fill(.red.opacity(0.85))
-                    .frame(width: 2.8, height: barHeight(index: index, base: value))
+                    .frame(width: 2.8, height: barHeight(base: value))
             }
         }
         .frame(height: 16)
         .animation(.linear(duration: 0.1), value: level)
     }
 
-    private func barHeight(index: Int, base: CGFloat) -> CGFloat {
+    private func barHeight(base: CGFloat) -> CGFloat {
         let clamped = max(0.03, min(1, level))
         let scale = CGFloat(clamped) * 12
         return 4 + (scale * base)

@@ -69,7 +69,6 @@ let package = Package(
             name: "GloamModels",
             dependencies: [
                 .shared,
-                .permissionsClient,
             ]
         ),
         .target(
@@ -86,7 +85,6 @@ let package = Package(
                 .ui,
                 .downloadClient,
                 .permissionsClient,
-                .historyClient,
                 .keyboardShortcuts,
                 .sauce,
             ]

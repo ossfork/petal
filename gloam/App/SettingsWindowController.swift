@@ -542,13 +542,6 @@ private class SettingsPaneView: NSView {
         return button
     }
 
-    func makeSecondaryValueLabel() -> NSTextField {
-        let label = NSTextField(labelWithString: "")
-        label.font = NSFont.systemFont(ofSize: 12, weight: .medium)
-        label.textColor = SettingsPalette.textSecondary
-        label.lineBreakMode = .byTruncatingTail
-        return label
-    }
 }
 
 @MainActor

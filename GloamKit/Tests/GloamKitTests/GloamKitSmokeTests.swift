@@ -1,6 +1,5 @@
 import Testing
 @testable import Shared
-@testable import GloamModels
 @testable import UI
 @testable import AudioClient
 @testable import PermissionsClient
@@ -15,7 +14,6 @@ import Testing
 func modulesCompile() {
     _ = ModelOption.defaultOption
     _ = TranscriptionMode.verbatim
-    _ = KitAppModel.self
     _ = FloatingCapsuleView.self
     _ = AudioClient.self
     _ = PermissionsClient.self
