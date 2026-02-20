@@ -100,8 +100,8 @@ public struct SetupView: View {
 
     private var topSection: some View {
         VStack(spacing: 10) {
-            if NSImage(named: "appIcon") != nil {
-                Image("appIcon")
+            if let appIconImage {
+                Image(nsImage: appIconImage)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 92, height: 92)
@@ -393,8 +393,8 @@ public struct SetupView: View {
                     .offset(y: -26)
             }
 
-            if NSImage(named: "appIcon") != nil {
-                Image("appIcon")
+            if let appIconImage {
+                Image(nsImage: appIconImage)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 96, height: 96)
@@ -407,6 +407,18 @@ public struct SetupView: View {
             }
         }
         .frame(height: 130)
+    }
+
+    private var appIconImage: NSImage? {
+        if let assetIcon = NSImage(named: "appIcon") {
+            return assetIcon
+        }
+
+        guard let applicationIcon = NSApp.applicationIconImage else {
+            return nil
+        }
+
+        return applicationIcon.size == .zero ? nil : applicationIcon
     }
 
     private func permissionStatusChip(title: String, isGranted: Bool, required: Bool) -> some View {
