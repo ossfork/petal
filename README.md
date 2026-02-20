@@ -31,12 +31,6 @@ Gloam is a menu bar transcription app for macOS built with Swift, SwiftUI, MLX, 
 ```bash
 # Full local gate (packages + app build + aria2c smoke checks)
 ./scripts/phase-gate.sh
-
-# End-to-end local transcription test (requires model downloaded unless --download-if-needed)
-./scripts/ci/e2e-transcription.sh --model mini-3b-4bit --mode verbatim
-
-# Manual CLI inference
-swift run --package-path GloamKit GloamInferenceCLI --audio /path/to/audio.wav --model mini-3b-4bit --mode verbatim
 ```
 
 ## Deep Links

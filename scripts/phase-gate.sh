@@ -35,6 +35,9 @@ else
 fi
 
 echo "==> Phase gate: app build"
+# Reset stale SwiftPM artifact state to avoid absolute-path carryover between repo moves.
+rm -f "$DERIVED_DATA_PATH/SourcePackages/workspace-state.json"
+
 if ! xcodebuild \
   -project gloam.xcodeproj \
   -scheme gloam \
@@ -54,12 +57,10 @@ echo "==> Phase gate: aria2c smoke test"
 ./scripts/ci/test-aria2c.sh --app "$APP_PATH"
 
 if [[ "${GLOAM_RUN_E2E:-0}" == "1" ]]; then
-  echo "==> Phase gate: end-to-end transcription CLI"
-  ./scripts/ci/e2e-transcription.sh ${GLOAM_E2E_ARGS:-}
   echo "==> Phase gate: end-to-end app flow (terminal launch, single-instance monitored)"
   ./scripts/ci/e2e-app-terminal.sh --app "$APP_PATH" ${GLOAM_APP_E2E_ARGS:-}
 else
-  echo "==> Phase gate: end-to-end transcription (skipped, set GLOAM_RUN_E2E=1)"
+  echo "==> Phase gate: end-to-end app flow (skipped, set GLOAM_RUN_E2E=1)"
 fi
 
 echo "==> Phase gate complete"

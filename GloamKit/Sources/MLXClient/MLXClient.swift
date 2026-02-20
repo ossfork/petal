@@ -108,6 +108,7 @@ private actor LiveMLXRuntime {
         unloadModel()
 
         var config = VoxtralPipeline.Configuration.default
+        config.maxTokens = 256
         config.temperature = 0.0
         config.topP = 0.95
         config.repetitionPenalty = 1.15

@@ -38,6 +38,9 @@ public class TekkenTokenizer {
     // Vocabulaire principal (mergeable_ranks dans tiktoken)
     private var mergeableRanks: [Data: Int] = [:]  // byte sequences -> rank
     private var reverseVocabulary: [Int: String] = [:]
+    private var rankToBytes: [Int: Data] = [:]
+    private var controlTokenIds: [String: Int] = [:]
+    private var controlTokenStrings: [Int: String] = [:]
     private var modelPath: String?
     
     // Regex pattern pour découper le texte (pat_str dans tiktoken) 
@@ -124,6 +127,9 @@ public class TekkenTokenizer {
         // Reset tokenizer state before loading new data
         mergeableRanks.removeAll()
         reverseVocabulary.removeAll()
+        rankToBytes.removeAll()
+        controlTokenIds.removeAll()
+        controlTokenStrings.removeAll()
         numSpecialTokens = 0
 
         let tekkenPath = "\(modelPath)/tekken.json"
@@ -157,12 +163,20 @@ public class TekkenTokenizer {
             let defaultVocabSize = tekkenVocab.config.default_vocab_size
             let maxVocab = defaultVocabSize - numSpecialTokens  // 131072 - 1000 = 130072
 
+            if let specialTokens = tekkenVocab.special_tokens {
+                for specialToken in specialTokens {
+                    controlTokenIds[specialToken.token_str] = specialToken.rank
+                    controlTokenStrings[specialToken.rank] = specialToken.token_str
+                }
+            }
+
             // Ne charger que les premiers maxVocab tokens (comme Python)
             let truncatedVocab = Array(tekkenVocab.vocab.prefix(maxVocab))
 
             // Pre-allocate dictionaries for better performance (2-3x faster)
             mergeableRanks.reserveCapacity(maxVocab)
             reverseVocabulary.reserveCapacity(maxVocab)
+            rankToBytes.reserveCapacity(maxVocab)
 
             progress?(0.2, "Building vocabulary (\(maxVocab) tokens)...")
 
@@ -172,6 +186,7 @@ public class TekkenTokenizer {
                 if let tokenData = Data(base64Encoded: token.token_bytes) {
                     // Store original ranks from vocab
                     mergeableRanks[tokenData] = token.rank
+                    rankToBytes[token.rank] = tokenData
 
                     // Pour decode: rank avec offset de special tokens
                     if let tokenString = token.token_str {
@@ -256,6 +271,7 @@ public class TekkenTokenizer {
         // Pre-allocate
         mergeableRanks.reserveCapacity(vocabCount)
         reverseVocabulary.reserveCapacity(vocabCount)
+        rankToBytes.reserveCapacity(vocabCount)
 
         // Read each entry: [keyLength: UInt16][keyData: Data][rank: Int32][strLength: UInt16][strData: Data]
         for i in 0..<vocabCount {
@@ -284,6 +300,7 @@ public class TekkenTokenizer {
             }
 
             mergeableRanks[keyData] = rank
+            rankToBytes[rank] = keyData
             if let str = tokenString {
                 reverseVocabulary[rank + numSpecialTokens] = str
             }
@@ -364,23 +381,63 @@ public class TekkenTokenizer {
                 if let audio = modelConfig.audio_token_id { audioTokenIdInternal = audio }
             }
         }
+
+        // Keep required control IDs resolvable even when loading tokenizer from cache.
+        controlTokenIds["<s>"] = bosTokenId
+        controlTokenIds["</s>"] = eosTokenId
+        controlTokenIds["<pad>"] = padTokenId
+        controlTokenIds["[AUDIO]"] = audioTokenIdInternal
+        controlTokenIds["[INST]"] = controlTokenIds["[INST]"] ?? 3
+        controlTokenIds["[/INST]"] = controlTokenIds["[/INST]"] ?? 4
+        controlTokenIds["[BEGIN_AUDIO]"] = controlTokenIds["[BEGIN_AUDIO]"] ?? 25
+        controlTokenIds["[TRANSCRIBE]"] = controlTokenIds["[TRANSCRIBE]"] ?? 34
+
+        controlTokenStrings[bosTokenId] = "<s>"
+        controlTokenStrings[eosTokenId] = "</s>"
+        controlTokenStrings[padTokenId] = "<pad>"
+        controlTokenStrings[audioTokenIdInternal] = "[AUDIO]"
+        controlTokenStrings[controlTokenIds["[INST]"] ?? 3] = "[INST]"
+        controlTokenStrings[controlTokenIds["[/INST]"] ?? 4] = "[/INST]"
+        controlTokenStrings[controlTokenIds["[BEGIN_AUDIO]"] ?? 25] = "[BEGIN_AUDIO]"
+        controlTokenStrings[controlTokenIds["[TRANSCRIBE]"] ?? 34] = "[TRANSCRIBE]"
     }
     
     private func loadDemoTokenizerData() {
         // Pattern regex basique pour demo
         regexPattern = "[\\w]+|[^\\w\\s]"
         compiledRegex = try? NSRegularExpression(pattern: regexPattern, options: [])
+        numSpecialTokens = 1000
         
         // Demo mergeable_ranks
         let demoTokens = ["résume", "moi", "cet", "audio", "user", ":", "décrit", "ce", "fichier"]
         for (index, token) in demoTokens.enumerated() {
             if let tokenData = token.data(using: .utf8) {
                 mergeableRanks[tokenData] = index  // pas d'offset hardcodé
+                rankToBytes[index] = tokenData
                 reverseVocabulary[index + numSpecialTokens] = token
             }
         }
-        
-        numSpecialTokens = 1000
+
+        controlTokenIds = [
+            "<s>": bosTokenId,
+            "</s>": eosTokenId,
+            "<pad>": padTokenId,
+            "[INST]": 3,
+            "[/INST]": 4,
+            "[AUDIO]": audioTokenIdInternal,
+            "[BEGIN_AUDIO]": 25,
+            "[TRANSCRIBE]": 34,
+        ]
+        controlTokenStrings = [
+            bosTokenId: "<s>",
+            eosTokenId: "</s>",
+            padTokenId: "<pad>",
+            3: "[INST]",
+            4: "[/INST]",
+            audioTokenIdInternal: "[AUDIO]",
+            25: "[BEGIN_AUDIO]",
+            34: "[TRANSCRIBE]",
+        ]
     }
     
     /**
@@ -513,32 +570,45 @@ public class TekkenTokenizer {
      * Python: return self._model.decode([t - self.num_special_tokens for t in tokens])
      */
     public func decode(_ tokens: [Int], skipSpecialTokens: Bool = true) -> String {
-        var result: [String] = []
-        
+        var byteBuffer = Data()
+        var segments: [String] = []
+
+        func flushByteBuffer() {
+            guard !byteBuffer.isEmpty else { return }
+            segments.append(String(decoding: byteBuffer, as: UTF8.self))
+            byteBuffer.removeAll(keepingCapacity: true)
+        }
+
         for tokenId in tokens {
-            if skipSpecialTokens && (tokenId == bosTokenId || tokenId == eosTokenId || tokenId == padTokenId) {
+            // All control tokens live in the special-token range.
+            if tokenId >= 0 && tokenId < numSpecialTokens {
+                if skipSpecialTokens {
+                    continue
+                }
+
+                flushByteBuffer()
+                if let specialToken = controlTokenStrings[tokenId] {
+                    segments.append(specialToken)
+                } else {
+                    segments.append("<UNK>")
+                }
                 continue
             }
             
             // Convert tokenId back to raw rank (remove special token offset)
-            let rawTokenId = max(0, tokenId - numSpecialTokens)
-            
-            if let token = reverseVocabulary[tokenId] {
-                result.append(token)
+            let rawTokenId = tokenId - numSpecialTokens
+            if let tokenBytes = rankToBytes[rawTokenId] {
+                byteBuffer.append(tokenBytes)
+            } else if let token = reverseVocabulary[tokenId], let tokenBytes = token.data(using: .utf8) {
+                byteBuffer.append(tokenBytes)
             } else {
-                // Pour les tokens non trouvés, essayer de décoder via mergeable_ranks inverse
-                let matchingBytes = mergeableRanks.first { $0.value == rawTokenId }?.key
-                
-                if let bytes = matchingBytes, let decodedString = String(data: bytes, encoding: .utf8) {
-                    result.append(decodedString)
-                } else {
-                    result.append("<UNK>")
-                }
+                flushByteBuffer()
+                segments.append("<UNK>")
             }
         }
-        
-        // Join sans espaces pour BPE (les espaces sont dans les tokens)
-        return result.joined()
+
+        flushByteBuffer()
+        return segments.joined()
     }
     
     /**
@@ -557,26 +627,12 @@ public class TekkenTokenizer {
     
     // Compatibility methods for VoxtralProcessor interface
     public func getControlToken(_ token: String) -> Int {
-        // LOGIC PYTHON EXACTE : retourner les mêmes valeurs que Python Tekkenizer.get_control_token()
-        switch token {
-        case "<s>":
-            return bosTokenId  // 1
-        case "</s>":
-            return eosTokenId  // 2
-        case "[INST]":
-            return 3  // Valeur Python exacte
-        case "[/INST]":
-            return 4  // Valeur Python exacte
-        case "[AUDIO]":
-            return audioTokenIdInternal  // 24
-        case "[BEGIN_AUDIO]":
-            return 25  // Valeur Python exacte
-        case "[TRANSCRIBE]":
-            return 34  // Valeur Python exacte
-        default:
-            // Fallback: chercher dans le vocab puis unkTokenId
-            return vocab[token] ?? unkTokenId
+        if let controlTokenId = controlTokenIds[token] {
+            return controlTokenId
         }
+
+        // Fallback: chercher dans le vocab puis unkTokenId
+        return vocab[token] ?? unkTokenId
     }
     
     public var audioTokenId: Int { return audioTokenIdInternal }
