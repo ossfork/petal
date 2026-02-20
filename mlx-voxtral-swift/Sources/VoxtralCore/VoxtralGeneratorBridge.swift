@@ -311,13 +311,13 @@ extension VoxtralGenerator {
  *
  * // Basic usage (equivalent to: python -m mlx_voxtral.generate --audio audio.mp3)
  * let result = try VoxtralGenerator.quickTranscribe(
- *     model: "Aayush9029/Voxtral-Mini-3B-2507", 
+ *     model: "mlx-community/Voxtral-Mini-3B-2507-bf16", 
  *     audio: "audio.mp3"
  * )
  *
- * // Advanced usage (equivalent to: python -m mlx_voxtral.generate --model Aayush9029/Voxtral-Mini-3B-2507 --max-token 2048 --temperature 0.1 --audio audio.mp3 --stream --verbose)
+ * // Advanced usage (equivalent to: python -m mlx_voxtral.generate --model mlx-community/Voxtral-Mini-3B-2507-bf16 --max-token 2048 --temperature 0.1 --audio audio.mp3 --stream --verbose)
  * let streamingResult = try VoxtralGenerator.streamingTranscribe(
- *     model: "Aayush9029/Voxtral-Mini-3B-2507",
+ *     model: "mlx-community/Voxtral-Mini-3B-2507-bf16",
  *     audio: "audio.mp3",
  *     maxTokens: 2048,
  *     temperature: 0.1,
@@ -326,7 +326,7 @@ extension VoxtralGenerator {
  *
  * // Full control (equivalent to full Python argparse usage)
  * let parameters = VoxtralGenerationParameters(
- *     model: "Aayush9029/Voxtral-Mini-3B-2507",
+ *     model: "mlx-community/Voxtral-Mini-3B-2507-bf16",
  *     maxTokens: 2048,
  *     temperature: 0.1,
  *     audioPath: "audio.mp3",

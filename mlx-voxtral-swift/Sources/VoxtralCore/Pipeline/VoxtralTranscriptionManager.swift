@@ -71,9 +71,9 @@ public class VoxtralTranscriptionManager: @unchecked Sendable {
 
     // MARK: - Initialization
 
-    /// Create a new transcription manager with default model (mini-3b-8bit)
+    /// Create a new transcription manager with default model (mini-3b)
     public init() {
-        self.modelVariant = .mini3b8bit
+        self.modelVariant = .mini3b
     }
 
     /// Create a transcription manager with a specific model

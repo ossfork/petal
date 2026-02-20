@@ -44,16 +44,19 @@ public enum ModelRegistry {
 
     /// All available models
     public static let models: [VoxtralModelInfo] = [
-        // Official Mistral models (full precision - require more memory)
+        // Validated mini model
         VoxtralModelInfo(
             id: "mini-3b",
-            repoId: "Aayush9029/Voxtral-Mini-3B-2507",
-            name: "Voxtral Mini 3B (Official)",
-            description: "Official Mistral model - full precision",
-            size: "~6 GB",
-            quantization: "float16",
-            parameters: "3B"
+            repoId: "mlx-community/Voxtral-Mini-3B-2507-bf16",
+            name: "Voxtral Mini 3B (bf16)",
+            description: "Validated checkpoint for stable on-device transcription quality",
+            size: "~8.7 GB",
+            quantization: "bf16",
+            parameters: "3B",
+            recommended: true
         ),
+
+        // Official Mistral models (full precision - require more memory)
         VoxtralModelInfo(
             id: "small-24b",
             repoId: "mistralai/Voxtral-Small-24B-2507",
@@ -64,24 +67,23 @@ public enum ModelRegistry {
             parameters: "24B"
         ),
 
-        // Mini 3B quantized models (recommended for most users)
+        // Legacy mini selections mapped to the validated bf16 model
         VoxtralModelInfo(
             id: "mini-3b-8bit",
-            repoId: "Aayush9029/voxtral-mini-3b-8bit",
-            name: "Voxtral Mini 3B (8-bit)",
-            description: "Best quality/size balance for the mini model",
-            size: "~3.5 GB",
-            quantization: "8-bit",
-            parameters: "3B",
-            recommended: true
+            repoId: "mlx-community/Voxtral-Mini-3B-2507-bf16",
+            name: "Voxtral Mini 3B (Legacy 8-bit Selection)",
+            description: "Automatically mapped to the validated bf16 checkpoint",
+            size: "~8.7 GB",
+            quantization: "bf16",
+            parameters: "3B"
         ),
         VoxtralModelInfo(
             id: "mini-3b-4bit",
-            repoId: "Aayush9029/voxtral-mini-3b-4bit-mixed",
-            name: "Voxtral Mini 3B (4-bit mixed)",
-            description: "Smaller footprint, slightly lower quality",
-            size: "~2 GB",
-            quantization: "4-bit mixed",
+            repoId: "mlx-community/Voxtral-Mini-3B-2507-bf16",
+            name: "Voxtral Mini 3B (Legacy 4-bit Selection)",
+            description: "Automatically mapped to the validated bf16 checkpoint",
+            size: "~8.7 GB",
+            quantization: "bf16",
             parameters: "3B"
         ),
 
@@ -126,7 +128,7 @@ public enum ModelRegistry {
         models.filter { $0.repoId.hasPrefix("mistralai/") }
     }
 
-    /// Get all mini models (3B) - quantized only
+    /// Get all mini models (3B)
     public static var miniModels: [VoxtralModelInfo] {
         models.filter { $0.parameters == "3B" && !$0.repoId.hasPrefix("mistralai/") }
     }
@@ -151,12 +153,12 @@ public enum ModelRegistry {
             print()
         }
 
-        print("--- Mini Models (3B parameters, quantized) ---")
+        print("--- Mini Models (3B parameters) ---")
         for model in miniModels {
             let recommended = model.recommended ? " [RECOMMENDED]" : ""
             print("  \(model.id): \(model.name)\(recommended)")
             print("    Repo: \(model.repoId)")
-            print("    Size: \(model.size) | Quantization: \(model.quantization)")
+            print("    Size: \(model.size) | Precision: \(model.quantization)")
             print("    \(model.description)")
             print()
         }

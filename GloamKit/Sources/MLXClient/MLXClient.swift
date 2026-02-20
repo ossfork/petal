@@ -180,9 +180,9 @@ private extension MLXPipelineModel {
         case .mini3b:
             return .mini3b
         case .mini3b8bit:
-            return .mini3b8bit
+            return .mini3b
         case .mini3b4bit:
-            return .mini3b4bit
+            return .mini3b
         }
     }
 }

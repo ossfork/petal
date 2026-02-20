@@ -13,7 +13,7 @@ import MLXNN
  * Generation Parameters - Equivalent to Python argparse arguments
  */
 public struct VoxtralGenerationParameters {
-    /// Model name or path (default: "Aayush9029/Voxtral-Mini-3B-2507")
+    /// Model name or path (default: "mlx-community/Voxtral-Mini-3B-2507-bf16")
     public let model: String
     
     /// Maximum number of tokens to generate (default: 1024)
@@ -41,7 +41,7 @@ public struct VoxtralGenerationParameters {
     public let stream: Bool
     
     public init(
-        model: String = "Aayush9029/Voxtral-Mini-3B-2507",
+        model: String = "mlx-community/Voxtral-Mini-3B-2507-bf16",
         maxTokens: Int = 1024,
         temperature: Float = 0.0,
         audioPath: String,
@@ -378,7 +378,7 @@ public class VoxtralCLI {
  * 
  * // Advanced usage with custom parameters
  * let advancedParams = VoxtralGenerationParameters(
- *     model: "Aayush9029/Voxtral-Mini-3B-2507",
+ *     model: "mlx-community/Voxtral-Mini-3B-2507-bf16",
  *     maxTokens: 2048,
  *     temperature: 0.1,
  *     audioPath: "audio.mp3",

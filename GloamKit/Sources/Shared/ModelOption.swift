@@ -36,7 +36,9 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
     case mini3b8bit = "mini-3b-8bit"
     case mini3b4bit = "mini-3b-4bit"
 
-    public static let defaultOption: Self = .mini3b8bit
+    // Temporarily expose only the validated model in UI while keeping legacy IDs readable.
+    public static var allCases: [ModelOption] { [.mini3b] }
+    public static let defaultOption: Self = .mini3b
 
     public var id: String { rawValue }
 
@@ -45,33 +47,33 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
         case .mini3b:
             return ModelDescriptor(
                 id: rawValue,
-                repoID: "Aayush9029/Voxtral-Mini-3B-2507",
-                name: "Voxtral Mini 3B (Official)",
-                summary: "Official Mistral model - full precision",
-                size: "~6 GB",
-                quantization: "float16",
+                repoID: "mlx-community/Voxtral-Mini-3B-2507-bf16",
+                name: "Voxtral Mini 3B (bf16)",
+                summary: "Validated checkpoint for stable on-device transcription quality.",
+                size: "~8.7 GB",
+                quantization: "bf16",
                 parameters: "3B",
-                recommended: false
+                recommended: true
             )
         case .mini3b8bit:
             return ModelDescriptor(
                 id: rawValue,
-                repoID: "Aayush9029/voxtral-mini-3b-8bit",
-                name: "Voxtral Mini 3B (8-bit)",
-                summary: "Best quality/size balance for the mini model",
-                size: "~3.5 GB",
-                quantization: "8-bit",
+                repoID: "mlx-community/Voxtral-Mini-3B-2507-bf16",
+                name: "Voxtral Mini 3B (Legacy 8-bit Selection)",
+                summary: "Automatically mapped to the validated bf16 checkpoint.",
+                size: "~8.7 GB",
+                quantization: "bf16",
                 parameters: "3B",
-                recommended: true
+                recommended: false
             )
         case .mini3b4bit:
             return ModelDescriptor(
                 id: rawValue,
-                repoID: "Aayush9029/voxtral-mini-3b-4bit-mixed",
-                name: "Voxtral Mini 3B (4-bit mixed)",
-                summary: "Smaller footprint, slightly lower quality",
-                size: "~2 GB",
-                quantization: "4-bit mixed",
+                repoID: "mlx-community/Voxtral-Mini-3B-2507-bf16",
+                name: "Voxtral Mini 3B (Legacy 4-bit Selection)",
+                summary: "Automatically mapped to the validated bf16 checkpoint.",
+                size: "~8.7 GB",
+                quantization: "bf16",
                 parameters: "3B",
                 recommended: false
             )
@@ -91,10 +93,17 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
     }
 
     public var isRecommended: Bool {
-        self == .defaultOption
+        descriptor.recommended
     }
 
     public static func from(modelID: String) -> Self {
-        Self(rawValue: modelID) ?? .defaultOption
+        switch modelID {
+        case Self.mini3b.rawValue,
+             Self.mini3b8bit.rawValue,
+             Self.mini3b4bit.rawValue:
+            return .mini3b
+        default:
+            return .defaultOption
+        }
     }
 }

@@ -6,7 +6,7 @@
  *
  * Usage:
  * ```swift
- * let pipeline = VoxtralPipeline(model: .mini3b8bit)
+ * let pipeline = VoxtralPipeline(model: .mini3b)
  * try await pipeline.loadModel()
  * let text = try await pipeline.transcribe(audio: audioURL)
  * pipeline.unload()
@@ -36,11 +36,11 @@ public class VoxtralPipeline: @unchecked Sendable {
         public var repoId: String {
             switch self {
             case .mini3b:
-                return "Aayush9029/Voxtral-Mini-3B-2507"
+                return "mlx-community/Voxtral-Mini-3B-2507-bf16"
             case .mini3b8bit:
-                return "Aayush9029/voxtral-mini-3b-8bit"
+                return "mlx-community/Voxtral-Mini-3B-2507-bf16"
             case .mini3b4bit:
-                return "Aayush9029/voxtral-mini-3b-4bit-mixed"
+                return "mlx-community/Voxtral-Mini-3B-2507-bf16"
             case .small24b:
                 return "mistralai/Voxtral-Small-24B-2507"
             case .small24b8bit:
@@ -53,9 +53,9 @@ public class VoxtralPipeline: @unchecked Sendable {
         /// Human-readable display name
         public var displayName: String {
             switch self {
-            case .mini3b: return "Voxtral Mini 3B (Full)"
-            case .mini3b8bit: return "Voxtral Mini 3B (8-bit)"
-            case .mini3b4bit: return "Voxtral Mini 3B (4-bit)"
+            case .mini3b: return "Voxtral Mini 3B (bf16)"
+            case .mini3b8bit: return "Voxtral Mini 3B (Legacy 8-bit Selection)"
+            case .mini3b4bit: return "Voxtral Mini 3B (Legacy 4-bit Selection)"
             case .small24b: return "Voxtral Small 24B (Full)"
             case .small24b8bit: return "Voxtral Small 24B (8-bit)"
             case .small4bit: return "Voxtral Small (4-bit)"
@@ -63,7 +63,7 @@ public class VoxtralPipeline: @unchecked Sendable {
         }
 
         /// Recommended model for most users
-        public static var recommended: Model { .mini3b8bit }
+        public static var recommended: Model { .mini3b }
     }
 
     // MARK: - Backend Selection
@@ -187,7 +187,7 @@ public class VoxtralPipeline: @unchecked Sendable {
 
     /// Create a new pipeline
     /// - Parameters:
-    ///   - model: Model variant to use (default: .mini3b8bit)
+    ///   - model: Model variant to use (default: .mini3b)
     ///   - backend: Encoder backend (default: .auto)
     ///   - configuration: Generation configuration (default: .default)
     public init(
@@ -497,17 +497,7 @@ extension VoxtralPipeline {
 
     /// Get recommended model for system
     public static func recommendedModel(forRAMGB ramGB: Int? = nil) -> Model {
-        let ram = ramGB ?? Int(ProcessInfo.processInfo.physicalMemory / (1024 * 1024 * 1024))
-
-        switch ram {
-        case 0..<16:
-            return .mini3b4bit
-        case 16..<32:
-            return .mini3b8bit
-        case 32..<64:
-            return .mini3b8bit
-        default:
-            return .small24b8bit
-        }
+        _ = ramGB
+        return .mini3b
     }
 }

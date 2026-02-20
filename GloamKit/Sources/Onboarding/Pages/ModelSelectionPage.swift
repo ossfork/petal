@@ -131,7 +131,7 @@ struct ModelSelectionPage: View {
     OnboardingPagePreview {
         ModelSelectionPage(
             model: .makePreview { model in
-                model.selectedModelID = ModelOption.mini3b4bit.rawValue
+                model.selectedModelID = ModelOption.mini3b.rawValue
             }
         ) {}
     }
