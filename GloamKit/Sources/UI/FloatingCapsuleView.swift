@@ -167,3 +167,44 @@ private struct CircularProgressRing: View {
         .animation(.linear(duration: 0.15), value: progress)
     }
 }
+
+@MainActor
+private func makePreviewState(
+    phase: FloatingCapsuleState.Phase,
+    level: Double = 0.58,
+    progress: Double = 0.47
+) -> FloatingCapsuleState {
+    let state = FloatingCapsuleState()
+    state.phase = phase
+    state.level = level
+    state.transcriptionProgress = progress
+    return state
+}
+
+@MainActor
+private func capsulePreview(_ state: FloatingCapsuleState) -> some View {
+    FloatingCapsuleView(state: state)
+        .padding(24)
+        .frame(width: 280, height: 110)
+        .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: 16))
+}
+
+#Preview("Recording") {
+    capsulePreview(makePreviewState(phase: .recording, level: 0.72))
+}
+
+#Preview("Confirm Cancel") {
+    capsulePreview(makePreviewState(phase: .confirmCancel))
+}
+
+#Preview("Trimming") {
+    capsulePreview(makePreviewState(phase: .trimming))
+}
+
+#Preview("Transcribing") {
+    capsulePreview(makePreviewState(phase: .transcribing, progress: 0.64))
+}
+
+#Preview("Error") {
+    capsulePreview(makePreviewState(phase: .error("Preview")))
+}

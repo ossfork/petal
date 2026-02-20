@@ -1,65 +1,58 @@
 import Shared
 import SwiftUI
+import UI
 
 struct DownloadPage: View {
     @Bindable var model: OnboardingModel
-    let onCompletion: () -> Void
+    let onComplete: () -> Void
     let onBack: () -> Void
 
-    @State private var animating = false
+    init(model: OnboardingModel, _ onComplete: @escaping () -> Void, _ onBack: @escaping () -> Void = {}) {
+        self.model = model
+        self.onComplete = onComplete
+        self.onBack = onBack
+    }
 
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(spacing: 24) {
-                    Spacer(minLength: 24)
+        OnboardingPageContainer(
+            showBack: !downloadModel.isDownloadingModel,
+            backAction: onBack,
+            primaryTitle: primaryButtonTitle,
+            primaryDisabled: downloadModel.isDownloadingModel,
+            primaryAction: primaryAction
+        ) { isAnimating in
+            VStack(spacing: 24) {
+                Image(systemName: "arrow.down.circle")
+                    .font(.system(size: 64))
+                    .foregroundStyle(.secondary)
+                    .slideIn(active: isAnimating, delay: 0.25)
 
-                    Image(systemName: "arrow.down.circle")
-                        .font(.system(size: 64))
+                VStack(spacing: 8) {
+                    Text("Download Model")
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+
+                    Text("Download your selected model to get started.")
+                        .font(.title3)
                         .foregroundStyle(.secondary)
-                        .slideIn(active: animating, delay: 0.25)
-
-                    VStack(spacing: 8) {
-                        Text("Download Model")
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
-
-                        Text("Download your selected model to get started.")
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .slideIn(active: animating, delay: 0.5)
-
-                    modelSummaryCard
-                        .slideIn(active: animating, delay: 0.75)
-
-                    if model.isDownloadingModel || model.downloadProgress > 0 || !model.downloadStatus.isEmpty {
-                        downloadProgressCard
-                            .slideIn(active: animating, delay: 1.0)
-                    }
-
-                    if let error = model.lastError {
-                        Text(error)
-                            .font(.caption)
-                            .foregroundStyle(.red)
-                    }
-
-                    Spacer(minLength: 24)
+                        .multilineTextAlignment(.center)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 34)
-            }
-            .scrollIndicators(.hidden)
+                .slideIn(active: isAnimating, delay: 0.5)
 
-            OnboardingActionBar(
-                showBack: !model.isDownloadingModel,
-                backAction: onBack,
-                primaryTitle: primaryButtonTitle,
-                primaryDisabled: model.isDownloadingModel,
-                primaryAction: primaryAction
-            )
+                modelSummaryCard
+                    .slideIn(active: isAnimating, delay: 0.75)
+
+                if downloadModel.isDownloadingModel || downloadModel.downloadProgress > 0 || !downloadModel.downloadStatus.isEmpty {
+                    downloadProgressCard
+                        .slideIn(active: isAnimating, delay: 1.0)
+                }
+
+                if let error = downloadModel.lastError ?? model.lastError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
         }
-        .onAppear { animating = true }
     }
 
     private var modelSummaryCard: some View {
@@ -99,19 +92,19 @@ struct DownloadPage: View {
     private var downloadProgressCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(model.downloadStatus.isEmpty ? "Download status" : model.downloadStatus)
+                Text(downloadModel.downloadStatus.isEmpty ? "Download status" : downloadModel.downloadStatus)
                     .font(.subheadline.weight(.semibold))
 
                 Spacer()
 
-                Text(model.downloadSummaryText)
+                Text(downloadModel.downloadSummaryText)
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
 
-            ProgressView(value: model.downloadProgress)
+            ProgressView(value: downloadModel.downloadProgress)
 
-            if let speedText = model.downloadSpeedText {
+            if let speedText = downloadModel.downloadSpeedText {
                 Text(speedText)
                     .font(.caption2.monospacedDigit())
                     .foregroundStyle(.secondary)
@@ -126,22 +119,44 @@ struct DownloadPage: View {
     }
 
     private var primaryButtonTitle: String {
-        if model.isDownloadingModel {
+        if downloadModel.isDownloadingModel {
             return "Downloading..."
         }
-        if model.isSelectedModelDownloaded {
+        if downloadModel.isSelectedModelDownloaded {
             return "Finish Setup"
         }
         return "Download Model"
     }
 
     private func primaryAction() {
-        if model.isSelectedModelDownloaded {
-            model.completeSetup()
-            onCompletion()
+        if downloadModel.isSelectedModelDownloaded {
+            onComplete()
             return
         }
 
         Task { await model.downloadModel() }
+    }
+
+    private var downloadModel: ModelDownloadViewModel {
+        model.modelDownloadViewModel
+    }
+}
+
+#Preview("Download - Idle") {
+    OnboardingPagePreview {
+        DownloadPage(model: .makePreview()) {}
+    }
+}
+
+#Preview("Download - In Progress") {
+    OnboardingPagePreview {
+        DownloadPage(
+            model: .makePreview { model in
+                model.isDownloadingModel = true
+                model.downloadProgress = 0.42
+                model.downloadStatus = "Downloading model..."
+                model.downloadSpeedText = "18.2 MB/s"
+            }
+        ) {}
     }
 }

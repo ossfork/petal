@@ -235,7 +235,6 @@ struct MenuBarContentView: View {
     }
 }
 
-#if DEBUG
 #Preview("Ready") {
     MenuBarContentView(model: .makePreview())
         .padding()
@@ -263,4 +262,3 @@ struct MenuBarContentView: View {
     )
     .padding()
 }
-#endif

@@ -5,6 +5,44 @@ public struct OnboardingView: View {
     @State private var currentPage: OnboardingModel.Page = .welcome
     @Bindable var model: OnboardingModel
 
+    private let pageOrder: [OnboardingModel.Page] = [
+        .welcome,
+        .model,
+        .shortcut,
+        .microphone,
+        .accessibility,
+        .historyRetention,
+        .download
+    ]
+
+    private var nextPage: OnboardingModel.Page? {
+        guard let currentIndex = pageOrder.firstIndex(of: currentPage),
+              pageOrder.indices.contains(currentIndex + 1) else {
+            return nil
+        }
+
+        return pageOrder[currentIndex + 1]
+    }
+
+    private var previousPage: OnboardingModel.Page? {
+        guard let currentIndex = pageOrder.firstIndex(of: currentPage),
+              pageOrder.indices.contains(currentIndex - 1) else {
+            return nil
+        }
+
+        return pageOrder[currentIndex - 1]
+    }
+
+    private func moveForward() {
+        guard let nextPage else { return }
+        currentPage = nextPage
+    }
+
+    private func moveBack() {
+        guard let previousPage else { return }
+        currentPage = previousPage
+    }
+
     public init(model: OnboardingModel) {
         self.model = model
     }
@@ -16,51 +54,25 @@ public struct OnboardingView: View {
             Group {
                 switch currentPage {
                 case .welcome:
-                    WelcomePage {
-                        currentPage = .model
-                    }
+                    WelcomePage { moveForward() }
 
                 case .model:
-                    ModelSelectionPage(
-                        model: model,
-                        onContinue: { currentPage = .shortcut },
-                        onBack: { currentPage = .welcome }
-                    )
+                    ModelSelectionPage(model: model, moveForward) { moveBack() }
 
                 case .shortcut:
-                    ShortcutPage(
-                        model: model,
-                        onContinue: { currentPage = .microphone },
-                        onBack: { currentPage = .model }
-                    )
+                    ShortcutPage(model: model, moveForward) { moveBack() }
 
                 case .microphone:
-                    MicrophonePermissionPage(
-                        model: model,
-                        onContinue: { currentPage = .accessibility },
-                        onBack: { currentPage = .shortcut }
-                    )
+                    MicrophonePermissionPage(model: model, moveForward) { moveBack() }
 
                 case .accessibility:
-                    AccessibilityPermissionPage(
-                        model: model,
-                        onContinue: { currentPage = .historyRetention },
-                        onBack: { currentPage = .microphone }
-                    )
+                    AccessibilityPermissionPage(model: model, moveForward) { moveBack() }
 
                 case .historyRetention:
-                    HistoryRetentionPage(
-                        model: model,
-                        onContinue: { currentPage = .download },
-                        onBack: { currentPage = .accessibility }
-                    )
+                    HistoryRetentionPage(model: model, moveForward) { moveBack() }
 
                 case .download:
-                    DownloadPage(
-                        model: model,
-                        onCompletion: { model.completeSetup() },
-                        onBack: { currentPage = .historyRetention }
-                    )
+                    DownloadPage(model: model, model.completeSetup) { moveBack() }
                 }
             }
             .transition(.scale)
@@ -137,7 +149,6 @@ public struct OnboardingView: View {
 
 // MARK: - Previews
 
-#if DEBUG
 #Preview("Welcome") {
     OnboardingView(model: .makePreview())
 }
@@ -145,4 +156,3 @@ public struct OnboardingView: View {
 #Preview("Model Selection") {
     OnboardingView(model: .makePreview())
 }
-#endif

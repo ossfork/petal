@@ -1,67 +1,63 @@
 import Shared
 import SwiftUI
+import UI
 
 struct ModelSelectionPage: View {
     @Bindable var model: OnboardingModel
-    let onContinue: () -> Void
+    let onComplete: () -> Void
     let onBack: () -> Void
 
-    @State private var animating = false
+    init(model: OnboardingModel, _ onComplete: @escaping () -> Void, _ onBack: @escaping () -> Void = {}) {
+        self.model = model
+        self.onComplete = onComplete
+        self.onBack = onBack
+    }
 
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    OnboardingHeader(
-                        symbol: "externaldrive.fill",
-                        title: "Choose your model",
-                        description: "Select the local model that fits your speed and quality balance.",
-                        layout: .vertical
-                    )
-                    .slideIn(active: animating, delay: 0.25)
-
-                    VStack(spacing: 10) {
-                        ForEach(ModelOption.allCases) { option in
-                            modelOptionCard(option)
-                        }
-                    }
-                    .slideIn(active: animating, delay: 0.5)
-
-                    if let option = model.selectedModelOption {
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack(spacing: 10) {
-                                Label(option.sizeLabel, systemImage: "externaldrive")
-                                Label(option.rawValue, systemImage: "cpu")
-                            }
-                            .font(.caption)
-
-                            Text(option.summary)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 2)
-                        .slideIn(active: animating, delay: 0.75)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-                .padding(.horizontal, 34)
-                .padding(.vertical, 28)
+        OnboardingPageContainer(
+            showBack: true,
+            backAction: onBack,
+            primaryTitle: "Continue",
+            primaryDisabled: model.selectedModelOption == nil,
+            primaryAction: {
+                guard model.selectedModelOption != nil else { return }
+                onComplete()
             }
-            .scrollIndicators(.hidden)
+        ) { isAnimating in
+            VStack(alignment: .leading, spacing: 24) {
+                OnboardingHeader(
+                    symbol: "externaldrive.fill",
+                    title: "Choose your model",
+                    description: "Select the local model that fits your speed and quality balance.",
+                    layout: .vertical
+                )
+                .slideIn(active: isAnimating, delay: 0.25)
 
-            OnboardingActionBar(
-                showBack: true,
-                backAction: onBack,
-                primaryTitle: "Continue",
-                primaryDisabled: model.selectedModelOption == nil,
-                primaryAction: {
-                    guard model.selectedModelOption != nil else { return }
-                    onContinue()
+                VStack(spacing: 10) {
+                    ForEach(ModelOption.allCases) { option in
+                        modelOptionCard(option)
+                    }
                 }
-            )
+                .slideIn(active: isAnimating, delay: 0.5)
+
+                if let option = model.selectedModelOption {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 10) {
+                            Label(option.sizeLabel, systemImage: "externaldrive")
+                            Label(option.rawValue, systemImage: "cpu")
+                        }
+                        .font(.caption)
+
+                        Text(option.summary)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 2)
+                    .slideIn(active: isAnimating, delay: 0.75)
+                }
+            }
         }
-        .onAppear { animating = true }
         .onChange(of: model.selectedModelID) { _, _ in
             model.selectedModelChanged()
         }
@@ -121,5 +117,22 @@ struct ModelSelectionPage: View {
             }
         }
         .buttonStyle(.plain)
+    }
+
+}
+
+#Preview("Model Selection - Recommended") {
+    OnboardingPagePreview {
+        ModelSelectionPage(model: .makePreview()) {}
+    }
+}
+
+#Preview("Model Selection - Lightweight") {
+    OnboardingPagePreview {
+        ModelSelectionPage(
+            model: .makePreview { model in
+                model.selectedModelID = ModelOption.mini3b4bit.rawValue
+            }
+        ) {}
     }
 }

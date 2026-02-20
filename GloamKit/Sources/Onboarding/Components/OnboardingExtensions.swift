@@ -1,45 +1,102 @@
 import AppKit
 import SwiftUI
+import UI
 
-extension View {
-    func capsulePill<S: ShapeStyle>(
-        horizontalPadding: CGFloat,
-        verticalPadding: CGFloat,
-        fill: S
-    ) -> some View {
-        padding(.horizontal, horizontalPadding)
-            .padding(.vertical, verticalPadding)
-            .background(fill, in: Capsule())
+struct OnboardingPageContainer<Content: View>: View {
+    let showBack: Bool
+    let backAction: (() -> Void)?
+    let primaryTitle: String
+    let primaryDisabled: Bool
+    let primaryAction: () -> Void
+    let primaryActionDelay: CGFloat
+    @ViewBuilder let content: (_ isAnimating: Bool) -> Content
+
+    @State private var isAnimating = false
+
+    init(
+        showBack: Bool = false,
+        backAction: (() -> Void)? = nil,
+        primaryTitle: String,
+        primaryDisabled: Bool = false,
+        primaryActionDelay: CGFloat = 0.1,
+        primaryAction: @escaping () -> Void,
+        @ViewBuilder content: @escaping (_ isAnimating: Bool) -> Content
+    ) {
+        self.showBack = showBack
+        self.backAction = backAction
+        self.primaryTitle = primaryTitle
+        self.primaryDisabled = primaryDisabled
+        self.primaryActionDelay = primaryActionDelay
+        self.primaryAction = primaryAction
+        self.content = content
     }
 
-    func slideIn(
-        active: Bool,
-        offset: CGFloat = 20,
-        opacity: CGFloat = 0,
-        blur: CGFloat = 0,
-        scale: CGFloat = 1,
-        delay: CGFloat = 0,
-        duration: CGFloat = 1.0,
-        animation: Animation = .easeIn
-    ) -> some View {
-        self
-            .opacity(active ? 1 : opacity)
-            .blur(radius: active ? 0 : blur)
-            .offset(y: active ? 0 : offset)
-            .scaleEffect(active ? 1 : scale)
-            .animation(animation.speed(duration).delay(delay), value: active)
+    var body: some View {
+        VStack(spacing: 0) {
+            ScrollView {
+                content(isAnimating)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+            }
+            .scrollIndicators(.hidden)
+
+            OnboardingActionBar(
+                showBack: showBack,
+                backAction: backAction,
+                primaryTitle: primaryTitle,
+                primaryDisabled: primaryDisabled,
+                primaryAction: primaryAction
+            )
+            .slideIn(active: isAnimating, delay: primaryActionDelay)
+        }
+        .onAppear { isAnimating = true }
     }
 }
 
 @MainActor
-func onboardingAppIcon() -> NSImage? {
-    if let assetIcon = NSImage(named: "appIcon") {
-        return assetIcon
+func onboardingAppIcon() -> Image {
+    if let applicationIcon = NSApp.applicationIconImage,
+       applicationIcon.size != .zero {
+        return Image(nsImage: applicationIcon)
     }
 
-    guard let applicationIcon = NSApp.applicationIconImage else {
-        return nil
+    return Image(systemName: "waveform.badge.mic")
+}
+
+struct OnboardingPagePreview<Content: View>: View {
+    private let content: () -> Content
+
+    init(@ViewBuilder _ content: @escaping () -> Content) {
+        self.content = content
     }
 
-    return applicationIcon.size == .zero ? nil : applicationIcon
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.09, green: 0.10, blue: 0.22),
+                    Color(red: 0.05, green: 0.04, blue: 0.14),
+                    .black
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .overlay {
+                LinearGradient(
+                    colors: [
+                        .black.opacity(0.25),
+                        .black.opacity(0.55)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+            .ignoresSafeArea()
+
+            content()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .frame(width: 820, height: 512)
+        .preferredColorScheme(.dark)
+    }
 }

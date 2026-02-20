@@ -1,85 +1,78 @@
 import Shared
 import SwiftUI
+import UI
 
 struct HistoryRetentionPage: View {
     @Bindable var model: OnboardingModel
-    let onContinue: () -> Void
+    let onComplete: () -> Void
     let onBack: () -> Void
 
-    @State private var animating = false
+    init(model: OnboardingModel, _ onComplete: @escaping () -> Void, _ onBack: @escaping () -> Void = {}) {
+        self.model = model
+        self.onComplete = onComplete
+        self.onBack = onBack
+    }
 
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(spacing: 24) {
-                    Spacer(minLength: 16)
+        OnboardingPageContainer(
+            showBack: true,
+            backAction: onBack,
+            primaryTitle: "Continue",
+            primaryAction: onComplete
+        ) { isAnimating in
+            VStack(spacing: 16) {
+                Image(systemName: "clock.arrow.trianglehead.counterclockwise.rotate.90")
+                    .font(.system(size: 64))
+                    .foregroundStyle(.secondary)
+                    .slideIn(active: isAnimating, delay: 0.25)
 
-                    Image(systemName: "clock.arrow.trianglehead.counterclockwise.rotate.90")
-                        .font(.system(size: 64))
+                VStack(spacing: 8) {
+                    Text("History & Retention")
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+
+                    Text("Choose what Gloam saves after each transcription.")
+                        .font(.title3)
                         .foregroundStyle(.secondary)
-                        .slideIn(active: animating, delay: 0.25)
-
-                    VStack(spacing: 8) {
-                        Text("History & Retention")
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
-
-                        Text("Choose what Gloam saves after each transcription.")
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .slideIn(active: animating, delay: 0.5)
-
-                    VStack(spacing: 10) {
-                        retentionCard(
-                            mode: .none,
-                            symbol: "xmark.circle",
-                            title: "Nothing",
-                            description: "Nothing saved. Transcriptions are pasted and forgotten."
-                        )
-                        .slideIn(active: animating, delay: 0.75)
-
-                        retentionCard(
-                            mode: .transcripts,
-                            symbol: "doc.text",
-                            title: "Transcripts Only",
-                            description: "Save transcription text only."
-                        )
-                        .slideIn(active: animating, delay: 1.0)
-
-                        retentionCard(
-                            mode: .audio,
-                            symbol: "waveform",
-                            title: "Audio Only",
-                            description: "Save audio recordings only."
-                        )
-                        .slideIn(active: animating, delay: 1.25)
-
-                        retentionCard(
-                            mode: .both,
-                            symbol: "doc.text.below.ecg",
-                            title: "Audio + Transcripts",
-                            description: "Save both audio and text.",
-                            recommended: true
-                        )
-                        .slideIn(active: animating, delay: 1.5)
-                    }
-                    .padding(.horizontal, 34)
-
-                    Spacer(minLength: 16)
+                        .multilineTextAlignment(.center)
                 }
-                .frame(maxWidth: .infinity)
-            }
-            .scrollIndicators(.hidden)
+                .slideIn(active: isAnimating, delay: 0.5)
 
-            OnboardingActionBar(
-                showBack: true,
-                backAction: onBack,
-                primaryTitle: "Continue",
-                primaryAction: onContinue
-            )
+                VStack(spacing: 10) {
+                    retentionCard(
+                        mode: .none,
+                        symbol: "xmark.circle",
+                        title: "Nothing",
+                        description: "Nothing saved. Transcriptions are pasted and forgotten."
+                    )
+                    .slideIn(active: isAnimating, delay: 0.75)
+
+                    retentionCard(
+                        mode: .transcripts,
+                        symbol: "doc.text",
+                        title: "Transcripts Only",
+                        description: "Save transcription text only."
+                    )
+                    .slideIn(active: isAnimating, delay: 1.0)
+
+                    retentionCard(
+                        mode: .audio,
+                        symbol: "waveform",
+                        title: "Audio Only",
+                        description: "Save audio recordings only."
+                    )
+                    .slideIn(active: isAnimating, delay: 1.25)
+
+                    retentionCard(
+                        mode: .both,
+                        symbol: "doc.text.below.ecg",
+                        title: "Audio + Transcripts",
+                        description: "Save both audio and text.",
+                        recommended: true
+                    )
+                    .slideIn(active: isAnimating, delay: 1.5)
+                }
+            }
         }
-        .onAppear { animating = true }
     }
 
     private func retentionCard(
@@ -143,5 +136,22 @@ struct HistoryRetentionPage: View {
             }
         }
         .buttonStyle(.plain)
+    }
+
+}
+
+#Preview("History Retention - Recommended") {
+    OnboardingPagePreview {
+        HistoryRetentionPage(model: .makePreview()) {}
+    }
+}
+
+#Preview("History Retention - Off") {
+    OnboardingPagePreview {
+        HistoryRetentionPage(
+            model: .makePreview { model in
+                model.historyRetentionMode = .none
+            }
+        ) {}
     }
 }

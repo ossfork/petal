@@ -1,6 +1,5 @@
 import AppKit
 import AudioClient
-import DownloadClient
 import FloatingCapsuleClient
 import Foundation
 import HistoryClient
@@ -36,11 +35,12 @@ final class AppModel {
     }
 
     @ObservationIgnored @Shared(.hasCompletedSetup) private var hasCompletedSetupStorage = false
-    @ObservationIgnored @Shared(.selectedModelID) private var selectedModelIDStorage = ModelOption.defaultOption.rawValue
     @ObservationIgnored @Shared(.transcriptionMode) private var transcriptionModeStorage = TranscriptionMode.verbatim.rawValue
     @ObservationIgnored @Shared(.smartPrompt) private var smartPromptStorage = "Clean up filler words and repeated phrases. Return a polished version of what was said."
     @ObservationIgnored @Shared(.historyRetentionMode) private var historyRetentionModeStorage = HistoryRetentionMode.both.rawValue
     @ObservationIgnored @Shared(.transcriptHistoryDays) private var transcriptHistoryDaysStorage: [TranscriptHistoryDay] = []
+
+    let modelDownloadViewModel: ModelDownloadViewModel
 
     var hasCompletedSetup = false {
         didSet {
@@ -48,15 +48,9 @@ final class AppModel {
         }
     }
 
-    var selectedModelID = ModelOption.defaultOption.rawValue {
-        didSet {
-            let normalized = ModelOption.from(modelID: selectedModelID).rawValue
-            if selectedModelID != normalized {
-                selectedModelID = normalized
-                return
-            }
-            $selectedModelIDStorage.withLock { $0 = normalized }
-        }
+    var selectedModelID: String {
+        get { modelDownloadViewModel.selectedModelID }
+        set { modelDownloadViewModel.selectedModelID = newValue }
     }
 
     var transcriptionMode: TranscriptionMode = .verbatim {
@@ -96,7 +90,6 @@ final class AppModel {
     @ObservationIgnored @Dependency(\.continuousClock) private var clock
     @ObservationIgnored @Dependency(\.date.now) private var now
     @ObservationIgnored @Dependency(\.uuid) private var uuid
-    @ObservationIgnored @Dependency(\.downloadClient) private var downloadClient
     @ObservationIgnored @Dependency(\.transcriptionClient) private var transcriptionClient
     @ObservationIgnored @Dependency(\.pasteClient) private var pasteClient
     @ObservationIgnored @Dependency(\.permissionsClient) private var permissionsClient
@@ -129,6 +122,7 @@ final class AppModel {
 
     init(isPreviewMode: Bool = AppModel.isRunningInSwiftUIPreview) {
         self.isPreviewMode = isPreviewMode
+        modelDownloadViewModel = ModelDownloadViewModel(isPreviewMode: isPreviewMode)
 
         if isPreviewMode {
             hasCompletedSetup = true
@@ -140,7 +134,6 @@ final class AppModel {
         }
 
         hasCompletedSetup = hasCompletedSetupStorage
-        selectedModelID = ModelOption.from(modelID: selectedModelIDStorage).rawValue
         transcriptionMode = TranscriptionMode(rawValue: transcriptionModeStorage) ?? .verbatim
         smartPrompt = smartPromptStorage
         historyRetentionMode = HistoryRetentionMode(rawValue: historyRetentionModeStorage) ?? .both
@@ -165,8 +158,7 @@ final class AppModel {
     }
 
     var isSelectedModelDownloaded: Bool {
-        guard let selectedModelOption else { return false }
-        return downloadClient.isModelDownloaded(selectedModelOption)
+        modelDownloadViewModel.isSelectedModelDownloaded
     }
 
     var statusTitle: String {
@@ -587,7 +579,7 @@ final class AppModel {
 
     func beginOnboardingFlow() {
         guard onboardingModel == nil else { return }
-        let model = OnboardingModel()
+        let model = OnboardingModel(downloadViewModel: modelDownloadViewModel)
         model.onCompleted = { [weak self] in
             self?.handleOnboardingCompleted()
         }
@@ -596,7 +588,6 @@ final class AppModel {
 
     private func handleOnboardingCompleted() {
         hasCompletedSetup = true
-        selectedModelID = selectedModelIDStorage
         transientMessage = "Gloam is ready. Quick tap to toggle listening, or hold for push-to-talk."
         onboardingWindowController?.close()
         onboardingModel = nil

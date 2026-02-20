@@ -1,60 +1,53 @@
 import AppKit
 import SwiftUI
+import UI
 
 struct AccessibilityPermissionPage: View {
     @Bindable var model: OnboardingModel
-    let onContinue: () -> Void
+    let onComplete: () -> Void
     let onBack: () -> Void
 
-    @State private var animating = false
+    init(model: OnboardingModel, _ onComplete: @escaping () -> Void, _ onBack: @escaping () -> Void = {}) {
+        self.model = model
+        self.onComplete = onComplete
+        self.onBack = onBack
+    }
 
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(spacing: 24) {
-                    Spacer(minLength: 24)
+        OnboardingPageContainer(
+            showBack: true,
+            backAction: onBack,
+            primaryTitle: "Continue",
+            primaryDisabled: !model.accessibilityAuthorized,
+            primaryAction: onComplete
+        ) { isAnimating in
+            VStack(spacing: 24) {
+                iconStack
+                    .slideIn(active: isAnimating, delay: 0.25)
 
-                    iconStack
-                        .slideIn(active: animating, delay: 0.25)
+                VStack(spacing: 8) {
+                    Text("Enable Accessibility")
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
 
-                    VStack(spacing: 8) {
-                        Text("Enable Accessibility")
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
-
-                        Text("Gloam needs accessibility to paste transcriptions directly.")
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .slideIn(active: animating, delay: 0.5)
-
-                    statusIndicator
-                        .slideIn(active: animating, delay: 1.0)
-
-                    actionButton
-                        .slideIn(active: animating, delay: 1.5)
-
-                    Spacer(minLength: 24)
+                    Text("Gloam needs accessibility to paste transcriptions directly.")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 34)
-            }
-            .scrollIndicators(.hidden)
+                .slideIn(active: isAnimating, delay: 0.5)
 
-            OnboardingActionBar(
-                showBack: true,
-                backAction: onBack,
-                primaryTitle: "Continue",
-                primaryDisabled: !model.accessibilityAuthorized,
-                primaryAction: onContinue
-            )
+                statusIndicator
+                    .slideIn(active: isAnimating, delay: 1.0)
+
+                actionButton
+                    .slideIn(active: isAnimating, delay: 1.5)
+            }
         }
-        .onAppear { animating = true }
         .onChange(of: model.accessibilityAuthorized) { _, authorized in
             if authorized {
                 Task {
                     try? await Task.sleep(for: .seconds(1.5))
-                    onContinue()
+                    onComplete()
                 }
             }
         }
@@ -75,16 +68,12 @@ struct AccessibilityPermissionPage: View {
                     .offset(x: 48)
             }
 
-            if let appIcon = onboardingAppIcon() {
-                Image(nsImage: appIcon)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 96, height: 96)
-                    .shadow(radius: 8)
-            } else {
-                Image(systemName: "waveform.badge.mic")
-                    .font(.system(size: 58))
-            }
+            onboardingAppIcon()
+                .resizable()
+                .scaledToFit()
+                .frame(width: 96, height: 96)
+                .shadow(radius: 8)
+                .font(.system(size: 58))
         }
         .frame(height: 120)
     }
@@ -107,12 +96,29 @@ struct AccessibilityPermissionPage: View {
     private var actionButton: some View {
         if model.accessibilityAuthorized {
             ComposeSecondaryButton("Continue", systemImage: "checkmark.circle.fill") {
-                onContinue()
+                onComplete()
             }
         } else {
             ComposeSecondaryButton("Enable Accessibility", systemImage: "figure.wave") {
                 model.accessibilityPermissionButtonTapped()
             }
         }
+    }
+
+}
+
+#Preview("Accessibility - Pending") {
+    OnboardingPagePreview {
+        AccessibilityPermissionPage(
+            model: .makePreview { model in
+                model.accessibilityAuthorized = false
+            }
+        ) {}
+    }
+}
+
+#Preview("Accessibility - Enabled") {
+    OnboardingPagePreview {
+        AccessibilityPermissionPage(model: .makePreview()) {}
     }
 }

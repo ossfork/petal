@@ -1,5 +1,4 @@
 import Dependencies
-import DownloadClient
 import KeyboardShortcuts
 import Observation
 import PermissionsClient
@@ -19,21 +18,33 @@ public final class OnboardingModel {
         case download
     }
 
-    public var selectedModelID: String = ModelOption.defaultOption.rawValue {
-        didSet {
-            let normalized = ModelOption.from(modelID: selectedModelID).rawValue
-            if selectedModelID != normalized {
-                selectedModelID = normalized
-                return
-            }
-            $selectedModelIDStorage.withLock { $0 = normalized }
-        }
+    public let modelDownloadViewModel: ModelDownloadViewModel
+
+    public var selectedModelID: String {
+        get { modelDownloadViewModel.selectedModelID }
+        set { modelDownloadViewModel.selectedModelID = newValue }
     }
 
-    public var isDownloadingModel = false
-    public var downloadProgress = 0.0
-    public var downloadStatus = ""
-    public var downloadSpeedText: String?
+    public var isDownloadingModel: Bool {
+        get { modelDownloadViewModel.isDownloadingModel }
+        set { modelDownloadViewModel.isDownloadingModel = newValue }
+    }
+
+    public var downloadProgress: Double {
+        get { modelDownloadViewModel.downloadProgress }
+        set { modelDownloadViewModel.downloadProgress = newValue }
+    }
+
+    public var downloadStatus: String {
+        get { modelDownloadViewModel.downloadStatus }
+        set { modelDownloadViewModel.downloadStatus = newValue }
+    }
+
+    public var downloadSpeedText: String? {
+        get { modelDownloadViewModel.downloadSpeedText }
+        set { modelDownloadViewModel.downloadSpeedText = newValue }
+    }
+
     public var microphonePermissionState: MicrophonePermissionState = .notDetermined
     public var microphoneAuthorized = false
     public var accessibilityAuthorized = false
@@ -48,22 +59,20 @@ public final class OnboardingModel {
 
     public var onCompleted: (@MainActor () -> Void)?
 
-    @ObservationIgnored @Dependency(\.downloadClient) private var downloadClient
     @ObservationIgnored @Dependency(\.permissionsClient) private var permissionsClient
     @ObservationIgnored @Dependency(\.continuousClock) private var clock
 
-    @ObservationIgnored @Shared(.selectedModelID) private var selectedModelIDStorage = ModelOption.defaultOption.rawValue
     @ObservationIgnored @Shared(.hasCompletedSetup) private var hasCompletedSetupStorage = false
     @ObservationIgnored @Shared(.historyRetentionMode) private var historyRetentionModeStorage = HistoryRetentionMode.both.rawValue
 
     @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
     @ObservationIgnored private let isPreviewMode: Bool
 
-    public init(isPreviewMode: Bool = false) {
+    public init(downloadViewModel: ModelDownloadViewModel? = nil, isPreviewMode: Bool = false) {
         self.isPreviewMode = isPreviewMode
+        modelDownloadViewModel = downloadViewModel ?? ModelDownloadViewModel(isPreviewMode: isPreviewMode)
 
         if isPreviewMode {
-            selectedModelID = ModelOption.defaultOption.rawValue
             historyRetentionMode = .both
             microphonePermissionState = .authorized
             microphoneAuthorized = true
@@ -71,12 +80,7 @@ public final class OnboardingModel {
             return
         }
 
-        selectedModelID = ModelOption.from(modelID: selectedModelIDStorage).rawValue
         historyRetentionMode = HistoryRetentionMode(rawValue: historyRetentionModeStorage) ?? .both
-
-        let alreadyDownloaded = downloadClient.isModelDownloaded(ModelOption.from(modelID: selectedModelIDStorage))
-        downloadProgress = alreadyDownloaded ? 1 : 0
-        downloadStatus = alreadyDownloaded ? "Model already downloaded." : ""
 
         startPermissionMonitoring()
     }
@@ -84,12 +88,11 @@ public final class OnboardingModel {
     // MARK: - Computed
 
     public var selectedModelOption: ModelOption? {
-        ModelOption(rawValue: selectedModelID)
+        modelDownloadViewModel.selectedModelOption
     }
 
     public var isSelectedModelDownloaded: Bool {
-        guard let selectedModelOption else { return false }
-        return downloadClient.isModelDownloaded(selectedModelOption)
+        modelDownloadViewModel.isSelectedModelDownloaded
     }
 
     public var hasConfiguredShortcut: Bool {
@@ -97,13 +100,7 @@ public final class OnboardingModel {
     }
 
     public var downloadSummaryText: String {
-        let percent = Int((downloadProgress * 100).rounded())
-
-        if let downloadSpeedText {
-            return "\(percent)% - \(downloadSpeedText)"
-        }
-
-        return "\(percent)%"
+        modelDownloadViewModel.downloadSummaryText
     }
 
     public var microphonePermissionActionTitle: String {
@@ -125,6 +122,7 @@ public final class OnboardingModel {
     }
 
     public func selectedModelChanged() {
+        modelDownloadViewModel.selectedModelChanged()
         transientMessage = nil
         lastError = nil
     }
@@ -167,41 +165,9 @@ public final class OnboardingModel {
     }
 
     public func downloadModel() async {
-        guard let option = selectedModelOption else {
-            lastError = "Please select a valid model."
-            return
-        }
-
-        guard !isDownloadingModel else { return }
-
-        isDownloadingModel = true
-        downloadProgress = 0
-        downloadStatus = "Preparing download..."
-        downloadSpeedText = nil
-        transientMessage = nil
-        lastError = nil
-
-        do {
-            try await downloadClient.downloadModel(option) { update in
-                Task { @MainActor [weak self] in
-                    guard let self else { return }
-                    self.downloadProgress = min(max(update.fractionCompleted, 0), 1)
-                    self.downloadStatus = update.status
-                    self.downloadSpeedText = update.speedText
-                }
-            }
-
-            isDownloadingModel = false
-            downloadProgress = 1
-            downloadSpeedText = nil
-            downloadStatus = "Download complete!"
-            transientMessage = "Model downloaded. Click Finish Setup."
-            lastError = nil
-        } catch {
-            isDownloadingModel = false
-            downloadSpeedText = nil
-            lastError = error.localizedDescription
-        }
+        await modelDownloadViewModel.downloadModel()
+        transientMessage = modelDownloadViewModel.transientMessage
+        lastError = modelDownloadViewModel.lastError
     }
 
     public func completeSetup() {

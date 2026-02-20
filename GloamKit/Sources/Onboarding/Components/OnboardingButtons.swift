@@ -1,4 +1,5 @@
 import SwiftUI
+import UI
 
 struct ComposePrimaryButton: View {
     let title: String
@@ -190,6 +191,61 @@ struct OnboardingActionBar: View {
                 Color.black.opacity(0.22)
                     .allowsHitTesting(false)
             }
+        }
+    }
+}
+
+#Preview("Buttons") {
+    OnboardingPagePreview {
+        VStack(alignment: .leading, spacing: 14) {
+            ComposePrimaryButton("Continue") {}
+
+            ComposePrimaryButton("Continue") {}
+                .disabled(true)
+
+            ComposeSecondaryButton("Back", systemImage: "chevron.left") {}
+
+            ComposeSecondaryButton("Enable Accessibility", systemImage: "figure.wave") {}
+                .disabled(true)
+        }
+        .padding()
+    }
+}
+
+#Preview("Header Horizontal") {
+    OnboardingPagePreview {
+        OnboardingHeader(
+            symbol: "sparkles",
+            title: "Welcome to Gloam",
+            description: "On-device transcription, powered by local models."
+        )
+        .padding()
+    }
+}
+
+#Preview("Header Vertical") {
+    OnboardingPagePreview {
+        OnboardingHeader(
+            symbol: "externaldrive.fill",
+            title: "Choose your model",
+            description: "Select the local model that fits your speed and quality balance.",
+            layout: .vertical
+        )
+        .padding()
+    }
+}
+
+#Preview("Action Bar") {
+    OnboardingPagePreview {
+        VStack(spacing: 0) {
+            Spacer()
+
+            OnboardingActionBar(
+                showBack: true,
+                backAction: {},
+                primaryTitle: "Continue",
+                primaryAction: {}
+            )
         }
     }
 }
