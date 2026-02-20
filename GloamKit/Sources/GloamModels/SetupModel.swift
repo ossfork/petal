@@ -94,6 +94,10 @@ public final class SetupModel {
                 }
             }
 
+            if !accessibilityAuthorized {
+                return "Enable Accessibility"
+            }
+
             if isSelectedModelDownloaded {
                 return "Finish Setup"
             }
@@ -207,6 +211,11 @@ public final class SetupModel {
         case .download:
             if !microphoneAuthorized {
                 return .requestMicrophone
+            }
+
+            if !accessibilityAuthorized {
+                lastError = "Enable Accessibility before finishing setup."
+                return .none
             }
 
             if isSelectedModelDownloaded {

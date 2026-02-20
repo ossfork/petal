@@ -182,8 +182,8 @@ struct MenuBarContentView: View {
                 Divider()
             }
 
-            SettingsLink {
-                Text("Settings…")
+            Button("Settings…") {
+                model.openSettingsWindow()
             }
 
             Divider()

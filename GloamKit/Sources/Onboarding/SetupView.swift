@@ -43,23 +43,11 @@ public struct SetupView: View {
                     .padding(.horizontal, 28)
                     .padding(.vertical, 18)
                     .background(.regularMaterial)
-                    .overlay(.black.opacity(0.22))
-            }
-            .frame(width: 900, height: 560)
-            .background {
-                RoundedRectangle(cornerRadius: 28)
-                    .fill(.ultraThinMaterial)
                     .overlay {
-                        RoundedRectangle(cornerRadius: 28)
-                            .fill(.black.opacity(0.28))
+                        Color.black.opacity(0.22)
+                            .allowsHitTesting(false)
                     }
             }
-            .overlay {
-                RoundedRectangle(cornerRadius: 28)
-                    .strokeBorder(.white.opacity(0.14), lineWidth: 1)
-            }
-            .shadow(color: .black.opacity(0.42), radius: 24, y: 12)
-            .padding(18)
         }
         .frame(width: 900, height: 560)
         .preferredColorScheme(.dark)
@@ -110,7 +98,6 @@ public struct SetupView: View {
         .ignoresSafeArea()
     }
 
-    @ViewBuilder
     private var topSection: some View {
         VStack(spacing: 10) {
             if NSImage(named: "appIcon") != nil {
@@ -175,7 +162,6 @@ public struct SetupView: View {
                 description: "Transcription runs locally on your Mac using downloaded models."
             )
         }
-        .onboardingCard()
     }
 
     private var modelCard: some View {
@@ -209,7 +195,7 @@ public struct SetupView: View {
                 .padding(.top, 2)
             }
         }
-        .onboardingCard()
+        
     }
 
     private func modelOptionCard(_ option: ModelOption) -> some View {
@@ -295,7 +281,6 @@ public struct SetupView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .onboardingCard()
     }
 
     private var permissionAndDownloadCard: some View {
@@ -308,7 +293,7 @@ public struct SetupView: View {
                     .font(.title3.bold())
                     .fontDesign(.rounded)
 
-                Text("Microphone is required. Accessibility is optional and enables auto-paste to the focused app.")
+                Text("Microphone and Accessibility are required to finish setup.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -325,7 +310,7 @@ public struct SetupView: View {
                 permissionStatusChip(
                     title: "Accessibility",
                     isGranted: model.accessibilityAuthorized,
-                    required: false
+                    required: true
                 )
             }
 
@@ -392,7 +377,6 @@ public struct SetupView: View {
                 .background(.black.opacity(0.24), in: RoundedRectangle(cornerRadius: 12))
             }
         }
-        .onboardingCard()
     }
 
     private var permissionIconStack: some View {
@@ -704,13 +688,11 @@ extension View {
         verticalPadding: CGFloat,
         fill: S
     ) -> some View {
-        self
-            .padding(.horizontal, horizontalPadding)
+        padding(.horizontal, horizontalPadding)
             .padding(.vertical, verticalPadding)
             .background(fill, in: Capsule())
     }
 
-    @ViewBuilder
     func slideIn(
         active: Bool,
         offset: CGFloat = 20,
@@ -727,24 +709,6 @@ extension View {
             .offset(y: active ? 0 : offset)
             .scaleEffect(active ? 1 : scale)
             .animation(animation.speed(duration).delay(delay), value: active)
-    }
-
-    func onboardingCard() -> some View {
-        self
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(24)
-            .background {
-                RoundedRectangle(cornerRadius: 22)
-                    .fill(.ultraThinMaterial)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 22)
-                            .fill(.black.opacity(0.3))
-                    }
-            }
-            .overlay {
-                RoundedRectangle(cornerRadius: 22)
-                    .strokeBorder(.white.opacity(0.1), lineWidth: 1)
-            }
     }
 }
 

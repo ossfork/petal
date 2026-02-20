@@ -141,6 +141,10 @@ public final class SetupModel {
                 }
             }
 
+            if !accessibilityAuthorized {
+                return "Enable Accessibility"
+            }
+
             if isSelectedModelDownloaded {
                 return "Finish Setup"
             }
@@ -262,13 +266,7 @@ public final class SetupModel {
         }
 
         Task {
-            await permissionsClient.promptForAccessibilityPermission()
-            await refreshPermissionStatusAsync()
-
-            if !accessibilityAuthorized {
-                await permissionsClient.openAccessibilityPrivacySettings()
-                transientMessage = "Enable Accessibility to allow automatic paste."
-            }
+            await ensureAccessibilityPermission()
         }
     }
 
@@ -290,6 +288,11 @@ public final class SetupModel {
             await microphonePermissionButtonTapped()
             await refreshPermissionStatusAsync()
             guard microphoneAuthorized else { return }
+        }
+
+        if !accessibilityAuthorized {
+            await ensureAccessibilityPermission()
+            guard accessibilityAuthorized else { return }
         }
 
         guard let option = selectedModelOption else {
@@ -366,6 +369,28 @@ public final class SetupModel {
             await permissionsClient.promptForAccessibilityPermission()
             await refreshPermissionStatusAsync()
         }
+    }
+
+    private func ensureAccessibilityPermission() async {
+        if isPreviewMode {
+            accessibilityAuthorized = true
+            transientMessage = nil
+            lastError = nil
+            return
+        }
+
+        await permissionsClient.promptForAccessibilityPermission()
+        await refreshPermissionStatusAsync()
+
+        if accessibilityAuthorized {
+            lastError = nil
+            transientMessage = nil
+            return
+        }
+
+        await permissionsClient.openAccessibilityPrivacySettings()
+        lastError = "Accessibility permission is required to finish setup."
+        transientMessage = "Enable Accessibility in System Settings, then return to Gloam."
     }
 
     private func refreshPermissionStatus() {

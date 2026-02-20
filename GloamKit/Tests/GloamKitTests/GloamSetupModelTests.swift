@@ -28,6 +28,7 @@ func downloadStepCompletesWhenDownloadedAndAuthorized() {
     let model = GloamSetupModel()
     model.setupStep = .download
     model.microphoneAuthorized = true
+    model.accessibilityAuthorized = true
     model.setModelDownloaded(true)
 
     let action = model.setupPrimaryButtonTapped(hasConfiguredShortcut: true)

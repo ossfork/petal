@@ -117,6 +117,7 @@ final class AppModel {
     @ObservationIgnored private var ignoreNextShortcutKeyUp = false
     @ObservationIgnored private var currentShortcutPressStart: Date?
     @ObservationIgnored private var setupWindowController: SetupWindowController?
+    @ObservationIgnored private var settingsWindowController: SettingsWindowController?
     @ObservationIgnored private var transcriptionProgressTask: Task<Void, Never>?
     @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
     @ObservationIgnored private var estimatedTranscriptionRTF = 2.2
@@ -237,6 +238,11 @@ final class AppModel {
         showSetupWindow()
     }
 
+    func openSettingsWindow() {
+        if isPreviewMode { return }
+        showSettingsWindow()
+    }
+
     // MARK: - Lifecycle
 
     func appDidLaunch() async {
@@ -301,7 +307,7 @@ final class AppModel {
 
             if !accessibilityAuthorized {
                 await permissionsClient.openAccessibilityPrivacySettings()
-                transientMessage = "Enable Accessibility to allow automatic paste."
+                transientMessage = "Enable Accessibility in System Settings to continue using Gloam."
             }
         }
     }
@@ -557,7 +563,7 @@ final class AppModel {
             case .pasted:
                 transientMessage = nil
             case .copiedOnly:
-                transientMessage = "Auto-paste unavailable. Enable Accessibility to paste into the focused app automatically."
+                transientMessage = "Accessibility permission is required. Enable it in System Settings, then try again."
                 await postPasteFallbackNotification()
             }
 
@@ -616,7 +622,7 @@ final class AppModel {
             }
         }
 
-        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+        NSRunningApplication.current.activate(options: [.activateAllWindows])
         controller.showWindow(nil)
         controller.window?.center()
         controller.window?.collectionBehavior.insert(.moveToActiveSpace)
@@ -624,6 +630,20 @@ final class AppModel {
         controller.window?.orderFrontRegardless()
         controller.window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private func showSettingsWindow() {
+        if isPreviewMode { return }
+
+        let controller: SettingsWindowController
+        if let existing = settingsWindowController {
+            controller = existing
+        } else {
+            controller = SettingsWindowController(appModel: self)
+            settingsWindowController = controller
+        }
+
+        controller.present()
     }
 
     // MARK: - Private: Shortcuts & Keyboard
