@@ -25,6 +25,9 @@
 		B10000010000000000000009 /* HistoryClient in Frameworks */ = {isa = PBXBuildFile; productRef = B10000040000000000000009 /* HistoryClient */; };
 		B1000001000000000000000A /* SoundClient in Frameworks */ = {isa = PBXBuildFile; productRef = B1000004000000000000000A /* SoundClient */; };
 		B1000001000000000000000B /* LogClient in Frameworks */ = {isa = PBXBuildFile; productRef = B1000004000000000000000B /* LogClient */; };
+		B1000001000000000000000C /* Onboarding in Frameworks */ = {isa = PBXBuildFile; productRef = B1000004000000000000000C /* Onboarding */; };
+		B1000001000000000000000D /* GloamModels in Frameworks */ = {isa = PBXBuildFile; productRef = B1000004000000000000000D /* GloamModels */; };
+		B1000001000000000000000E /* UI in Frameworks */ = {isa = PBXBuildFile; productRef = B1000004000000000000000E /* UI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -77,6 +80,9 @@
 				B10000010000000000000009 /* HistoryClient in Frameworks */,
 				B1000001000000000000000A /* SoundClient in Frameworks */,
 				B1000001000000000000000B /* LogClient in Frameworks */,
+				B1000001000000000000000C /* Onboarding in Frameworks */,
+				B1000001000000000000000D /* GloamModels in Frameworks */,
+				B1000001000000000000000E /* UI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -140,6 +146,9 @@
 				B10000040000000000000009 /* HistoryClient */,
 				B1000004000000000000000A /* SoundClient */,
 				B1000004000000000000000B /* LogClient */,
+				B1000004000000000000000C /* Onboarding */,
+				B1000004000000000000000D /* GloamModels */,
+				B1000004000000000000000E /* UI */,
 			);
 			productName = gloam;
 			productReference = 51F869592F469BEA004C06DD /* gloam.app */;
@@ -612,6 +621,18 @@
 		B1000004000000000000000B /* LogClient */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = LogClient;
+		};
+		B1000004000000000000000C /* Onboarding */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Onboarding;
+		};
+		B1000004000000000000000D /* GloamModels */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GloamModels;
+		};
+		B1000004000000000000000E /* UI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = UI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

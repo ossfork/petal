@@ -9,6 +9,7 @@ import KeyboardClient
 import KeyboardShortcuts
 import LogClient
 import Observation
+import Onboarding
 import os
 import PasteClient
 import PermissionsClient
@@ -32,12 +33,6 @@ final class AppModel {
         case recording
         case processing(ProcessingStage)
         case error(String)
-    }
-
-    enum SetupStep: Int, CaseIterable, Sendable {
-        case model
-        case shortcut
-        case download
     }
 
     @ObservationIgnored @Shared(.hasCompletedSetup) private var hasCompletedSetupStorage = false
@@ -89,17 +84,14 @@ final class AppModel {
         }
     }
 
-    var setupStep: SetupStep = .model
-    var isDownloadingModel = false
-    var downloadProgress = 0.0
-    var downloadStatus = ""
-    var downloadSpeedText: String?
     var sessionState: SessionState = .idle
     var lastError: String?
     var transientMessage: String?
     var microphonePermissionState: MicrophonePermissionState = .notDetermined
     var microphoneAuthorized = false
     var accessibilityAuthorized = false
+
+    var setupModel: SetupModel?
 
     @ObservationIgnored @Dependency(\.continuousClock) private var clock
     @ObservationIgnored @Dependency(\.date.now) private var now
@@ -125,7 +117,6 @@ final class AppModel {
     @ObservationIgnored private var ignoreNextShortcutKeyUp = false
     @ObservationIgnored private var currentShortcutPressStart: Date?
     @ObservationIgnored private var setupWindowController: SetupWindowController?
-    @ObservationIgnored private var didAutoPromptAccessibilityInSetup = false
     @ObservationIgnored private var transcriptionProgressTask: Task<Void, Never>?
     @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
     @ObservationIgnored private var estimatedTranscriptionRTF = 2.2
@@ -166,6 +157,8 @@ final class AppModel {
         Task { await appDidLaunch() }
     }
 
+    // MARK: - Computed Properties
+
     var selectedModelOption: ModelOption? {
         ModelOption(rawValue: selectedModelID)
     }
@@ -183,12 +176,9 @@ final class AppModel {
             return "REC"
         case let .processing(stage):
             switch stage {
-            case .trimming:
-                return "Trimming"
-            case .speeding:
-                return "Speeding"
-            case .transcribing:
-                return "Transcribing"
+            case .trimming: return "Trimming"
+            case .speeding: return "Speeding"
+            case .transcribing: return "Transcribing"
             }
         case .error:
             return "Error"
@@ -197,29 +187,20 @@ final class AppModel {
 
     var menuBarSymbolName: String {
         switch sessionState {
-        case .idle:
-            return "waveform.badge.mic"
-        case .recording:
-            return "record.circle.fill"
+        case .idle: return "waveform.badge.mic"
+        case .recording: return "record.circle.fill"
         case let .processing(stage):
             switch stage {
-            case .trimming:
-                return "scissors"
-            case .speeding:
-                return "figure.run"
-            case .transcribing:
-                return "hourglass"
+            case .trimming: return "scissors"
+            case .speeding: return "figure.run"
+            case .transcribing: return "hourglass"
             }
-        case .error:
-            return "exclamationmark.triangle.fill"
+        case .error: return "exclamationmark.triangle.fill"
         }
     }
 
     var currentModelSummary: String {
-        guard let selectedModelOption else {
-            return "No model selected"
-        }
-
+        guard let selectedModelOption else { return "No model selected" }
         return "\(selectedModelOption.displayName) - \(selectedModelOption.sizeLabel)"
     }
 
@@ -227,7 +208,6 @@ final class AppModel {
         guard let shortcut = KeyboardShortcuts.getShortcut(for: .pushToTalk) else {
             return "No shortcut set"
         }
-
         let modifiers = shortcut.modifiers.ks_symbolicRepresentation
         let key = Sauce.shared.key(for: shortcut.carbonKeyCode)?.rawValue.uppercased() ?? "?"
         return "Current: \(modifiers)\(key)"
@@ -245,98 +225,19 @@ final class AppModel {
             .map { $0 }
     }
 
-    var setupStepItems: [SetupStep] {
-        SetupStep.allCases
-    }
-
-    var setupPrimaryButtonTitle: String {
-        switch setupStep {
-        case .model:
-            return "Continue"
-        case .shortcut:
-            return "Continue"
-        case .download:
-            if isDownloadingModel {
-                return "Downloading..."
-            }
-
-            if !microphoneAuthorized {
-                switch microphonePermissionState {
-                case .authorized:
-                    break
-                case .notDetermined:
-                    return "Grant Microphone"
-                case .denied:
-                    return "Open Mic Settings"
-                }
-            }
-
-            if isSelectedModelDownloaded {
-                return "Finish Setup"
-            }
-
-            return "Download Model"
-        }
-    }
-
-    var setupPrimaryButtonDisabled: Bool {
-        isDownloadingModel
-    }
-
-    var setupCanGoBack: Bool {
-        setupStep != .model && !isDownloadingModel
-    }
-
-    var setupStepTitle: String {
-        switch setupStep {
-        case .model:
-            return "Choose Model"
-        case .shortcut:
-            return "Choose Shortcut"
-        case .download:
-            return "Download & Permissions"
-        }
-    }
-
-    var setupStepDescription: String {
-        switch setupStep {
-        case .model:
-            return "Pick a Voxtral Mini model. You can change this later from the menu bar."
-        case .shortcut:
-            return "Set a shortcut. Quick tap toggles recording; holding for at least 2 seconds uses press-to-talk."
-        case .download:
-            return "Allow permissions and download your selected model."
-        }
-    }
-
-    var setupDownloadSummaryText: String {
-        let percent = Int((downloadProgress * 100).rounded())
-
-        if let downloadSpeedText {
-            return "\(percent)% - \(downloadSpeedText)"
-        }
-
-        return "\(percent)%"
-    }
-
-    var modelsDirectoryDisplayPath: String {
-        historyClient.modelsDirectoryPath()
-    }
-
     var historyDirectoryDisplayPath: String {
         historyClient.historyDirectoryPath()
     }
 
-    func setupStepDisplayName(_ step: SetupStep) -> String {
-        switch step {
-        case .model:
-            return "Model"
-        case .shortcut:
-            return "Shortcut"
-        case .download:
-            return "Download"
-        }
+    // MARK: - Setup
+
+    func changeModelButtonTapped() {
+        if isPreviewMode { return }
+        beginSetupFlow()
+        showSetupWindow()
     }
+
+    // MARK: - Lifecycle
 
     func appDidLaunch() async {
         if isPreviewMode { return }
@@ -356,115 +257,7 @@ final class AppModel {
         showSetupWindow()
     }
 
-    func setupWindowAppeared() {
-        if isPreviewMode { return }
-        refreshPermissionStatus()
-    }
-
-    func changeModelButtonTapped() {
-        if isPreviewMode {
-            beginSetupFlow()
-            return
-        }
-        beginSetupFlow()
-        showSetupWindow()
-    }
-
-    func selectedModelSelectionChanged() {
-        transientMessage = nil
-        lastError = nil
-    }
-
-    func closeSetupWindowButtonTapped() {
-        if isPreviewMode { return }
-        setupWindowController?.close()
-    }
-
-    func setupBackButtonTapped() {
-        guard setupCanGoBack else { return }
-
-        switch setupStep {
-        case .model:
-            break
-        case .shortcut:
-            setupStep = .model
-        case .download:
-            setupStep = .shortcut
-        }
-
-        lastError = nil
-    }
-
-    func setupPrimaryButtonTapped() async {
-        logger.info("Setup primary button tapped at step=\(self.setupStepTitle, privacy: .public)")
-        consoleLog("Setup primary button tapped at step=\(self.setupStepTitle)")
-        switch setupStep {
-        case .model:
-            guard selectedModelOption != nil else {
-                lastError = "Please select a valid model."
-                return
-            }
-
-            setupStep = .shortcut
-            lastError = nil
-        case .shortcut:
-            guard hasConfiguredShortcut else {
-                lastError = "Set a push-to-talk shortcut before continuing."
-                return
-            }
-
-            setupStep = .download
-            lastError = nil
-            await requestPermissionsForSetupIfNeeded()
-        case .download:
-            await setupDownloadPrimaryButtonTapped()
-        }
-    }
-
-    func downloadModelButtonTapped() async {
-        guard let option = selectedModelOption else {
-            lastError = "Please select a valid model."
-            return
-        }
-
-        guard !isDownloadingModel else { return }
-
-        isDownloadingModel = true
-        downloadProgress = 0
-        downloadStatus = "Preparing download..."
-        downloadSpeedText = nil
-        transientMessage = nil
-        lastError = nil
-        logger.info("Starting model download: \(option.rawValue, privacy: .public)")
-        consoleLog("Starting model download: \(option.rawValue)")
-
-        do {
-            try await downloadClient.downloadModel(option) { update in
-                Task { @MainActor [weak self] in
-                    guard let self else { return }
-                    self.downloadProgress = min(max(update.fractionCompleted, 0), 1)
-                    self.downloadStatus = update.status
-                    self.downloadSpeedText = update.speedText
-                }
-            }
-
-            isDownloadingModel = false
-            downloadProgress = 1
-            downloadSpeedText = nil
-            downloadStatus = "Download complete!"
-            transientMessage = "Model downloaded. Click Finish Setup."
-            lastError = nil
-            logger.info("Model download completed: \(option.rawValue, privacy: .public)")
-            consoleLog("Model download completed: \(option.rawValue)")
-        } catch {
-            isDownloadingModel = false
-            downloadSpeedText = nil
-            lastError = error.localizedDescription
-            reportIssue(error)
-            logger.error("Model download failed: \(error.localizedDescription, privacy: .public)")
-            consoleLog("Model download failed: \(error.localizedDescription)")
-        }
-    }
+    // MARK: - Permissions (runtime)
 
     func microphonePermissionButtonTapped() async {
         if isPreviewMode {
@@ -513,15 +306,10 @@ final class AppModel {
         }
     }
 
-    func copyTranscriptHistoryButtonTapped(_ entryID: UUID) {
-        guard
-            let entry = transcriptHistoryDays
-                .flatMap(\.entries)
-                .first(where: { $0.id == entryID })
-        else {
-            return
-        }
+    // MARK: - History
 
+    func copyTranscriptHistoryButtonTapped(_ entryID: UUID) {
+        guard let entry = transcriptHistoryDays.flatMap(\.entries).first(where: { $0.id == entryID }) else { return }
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(formattedHistoryEntry(entry), forType: .string)
@@ -563,6 +351,8 @@ final class AppModel {
         NSWorkspace.shared.open(audioURL)
     }
 
+    // MARK: - Deep Links
+
     func handleDeepLink(_ command: GloamDeepLinkCommand) async {
         switch command {
         case .start:
@@ -575,6 +365,8 @@ final class AppModel {
             changeModelButtonTapped()
         }
     }
+
+    // MARK: - Push to Talk
 
     func pushToTalkKeyDown() async {
         logger.info("Push-to-talk key down")
@@ -606,9 +398,7 @@ final class AppModel {
             return
         }
 
-        guard !pushToTalkIsActive else {
-            return
-        }
+        guard !pushToTalkIsActive else { return }
 
         pushToTalkIsActive = true
         currentShortcutPressStart = now
@@ -659,9 +449,7 @@ final class AppModel {
         logger.info("Push-to-talk key up")
         consoleLog("Push-to-talk key up")
 
-        if isAwaitingCancelRecordingConfirmation {
-            return
-        }
+        if isAwaitingCancelRecordingConfirmation { return }
 
         if ignoreNextShortcutKeyUp {
             ignoreNextShortcutKeyUp = false
@@ -669,16 +457,12 @@ final class AppModel {
             return
         }
 
-        guard pushToTalkIsActive else {
-            return
-        }
+        guard pushToTalkIsActive else { return }
 
         pushToTalkIsActive = false
 
         let isCurrentlyRecording = await audioClient.isRecording()
-        guard isCurrentlyRecording else {
-            return
-        }
+        guard isCurrentlyRecording else { return }
 
         let holdDuration = now.timeIntervalSince(currentShortcutPressStart ?? now)
         currentShortcutPressStart = nil
@@ -694,6 +478,8 @@ final class AppModel {
 
         await stopRecordingAndTranscribe()
     }
+
+    // MARK: - Private: Recording & Transcription
 
     private func stopRecordingAndTranscribe() async {
         toggleRecordingIsActive = false
@@ -791,85 +577,67 @@ final class AppModel {
         await hideCapsuleAfterDelay()
     }
 
-    private var hasConfiguredShortcut: Bool {
-        KeyboardShortcuts.getShortcut(for: .pushToTalk) != nil
+    // MARK: - Private: Setup Flow
+
+    func beginSetupFlow() {
+        guard setupModel == nil else { return }
+        let model = SetupModel()
+        model.onCompleted = { [weak self] in
+            self?.handleSetupCompleted()
+        }
+        setupModel = model
     }
 
-    private func beginSetupFlow() {
-        setupStep = .model
-        didAutoPromptAccessibilityInSetup = false
-        downloadSpeedText = nil
-        downloadProgress = isSelectedModelDownloaded ? 1 : 0
-        downloadStatus = isSelectedModelDownloaded ? "Model already downloaded." : ""
-    }
-
-    private func setupDownloadPrimaryButtonTapped() async {
-        if !microphoneAuthorized {
-            await microphonePermissionButtonTapped()
-            await refreshPermissionStatusAsync()
-            guard microphoneAuthorized else {
-                return
-            }
-        }
-
-        guard let option = selectedModelOption else {
-            lastError = "Please select a valid model."
-            return
-        }
-
-        if downloadClient.isModelDownloaded(option) {
-            completeSetup()
-            return
-        }
-
-        await downloadModelButtonTapped()
-    }
-
-    private func completeSetup() {
+    private func handleSetupCompleted() {
         hasCompletedSetup = true
+        selectedModelID = selectedModelIDStorage
         transientMessage = "Gloam is ready. Quick tap to toggle listening, or hold for push-to-talk."
-
-        if isPreviewMode { return }
-
-        closeSetupWindowButtonTapped()
+        setupWindowController?.close()
+        setupModel = nil
         logger.info("Setup completed")
         consoleLog("Setup completed")
         Task { await warmModelTask() }
     }
 
-    private func requestPermissionsForSetupIfNeeded() async {
+    private func showSetupWindow() {
         if isPreviewMode { return }
-        await refreshPermissionStatusAsync()
+        guard let setupModel else { return }
 
-        let micState = await permissionsClient.microphonePermissionState()
-        if micState == .notDetermined {
-            _ = await permissionsClient.requestMicrophonePermission()
-            await refreshPermissionStatusAsync()
+        let controller = SetupWindowController(setupModel: setupModel)
+        setupWindowController = controller
+
+        if let setupWindow = controller.window {
+            for window in NSApp.windows {
+                guard
+                    window !== setupWindow,
+                    window.identifier?.rawValue == "GloamSetupWindow"
+                else { continue }
+                window.close()
+            }
         }
 
-        guard !didAutoPromptAccessibilityInSetup else { return }
-        didAutoPromptAccessibilityInSetup = true
-
-        if !accessibilityAuthorized {
-            await permissionsClient.promptForAccessibilityPermission()
-            await refreshPermissionStatusAsync()
-        }
+        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+        controller.showWindow(nil)
+        controller.window?.center()
+        controller.window?.collectionBehavior.insert(.moveToActiveSpace)
+        controller.window?.collectionBehavior.insert(.fullScreenAuxiliary)
+        controller.window?.orderFrontRegardless()
+        controller.window?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
+
+    // MARK: - Private: Shortcuts & Keyboard
 
     private func registerShortcutHandlers() {
         if isPreviewMode { return }
         KeyboardShortcuts.removeHandler(for: .pushToTalk)
 
         KeyboardShortcuts.onKeyDown(for: .pushToTalk) { [weak self] in
-            Task {
-                await self?.pushToTalkKeyDown()
-            }
+            Task { await self?.pushToTalkKeyDown() }
         }
 
         KeyboardShortcuts.onKeyUp(for: .pushToTalk) { [weak self] in
-            Task {
-                await self?.pushToTalkKeyUp()
-            }
+            Task { await self?.pushToTalkKeyUp() }
         }
     }
 
@@ -962,6 +730,8 @@ final class AppModel {
         }
     }
 
+    // MARK: - Private: Permissions
+
     private func refreshPermissionStatus() {
         if isPreviewMode { return }
         Task { await refreshPermissionStatusAsync() }
@@ -972,33 +742,6 @@ final class AppModel {
         microphonePermissionState = await permissionsClient.microphonePermissionState()
         microphoneAuthorized = microphonePermissionState == .authorized
         accessibilityAuthorized = await permissionsClient.hasAccessibilityPermission()
-    }
-
-    private func showSetupWindow() {
-        if isPreviewMode { return }
-        refreshPermissionStatus()
-
-        let controller = setupWindowController ?? SetupWindowController(model: self)
-        setupWindowController = controller
-
-        if let setupWindow = controller.window {
-            for window in NSApp.windows {
-                guard
-                    window !== setupWindow,
-                    window.identifier?.rawValue == "GloamSetupWindow"
-                else { continue }
-                window.close()
-            }
-        }
-
-        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
-        controller.showWindow(nil)
-        controller.window?.center()
-        controller.window?.collectionBehavior.insert(.moveToActiveSpace)
-        controller.window?.collectionBehavior.insert(.fullScreenAuxiliary)
-        controller.window?.orderFrontRegardless()
-        controller.window?.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func startPermissionMonitoring() {
@@ -1012,6 +755,8 @@ final class AppModel {
         }
     }
 
+    // MARK: - Private: Deep Links
+
     private func startRecordingFromDeepLink() async {
         guard hasCompletedSetup else {
             transientMessage = "Complete setup before recording."
@@ -1021,9 +766,7 @@ final class AppModel {
         }
 
         let isCurrentlyRecording = await audioClient.isRecording()
-        if isCurrentlyRecording || isProcessing {
-            return
-        }
+        if isCurrentlyRecording || isProcessing { return }
 
         if !microphoneAuthorized {
             await microphonePermissionButtonTapped()
@@ -1078,6 +821,8 @@ final class AppModel {
         }
     }
 
+    // MARK: - Private: Helpers
+
     private func recordingLevelDidUpdate(_ level: Double) {
         guard case .recording = sessionState else { return }
         Task { await floatingCapsuleClient.updateLevel(level) }
@@ -1113,22 +858,16 @@ final class AppModel {
     }
 
     private var isProcessing: Bool {
-        if case .processing = sessionState {
-            return true
-        }
+        if case .processing = sessionState { return true }
         return false
     }
 
     private func autoSpeedRate(for audioDuration: Double) -> Double? {
         switch audioDuration {
-        case ..<45:
-            return nil
-        case 45..<90:
-            return 1.1
-        case 90..<180:
-            return 1.2
-        default:
-            return 1.25
+        case ..<45: return nil
+        case 45..<90: return 1.1
+        case 90..<180: return 1.2
+        default: return 1.25
         }
     }
 
@@ -1207,8 +946,6 @@ final class AppModel {
     private func updateTranscriptionSpeedEstimate(audioDuration: Double, elapsed: Double) {
         guard audioDuration > 0, elapsed > 0 else { return }
         let latestRTF = audioDuration / elapsed
-
-        // Smooth updates so short clips do not swing the UI estimate heavily.
         let alpha = 0.25
         estimatedTranscriptionRTF = (1 - alpha) * estimatedTranscriptionRTF + alpha * latestRTF
     }
@@ -1304,11 +1041,6 @@ extension AppModel {
         let model = AppModel(isPreviewMode: true)
         model.hasCompletedSetup = true
         model.selectedModelID = ModelOption.defaultOption.rawValue
-        model.setupStep = .model
-        model.isDownloadingModel = false
-        model.downloadProgress = 0
-        model.downloadStatus = ""
-        model.downloadSpeedText = nil
         model.sessionState = .idle
         model.lastError = nil
         model.transientMessage = nil

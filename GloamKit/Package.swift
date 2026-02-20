@@ -11,6 +11,7 @@ extension Target.Dependency {
     static let audioSpeedClient: Self = "AudioSpeedClient"
     static let permissionsClient: Self = "PermissionsClient"
     static let downloadClient: Self = "DownloadClient"
+    static let historyClient: Self = "HistoryClient"
 
     static let dependencies: Self = .product(name: "Dependencies", package: "swift-dependencies")
     static let dependenciesMacros: Self = .product(name: "DependenciesMacros", package: "swift-dependencies")
@@ -79,7 +80,16 @@ let package = Package(
         ),
         .target(
             name: "Onboarding",
-            dependencies: [.shared, .models, .ui, .downloadClient, .permissionsClient]
+            dependencies: [
+                .shared,
+                .models,
+                .ui,
+                .downloadClient,
+                .permissionsClient,
+                .historyClient,
+                .keyboardShortcuts,
+                .sauce,
+            ]
         ),
 
         // MARK: - Clients

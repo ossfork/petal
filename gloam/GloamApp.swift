@@ -1,5 +1,6 @@
 import Dependencies
 import Darwin
+import Onboarding
 import os
 import Sparkle
 import SwiftUI
@@ -37,7 +38,15 @@ struct GloamApp: App {
         .menuBarExtraStyle(.window)
 
         Settings {
-            SetupWindowView(model: model)
+            Group {
+                if let setupModel = model.setupModel {
+                    SetupView(model: setupModel)
+                } else {
+                    ProgressView()
+                        .frame(width: 900, height: 560)
+                        .onAppear { model.beginSetupFlow() }
+                }
+            }
         }
     }
 }

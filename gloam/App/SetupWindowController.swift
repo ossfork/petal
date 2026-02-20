@@ -1,10 +1,11 @@
 import AppKit
+import Onboarding
 import SwiftUI
 
 @MainActor
 final class SetupWindowController: NSWindowController {
-    init(model: AppModel) {
-        let rootView = SetupWindowView(model: model)
+    init(setupModel: SetupModel) {
+        let rootView = SetupView(model: setupModel)
         let hostingController = NSHostingController(rootView: rootView)
 
         let window = NSWindow(contentViewController: hostingController)

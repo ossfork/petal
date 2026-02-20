@@ -4,12 +4,16 @@ import PermissionsClient
 import Shared
 import SwiftUI
 
-struct SetupWindowView: View {
-    @Bindable var model: AppModel
+public struct SetupView: View {
+    @Bindable var model: SetupModel
     @State private var hasStarted = false
     @State private var animating = false
 
-    var body: some View {
+    public init(model: SetupModel) {
+        self.model = model
+    }
+
+    public var body: some View {
         ZStack {
             backgroundLayer
 
@@ -60,15 +64,14 @@ struct SetupWindowView: View {
         .frame(width: 900, height: 560)
         .preferredColorScheme(.dark)
         .onAppear {
-            hasStarted = model.hasCompletedSetup
             animating = true
-            model.setupWindowAppeared()
+            model.windowAppeared()
             DispatchQueue.main.async {
                 ensureSetupWindowsAreVisible()
             }
         }
         .onChange(of: model.selectedModelID) { _, _ in
-            model.selectedModelSelectionChanged()
+            model.selectedModelChanged()
         }
     }
 
@@ -141,7 +144,7 @@ struct SetupWindowView: View {
         if !hasStarted {
             welcomeCard
         } else {
-            switch model.setupStep {
+            switch model.step {
             case .model:
                 modelCard
             case .shortcut:
@@ -328,14 +331,14 @@ struct SetupWindowView: View {
 
             HStack(spacing: 10) {
                 if !model.microphoneAuthorized {
-                    ComposeSecondaryButton(microphonePermissionActionTitle, systemImage: "mic.fill") {
-                        microphonePermissionButtonTapped()
+                    ComposeSecondaryButton(model.microphonePermissionActionTitle, systemImage: "mic.fill") {
+                        Task { await model.microphonePermissionButtonTapped() }
                     }
                 }
 
                 if !model.accessibilityAuthorized {
                     ComposeSecondaryButton("Enable Accessibility", systemImage: "figure.wave") {
-                        accessibilityPermissionButtonTapped()
+                        model.accessibilityPermissionButtonTapped()
                     }
                 }
             }
@@ -353,7 +356,10 @@ struct SetupWindowView: View {
                 .lineLimit(2)
 
             HStack(spacing: 10) {
-                Picker("History Retention", selection: $model.historyRetentionMode) {
+                Picker("History Retention", selection: Binding(
+                    get: { model.historyRetentionMode },
+                    set: { model.historyRetentionMode = $0 }
+                )) {
                     ForEach(HistoryRetentionMode.allCases) { mode in
                         Text(mode.displayName).tag(mode)
                     }
@@ -375,7 +381,7 @@ struct SetupWindowView: View {
 
                         Spacer()
 
-                        Text(model.setupDownloadSummaryText)
+                        Text(model.downloadSummaryText)
                             .font(.caption.monospacedDigit())
                             .foregroundStyle(.secondary)
                     }
@@ -470,26 +476,15 @@ struct SetupWindowView: View {
     }
 
     private var showBackButton: Bool {
-        hasStarted && (model.setupCanGoBack || (!model.hasCompletedSetup && model.setupStep == .model))
+        hasStarted && (model.canGoBack || model.step == .model)
     }
 
     private var primaryButtonTitle: String {
-        hasStarted ? model.setupPrimaryButtonTitle : "Get Started"
+        hasStarted ? model.primaryButtonTitle : "Get Started"
     }
 
     private var primaryButtonDisabled: Bool {
-        hasStarted ? model.setupPrimaryButtonDisabled : false
-    }
-
-    private var microphonePermissionActionTitle: String {
-        switch model.microphonePermissionState {
-        case .notDetermined:
-            return "Grant Microphone"
-        case .denied:
-            return "Open Mic Settings"
-        case .authorized:
-            return "Microphone Enabled"
-        }
+        hasStarted ? model.primaryButtonDisabled : false
     }
 
     private func onboardingFeatureRow(symbol: String, title: String, description: String) -> some View {
@@ -511,21 +506,13 @@ struct SetupWindowView: View {
         }
     }
 
-    private func microphonePermissionButtonTapped() {
-        Task { await model.microphonePermissionButtonTapped() }
-    }
-
-    private func accessibilityPermissionButtonTapped() {
-        model.accessibilityPermissionButtonTapped()
-    }
-
     private func backButtonTapped() {
-        if model.setupStep == .model {
+        if model.step == .model {
             withAnimation(.easeInOut) {
                 hasStarted = false
             }
         } else {
-            model.setupBackButtonTapped()
+            model.backButtonTapped()
         }
     }
 
@@ -537,7 +524,7 @@ struct SetupWindowView: View {
             return
         }
 
-        Task { await model.setupPrimaryButtonTapped() }
+        Task { await model.primaryButtonTapped() }
     }
 
     private func ensureSetupWindowsAreVisible() {
@@ -564,98 +551,9 @@ struct SetupWindowView: View {
     }
 }
 
-private extension View {
-    func capsulePill<S: ShapeStyle>(
-        horizontalPadding: CGFloat,
-        verticalPadding: CGFloat,
-        fill: S
-    ) -> some View {
-        self
-            .padding(.horizontal, horizontalPadding)
-            .padding(.vertical, verticalPadding)
-            .background(fill, in: Capsule())
-    }
-}
+// MARK: - Helper Views
 
-private struct ComposePrimaryButton: View {
-    let title: String
-    let action: () -> Void
-
-    @Environment(\.isEnabled) private var isEnabled
-
-    init(_ title: String, action: @escaping () -> Void) {
-        self.title = title
-        self.action = action
-    }
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.headline)
-                .frame(minWidth: 170)
-                .padding(.horizontal, 18)
-                .padding(.vertical, 10)
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(isEnabled ? .white : .secondary)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(.black.opacity(isEnabled ? 0.82 : 0.55))
-        )
-        .overlay {
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(.white.opacity(0.15), lineWidth: 1)
-        }
-    }
-}
-
-private struct ComposeSecondaryButton: View {
-    let title: String
-    let systemImage: String?
-    let action: () -> Void
-
-    @Environment(\.isEnabled) private var isEnabled
-    @State private var isHovering = false
-
-    init(_ title: String, systemImage: String? = nil, action: @escaping () -> Void) {
-        self.title = title
-        self.systemImage = systemImage
-        self.action = action
-    }
-
-    var body: some View {
-        Button(action: action) {
-            Group {
-                if let systemImage {
-                    Label(title, systemImage: systemImage)
-                } else {
-                    Text(title)
-                }
-            }
-            .font(.headline)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .foregroundStyle(isEnabled ? .white : .secondary)
-            .frame(minWidth: 120)
-        }
-        .buttonStyle(.plain)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(isHovering ? .white.opacity(0.16) : .white.opacity(0.09))
-        )
-        .overlay {
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(.white.opacity(0.14), lineWidth: 1)
-        }
-        .scaleEffect(isHovering && isEnabled ? 1.02 : 1)
-        .animation(.easeInOut(duration: 0.15), value: isHovering)
-        .onHover { hovering in
-            isHovering = hovering
-        }
-    }
-}
-
-private struct OnboardingHeader: View {
+struct OnboardingHeader: View {
     enum Layout {
         case horizontal
         case vertical
@@ -720,7 +618,98 @@ private struct OnboardingHeader: View {
     }
 }
 
-private extension View {
+struct ComposePrimaryButton: View {
+    let title: String
+    let action: () -> Void
+
+    @Environment(\.isEnabled) private var isEnabled
+
+    init(_ title: String, action: @escaping () -> Void) {
+        self.title = title
+        self.action = action
+    }
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.headline)
+                .frame(minWidth: 170)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 10)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(isEnabled ? .white : .secondary)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.black.opacity(isEnabled ? 0.82 : 0.55))
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(.white.opacity(0.15), lineWidth: 1)
+        }
+    }
+}
+
+struct ComposeSecondaryButton: View {
+    let title: String
+    let systemImage: String?
+    let action: () -> Void
+
+    @Environment(\.isEnabled) private var isEnabled
+    @State private var isHovering = false
+
+    init(_ title: String, systemImage: String? = nil, action: @escaping () -> Void) {
+        self.title = title
+        self.systemImage = systemImage
+        self.action = action
+    }
+
+    var body: some View {
+        Button(action: action) {
+            Group {
+                if let systemImage {
+                    Label(title, systemImage: systemImage)
+                } else {
+                    Text(title)
+                }
+            }
+            .font(.headline)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .foregroundStyle(isEnabled ? .white : .secondary)
+            .frame(minWidth: 120)
+        }
+        .buttonStyle(.plain)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isHovering ? .white.opacity(0.16) : .white.opacity(0.09))
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(.white.opacity(0.14), lineWidth: 1)
+        }
+        .scaleEffect(isHovering && isEnabled ? 1.02 : 1)
+        .animation(.easeInOut(duration: 0.15), value: isHovering)
+        .onHover { hovering in
+            isHovering = hovering
+        }
+    }
+}
+
+// MARK: - View Extensions
+
+extension View {
+    func capsulePill<S: ShapeStyle>(
+        horizontalPadding: CGFloat,
+        verticalPadding: CGFloat,
+        fill: S
+    ) -> some View {
+        self
+            .padding(.horizontal, horizontalPadding)
+            .padding(.vertical, verticalPadding)
+            .background(fill, in: Capsule())
+    }
+
     @ViewBuilder
     func slideIn(
         active: Bool,
@@ -759,39 +748,24 @@ private extension View {
     }
 }
 
-#if DEBUG
-@MainActor
-private func makeSetupPreviewModel(
-    step: AppModel.SetupStep,
-    configure: (AppModel) -> Void = { _ in }
-) -> AppModel {
-    AppModel.makePreview { model in
-        model.hasCompletedSetup = true
-        model.setupStep = step
-        configure(model)
-    }
-}
+// MARK: - Previews
 
+#if DEBUG
 #Preview("Welcome") {
-    SetupWindowView(
-        model: AppModel.makePreview { model in
-            model.hasCompletedSetup = false
-            model.setupStep = .model
-        }
-    )
+    SetupView(model: .makePreview(step: .model))
 }
 
 #Preview("Step 1 - Model") {
-    SetupWindowView(model: makeSetupPreviewModel(step: .model))
+    SetupView(model: .makePreview(step: .model))
 }
 
 #Preview("Step 2 - Shortcut") {
-    SetupWindowView(model: makeSetupPreviewModel(step: .shortcut))
+    SetupView(model: .makePreview(step: .shortcut))
 }
 
 #Preview("Step 3 - Permissions") {
-    SetupWindowView(
-        model: makeSetupPreviewModel(step: .download) { model in
+    SetupView(
+        model: .makePreview(step: .download) { model in
             model.microphonePermissionState = .notDetermined
             model.microphoneAuthorized = false
             model.accessibilityAuthorized = false
@@ -801,8 +775,8 @@ private func makeSetupPreviewModel(
 }
 
 #Preview("Step 3 - Downloading") {
-    SetupWindowView(
-        model: makeSetupPreviewModel(step: .download) { model in
+    SetupView(
+        model: .makePreview(step: .download) { model in
             model.microphonePermissionState = .authorized
             model.microphoneAuthorized = true
             model.accessibilityAuthorized = true
