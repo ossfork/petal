@@ -4,53 +4,31 @@ import UI
 
 struct MicrophonePermissionPage: View {
     @Bindable var model: OnboardingModel
-    let onComplete: () -> Void
-    let onBack: () -> Void
-
-    init(model: OnboardingModel, _ onComplete: @escaping () -> Void, _ onBack: @escaping () -> Void = {}) {
-        self.model = model
-        self.onComplete = onComplete
-        self.onBack = onBack
-    }
+    @State private var isAnimating = false
 
     var body: some View {
-        OnboardingPageContainer(
-            showBack: true,
-            backAction: onBack,
-            primaryTitle: "Continue",
-            primaryDisabled: !model.microphoneAuthorized,
-            primaryAction: onComplete
-        ) { isAnimating in
-            VStack(spacing: 24) {
-                iconStack
-                    .slideIn(active: isAnimating, delay: 0.25)
+        VStack(spacing: 24) {
+            iconStack
+                .slideIn(active: isAnimating, delay: 0.25)
 
-                VStack(spacing: 8) {
-                    Text("Enable Microphone")
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
+            VStack(spacing: 8) {
+                Text("Enable Microphone")
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
 
-                    Text("Gloam needs microphone access to record and transcribe your voice.")
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .slideIn(active: isAnimating, delay: 0.5)
-
-                statusIndicator
-                    .slideIn(active: isAnimating, delay: 1.0)
-
-                actionButton
-                    .slideIn(active: isAnimating, delay: 1.5)
+                Text("Gloam needs microphone access to record and transcribe your voice.")
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
             }
+            .slideIn(active: isAnimating, delay: 0.5)
+
+            statusIndicator
+                .slideIn(active: isAnimating, delay: 1.0)
+
+            actionButton
+                .slideIn(active: isAnimating, delay: 1.5)
         }
-        .onChange(of: model.microphoneAuthorized) { _, authorized in
-            if authorized {
-                Task {
-                    try? await Task.sleep(for: .seconds(1.5))
-                    onComplete()
-                }
-            }
-        }
+        .onAppear { isAnimating = true }
     }
 
     private var iconStack: some View {
@@ -101,12 +79,12 @@ struct MicrophonePermissionPage: View {
                 model.microphonePermissionState = .notDetermined
                 model.microphoneAuthorized = false
             }
-        ) {}
+        )
     }
 }
 
 #Preview("Microphone - Enabled") {
     OnboardingPagePreview {
-        MicrophonePermissionPage(model: .makePreview()) {}
+        MicrophonePermissionPage(model: .makePreview())
     }
 }

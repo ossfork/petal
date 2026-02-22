@@ -9,35 +9,63 @@ public struct OnboardingView: View {
     }
 
     public var body: some View {
-        VStack {
-            switch model.currentPage {
-            case .welcome:
-                WelcomePage { model.moveForward() }
+        OnboardingPageContainer(
+            showBack: model.showBack,
+            backAction: model.moveBack,
+            primaryTitle: model.currentPrimaryTitle,
+            primaryDisabled: model.primaryDisabled,
+            primaryActionDelay: model.currentPage.primaryActionDelay,
+            primaryAction: model.primaryActionTapped
+        ) { _ in
+            Group {
+                switch model.currentPage {
+                case .welcome:
+                    WelcomePage()
 
-            case .model:
-                ModelSelectionPage(model: model, model.moveForward) { model.moveBack() }
+                case .model:
+                    ModelSelectionPage(model: model)
 
-            case .shortcut:
-                ShortcutPage(model: model, model.moveForward) { model.moveBack() }
+                case .shortcut:
+                    ShortcutPage(model: model)
 
-            case .microphone:
-                MicrophonePermissionPage(model: model, model.moveForward) { model.moveBack() }
+                case .microphone:
+                    MicrophonePermissionPage(model: model)
 
-            case .accessibility:
-                AccessibilityPermissionPage(model: model, model.moveForward) { model.moveBack() }
+                case .accessibility:
+                    AccessibilityPermissionPage(model: model)
 
-            case .historyRetention:
-                HistoryRetentionPage(model: model, model.moveForward) { model.moveBack() }
+                case .historyRetention:
+                    HistoryRetentionPage(model: model)
 
-            case .download:
-                DownloadPage(model: model, model.completeSetup) { model.moveBack() }
+                case .download:
+                    DownloadPage(model: model)
+                }
             }
+            .transition(.scale)
+            .animation(.easeIn, value: model.currentPage)
         }
-        .transition(.scale)
-        .animation(.easeIn, value: model.currentPage)
         .frame(width: 820, height: 512)
         .background(backgroundLayer)
         .preferredColorScheme(.dark)
+        .onChange(of: model.selectedModelID) { _, _ in
+            model.selectedModelChanged()
+        }
+        .onChange(of: model.microphoneAuthorized) { _, authorized in
+            if authorized, model.currentPage == .microphone {
+                Task {
+                    try? await Task.sleep(for: .seconds(1.5))
+                    model.moveForward()
+                }
+            }
+        }
+        .onChange(of: model.accessibilityAuthorized) { _, authorized in
+            if authorized, model.currentPage == .accessibility {
+                Task {
+                    try? await Task.sleep(for: .seconds(1.5))
+                    model.moveForward()
+                }
+            }
+        }
         .onAppear {
             model.windowAppeared()
             DispatchQueue.main.async {

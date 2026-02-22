@@ -4,55 +4,41 @@ import UI
 
 struct DownloadPage: View {
     @Bindable var model: OnboardingModel
-    let onComplete: () -> Void
-    let onBack: () -> Void
-
-    init(model: OnboardingModel, _ onComplete: @escaping () -> Void, _ onBack: @escaping () -> Void = {}) {
-        self.model = model
-        self.onComplete = onComplete
-        self.onBack = onBack
-    }
+    @State private var isAnimating = false
 
     var body: some View {
-        OnboardingPageContainer(
-            showBack: !downloadModel.isDownloadingModel,
-            backAction: onBack,
-            primaryTitle: primaryButtonTitle,
-            primaryDisabled: downloadModel.isDownloadingModel,
-            primaryAction: primaryAction
-        ) { isAnimating in
-            VStack(spacing: 24) {
-                Image(systemName: "arrow.down.circle")
-                    .font(.system(size: 64))
+        VStack(spacing: 24) {
+            Image(systemName: "arrow.down.circle")
+                .font(.system(size: 64))
+                .foregroundStyle(.secondary)
+                .slideIn(active: isAnimating, delay: 0.25)
+
+            VStack(spacing: 8) {
+                Text("Download Model")
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+
+                Text("Download your selected model to get started.")
+                    .font(.title3)
                     .foregroundStyle(.secondary)
-                    .slideIn(active: isAnimating, delay: 0.25)
+                    .multilineTextAlignment(.center)
+            }
+            .slideIn(active: isAnimating, delay: 0.5)
 
-                VStack(spacing: 8) {
-                    Text("Download Model")
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
+            modelSummaryCard
+                .slideIn(active: isAnimating, delay: 0.75)
 
-                    Text("Download your selected model to get started.")
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .slideIn(active: isAnimating, delay: 0.5)
+            if downloadModel.isDownloadingModel || downloadModel.downloadProgress > 0 || !downloadModel.downloadStatus.isEmpty {
+                downloadProgressCard
+                    .slideIn(active: isAnimating, delay: 1.0)
+            }
 
-                modelSummaryCard
-                    .slideIn(active: isAnimating, delay: 0.75)
-
-                if downloadModel.isDownloadingModel || downloadModel.downloadProgress > 0 || !downloadModel.downloadStatus.isEmpty {
-                    downloadProgressCard
-                        .slideIn(active: isAnimating, delay: 1.0)
-                }
-
-                if let error = downloadModel.lastError ?? model.lastError {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                }
+            if let error = downloadModel.lastError ?? model.lastError {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.red)
             }
         }
+        .onAppear { isAnimating = true }
     }
 
     private var modelSummaryCard: some View {
@@ -118,25 +104,6 @@ struct DownloadPage: View {
         }
     }
 
-    private var primaryButtonTitle: String {
-        if downloadModel.isDownloadingModel {
-            return "Downloading..."
-        }
-        if downloadModel.isSelectedModelDownloaded {
-            return "Finish Setup"
-        }
-        return "Download Model"
-    }
-
-    private func primaryAction() {
-        if downloadModel.isSelectedModelDownloaded {
-            onComplete()
-            return
-        }
-
-        Task { await model.downloadModel() }
-    }
-
     private var downloadModel: ModelDownloadViewModel {
         model.modelDownloadViewModel
     }
@@ -144,7 +111,7 @@ struct DownloadPage: View {
 
 #Preview("Download - Idle") {
     OnboardingPagePreview {
-        DownloadPage(model: .makePreview()) {}
+        DownloadPage(model: .makePreview())
     }
 }
 
@@ -157,6 +124,6 @@ struct DownloadPage: View {
                 model.downloadStatus = "Downloading model..."
                 model.downloadSpeedText = "18.2 MB/s"
             }
-        ) {}
+        )
     }
 }

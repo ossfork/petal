@@ -35,31 +35,28 @@ struct OnboardingPageContainer<Content: View>: View {
         VStack(spacing: 0) {
             content(isAnimating)
                 .padding()
+                .xSpacing(.center)
 
             VStack(spacing: 0) {
                 Divider()
-                    .foregroundStyle(.tertiary)
+
                 HStack(spacing: 10) {
+                    Spacer()
                     if showBack, let backAction {
                         LongButton("Back", symbol: "chevron.left", variant: .secondary) {
                             backAction()
                         }
-                        .fixedSize()
+                        .frame(width: 220)
                     }
-                    Spacer()
+
                     LongButton(primaryTitle, variant: .primary) {
                         primaryAction()
                     }
-                    .fixedSize()
                     .disabled(primaryDisabled)
+                    .frame(width: 220)
                 }
-                .padding(.horizontal, 28)
-                .padding(.vertical, 18)
+                .padding(12)
                 .background(.regularMaterial)
-                .overlay {
-                    Color.black.opacity(0.22)
-                        .allowsHitTesting(false)
-                }
             }
             .slideIn(active: isAnimating, delay: primaryActionDelay)
         }
@@ -114,4 +111,8 @@ struct OnboardingPagePreview<Content: View>: View {
         .frame(width: 820, height: 512)
         .preferredColorScheme(.dark)
     }
+}
+
+#Preview("Welcome") {
+    OnboardingView(model: .makePreview(page: .welcome))
 }

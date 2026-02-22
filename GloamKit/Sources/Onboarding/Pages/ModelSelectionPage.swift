@@ -4,63 +4,43 @@ import UI
 
 struct ModelSelectionPage: View {
     @Bindable var model: OnboardingModel
-    let onComplete: () -> Void
-    let onBack: () -> Void
-
-    init(model: OnboardingModel, _ onComplete: @escaping () -> Void, _ onBack: @escaping () -> Void = {}) {
-        self.model = model
-        self.onComplete = onComplete
-        self.onBack = onBack
-    }
+    @State private var isAnimating = false
 
     var body: some View {
-        OnboardingPageContainer(
-            showBack: true,
-            backAction: onBack,
-            primaryTitle: "Continue",
-            primaryDisabled: model.selectedModelOption == nil,
-            primaryAction: {
-                guard model.selectedModelOption != nil else { return }
-                onComplete()
-            }
-        ) { isAnimating in
-            VStack(alignment: .leading, spacing: 24) {
-                OnboardingHeader(
-                    symbol: "externaldrive.fill",
-                    title: "Choose your model",
-                    description: "Select the local model that fits your speed and quality balance.",
-                    layout: .vertical
-                )
-                .slideIn(active: isAnimating, delay: 0.25)
+        VStack(alignment: .leading, spacing: 24) {
+            OnboardingHeader(
+                symbol: "externaldrive.fill",
+                title: "Choose your model",
+                description: "Select the local model that fits your speed and quality balance.",
+                layout: .vertical
+            )
+            .slideIn(active: isAnimating, delay: 0.25)
 
-                VStack(spacing: 10) {
-                    ForEach(ModelOption.allCases) { option in
-                        modelOptionCard(option)
-                    }
+            VStack(spacing: 10) {
+                ForEach(ModelOption.allCases) { option in
+                    modelOptionCard(option)
                 }
-                .slideIn(active: isAnimating, delay: 0.5)
+            }
+            .slideIn(active: isAnimating, delay: 0.5)
 
-                if let option = model.selectedModelOption {
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack(spacing: 10) {
-                            Label(option.sizeLabel, systemImage: "externaldrive")
-                            Label(option.rawValue, systemImage: "cpu")
-                        }
+            if let option = model.selectedModelOption {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 10) {
+                        Label(option.sizeLabel, systemImage: "externaldrive")
+                        Label(option.rawValue, systemImage: "cpu")
+                    }
+                    .font(.caption)
+
+                    Text(option.summary)
                         .font(.caption)
-
-                        Text(option.summary)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 2)
-                    .slideIn(active: isAnimating, delay: 0.75)
+                        .foregroundStyle(.secondary)
                 }
+                .foregroundStyle(.secondary)
+                .padding(.top, 2)
+                .slideIn(active: isAnimating, delay: 0.75)
             }
         }
-        .onChange(of: model.selectedModelID) { _, _ in
-            model.selectedModelChanged()
-        }
+        .onAppear { isAnimating = true }
     }
 
     private func modelOptionCard(_ option: ModelOption) -> some View {
@@ -118,21 +98,11 @@ struct ModelSelectionPage: View {
         }
         .buttonStyle(.plain)
     }
-
 }
 
 #Preview("Model Selection - Recommended") {
     OnboardingPagePreview {
-        ModelSelectionPage(model: .makePreview()) {}
-    }
-}
-
-#Preview("Model Selection - Lightweight") {
-    OnboardingPagePreview {
-        ModelSelectionPage(
-            model: .makePreview { model in
-                model.selectedModelID = ModelOption.mini3b.rawValue
-            }
-        ) {}
+        ModelSelectionPage(model: .makePreview())
+            .padding()
     }
 }

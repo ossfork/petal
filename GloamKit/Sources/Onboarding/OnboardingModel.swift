@@ -1,4 +1,5 @@
 import Dependencies
+import Foundation
 import KeyboardShortcuts
 import Observation
 import PermissionsClient
@@ -54,6 +55,51 @@ public final class OnboardingModel {
     public func moveBack() {
         guard let previousPage else { return }
         currentPage = previousPage
+    }
+
+    // MARK: - Page Container
+
+    public var showBack: Bool {
+        guard previousPage != nil else { return false }
+        if currentPage == .download, modelDownloadViewModel.isDownloadingModel { return false }
+        return true
+    }
+
+    public var currentPrimaryTitle: String {
+        guard currentPage == .download else { return currentPage.primaryTitle }
+        if modelDownloadViewModel.isDownloadingModel { return "Downloading..." }
+        if modelDownloadViewModel.isSelectedModelDownloaded { return "Finish Setup" }
+        return currentPage.primaryTitle
+    }
+
+    public var primaryDisabled: Bool {
+        switch currentPage {
+        case .welcome, .historyRetention: false
+        case .model: selectedModelOption == nil
+        case .shortcut: !hasConfiguredShortcut
+        case .microphone: !microphoneAuthorized
+        case .accessibility: !accessibilityAuthorized
+        case .download: modelDownloadViewModel.isDownloadingModel
+        }
+    }
+
+    public func primaryActionTapped() {
+        switch currentPage {
+        case .model:
+            guard selectedModelOption != nil else { return }
+            moveForward()
+        case .shortcut:
+            guard hasConfiguredShortcut else { return }
+            moveForward()
+        case .download:
+            if modelDownloadViewModel.isSelectedModelDownloaded {
+                completeSetup()
+            } else {
+                Task { await downloadModel() }
+            }
+        default:
+            moveForward()
+        }
     }
 
     // MARK: - Model Download
@@ -258,6 +304,25 @@ public final class OnboardingModel {
 
     deinit {
         permissionMonitorTask?.cancel()
+    }
+}
+
+// MARK: - Page Metadata
+
+extension OnboardingModel.Page {
+    public var primaryTitle: String {
+        switch self {
+        case .welcome: "Get Started"
+        case .model, .shortcut, .microphone, .accessibility, .historyRetention: "Continue"
+        case .download: "Download Model"
+        }
+    }
+
+    public var primaryActionDelay: CGFloat {
+        switch self {
+        case .welcome: 1.5
+        default: 0.1
+        }
     }
 }
 
