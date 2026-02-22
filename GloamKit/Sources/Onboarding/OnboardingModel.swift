@@ -332,8 +332,7 @@ public final class OnboardingModel {
 extension OnboardingModel.Page {
     public var primaryTitle: String {
         switch self {
-        case .welcome: "Get Started"
-        case .model, .shortcut, .microphone, .accessibility, .historyRetention: "Continue"
+        case .welcome, .model, .shortcut, .microphone, .accessibility, .historyRetention: "Continue"
         case .download: "Download Model"
         }
     }

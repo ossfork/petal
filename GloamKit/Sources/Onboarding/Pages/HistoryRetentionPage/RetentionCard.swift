@@ -31,7 +31,7 @@ struct RetentionCard: View {
     // MARK: - Computed
 
     private var borderColor: Color {
-        isSelected ? Color.accentColor.opacity(0.62) : Color.white.opacity(0.08)
+        isSelected ? Color.white.opacity(0.5) : Color.white.opacity(0.08)
     }
 
     private var borderWidth: CGFloat {
@@ -46,41 +46,41 @@ struct RetentionCard: View {
 
     var body: some View {
         Button(action: onSelect) {
-            VStack(spacing: 14) {
+            VStack(alignment: .leading, spacing: 10) {
                 Image(systemName: symbol)
-                    .font(.title2)
+                    .font(.title)
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(isSelected ? Color.accentColor : .secondary)
-                    .frame(width: 32, height: 32)
+                    .foregroundStyle(isSelected ? .white : .secondary)
+                    .frame(width: 36, height: 36)
 
-                VStack(spacing: 6) {
-                    Text(title)
-                        .font(.headline)
+                Text(title)
+                    .font(.headline)
 
-                    Text(description)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                Text(description)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Spacer(minLength: 0)
             }
             .padding(20)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(RoundedRectangle(cornerRadius: 14).fill(Color.black))
-            .overlay(alignment: .topTrailing) {
+            .overlay(alignment: .bottomTrailing) {
                 Image(systemName: checkmarkIcon)
                     .font(.body)
-                    .foregroundStyle(isSelected ? Color.accentColor : Color.white.opacity(0.2))
-                    .padding(12)
+                    .foregroundStyle(isSelected ? .white : Color.white.opacity(0.2))
+                    .padding(14)
             }
             .overlay {
                 RoundedRectangle(cornerRadius: 14)
                     .strokeBorder(borderColor, lineWidth: borderWidth)
             }
-            .overlay(alignment: .topLeading) {
+            .overlay(alignment: .topTrailing) {
                 if recommended {
                     recommendedBadge
-                        .offset(x: -6, y: -10)
+                        .padding(.trailing, 8)
+                        .offset(y: -10)
                 }
             }
         }
@@ -122,7 +122,7 @@ struct RetentionCard: View {
         recommended: true,
         isSelected: true
     ) {}
-        .frame(width: 220, height: 200)
+        .frame(width: 220, height: 220)
         .padding()
         .preferredColorScheme(.dark)
 }
@@ -134,7 +134,7 @@ struct RetentionCard: View {
         description: "Nothing is saved to disk. Transcriptions are pasted to your clipboard and forgotten.",
         isSelected: false
     ) {}
-        .frame(width: 220, height: 200)
+        .frame(width: 220, height: 220)
         .padding()
         .preferredColorScheme(.dark)
 }
