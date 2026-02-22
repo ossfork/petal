@@ -10,6 +10,8 @@ struct RetentionCard: View {
     let isSelected: Bool
     let onSelect: () -> Void
 
+    @State private var isHovering = false
+
     init(
         symbol: String,
         title: String,
@@ -28,10 +30,6 @@ struct RetentionCard: View {
 
     // MARK: - Computed
 
-    private var fillColor: Color {
-        isSelected ? Color.accentColor.opacity(0.18) : Color.black.opacity(0.26)
-    }
-
     private var borderColor: Color {
         isSelected ? Color.accentColor.opacity(0.62) : Color.white.opacity(0.08)
     }
@@ -48,64 +46,69 @@ struct RetentionCard: View {
 
     var body: some View {
         Button(action: onSelect) {
-            HStack(alignment: .top, spacing: 12) {
-                icon
-                details
-                Spacer(minLength: 8)
-                checkmark
+            VStack(spacing: 14) {
+                Image(systemName: symbol)
+                    .font(.title2)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                    .frame(width: 32, height: 32)
+
+                VStack(spacing: 6) {
+                    Text(title)
+                        .font(.headline)
+
+                    Text(description)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 12).fill(fillColor))
+            .padding(20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(RoundedRectangle(cornerRadius: 14).fill(Color.black))
+            .overlay(alignment: .topTrailing) {
+                Image(systemName: checkmarkIcon)
+                    .font(.body)
+                    .foregroundStyle(isSelected ? Color.accentColor : Color.white.opacity(0.2))
+                    .padding(12)
+            }
             .overlay {
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 14)
                     .strokeBorder(borderColor, lineWidth: borderWidth)
+            }
+            .overlay(alignment: .topLeading) {
+                if recommended {
+                    recommendedBadge
+                        .offset(x: -6, y: -10)
+                }
             }
         }
         .buttonStyle(.plain)
+        .scaleEffect(isHovering ? 1.04 : 1.0)
+        .animation(.easeOut(duration: 0.2), value: isHovering)
+        .onHover { hovering in
+            isHovering = hovering
+        }
     }
 
     // MARK: - Subviews
 
-    private var icon: some View {
-        Image(systemName: symbol)
-            .font(.title2)
-            .foregroundStyle(isSelected ? Color.accentColor : .secondary)
-            .frame(width: 28)
-    }
-
-    private var details: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 8) {
-                Text(title)
-                    .font(.headline)
-
-                if recommended {
-                    recommendedBadge
-                }
-            }
-
-            Text(description)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-    }
-
     private var recommendedBadge: some View {
         Text("Recommended")
-            .font(.caption2.weight(.semibold))
-            .capsulePill(
-                horizontalPadding: 8,
-                verticalPadding: 4,
-                fill: Color.green.opacity(0.22)
+            .font(.caption2.weight(.bold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                Capsule().fill(
+                    LinearGradient(
+                        colors: [.red, .orange],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
             )
-            .foregroundStyle(.green)
-    }
-
-    private var checkmark: some View {
-        Image(systemName: checkmarkIcon)
-            .font(.title3)
-            .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
     }
 }
 
@@ -115,21 +118,23 @@ struct RetentionCard: View {
     RetentionCard(
         symbol: "doc.text.below.ecg",
         title: "Audio + Transcripts",
-        description: "Save both audio and text.",
+        description: "Save both audio recordings and transcription text for full history.",
         recommended: true,
         isSelected: true
     ) {}
+        .frame(width: 220, height: 200)
         .padding()
         .preferredColorScheme(.dark)
 }
 
 #Preview("Unselected") {
     RetentionCard(
-        symbol: "xmark.circle",
-        title: "Nothing",
-        description: "Nothing saved. Transcriptions are pasted and forgotten.",
+        symbol: "hand.raised.fill",
+        title: "Private",
+        description: "Nothing is saved to disk. Transcriptions are pasted to your clipboard and forgotten.",
         isSelected: false
     ) {}
+        .frame(width: 220, height: 200)
         .padding()
         .preferredColorScheme(.dark)
 }

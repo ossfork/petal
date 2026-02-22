@@ -31,6 +31,8 @@ struct ShortcutPage: View {
                         .strokeBorder(.white.opacity(0.1), lineWidth: 1)
                 }
                 .slideIn(active: isAnimating, delay: 0.75)
+
+            Spacer()
         }
         .onAppear { isAnimating = true }
     }

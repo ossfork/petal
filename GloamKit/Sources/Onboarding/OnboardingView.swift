@@ -62,7 +62,7 @@ public struct OnboardingView: View {
     private var backgroundLayer: some View {
         LoopingVideoPlayer(AssetVideo.waveVideo)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .blur(radius: 32)
+            .blur(radius: 52)
             .ignoresSafeArea()
     }
 

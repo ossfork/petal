@@ -31,6 +31,8 @@ struct DownloadPage: View {
                     .font(.caption)
                     .foregroundStyle(.red)
             }
+
+            Spacer()
         }
         .onAppear { isAnimating = true }
     }

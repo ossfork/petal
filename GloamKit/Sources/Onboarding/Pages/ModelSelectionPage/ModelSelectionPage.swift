@@ -44,6 +44,8 @@ struct ModelSelectionPage: View {
                 .padding(.top, 2)
                 .slideIn(active: isAnimating, delay: 0.75)
             }
+
+            Spacer()
         }
         .onAppear { isAnimating = true }
     }

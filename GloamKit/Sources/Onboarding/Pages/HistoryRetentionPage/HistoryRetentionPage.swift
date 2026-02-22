@@ -16,37 +16,33 @@ struct HistoryRetentionPage: View {
             )
             .slideIn(active: isAnimating, delay: 0.25)
 
-            VStack(spacing: 10) {
-                RetentionCard(
-                    symbol: "xmark.circle",
-                    title: "Nothing",
-                    description: "Nothing saved. Transcriptions are pasted and forgotten.",
-                    isSelected: model.historyRetentionMode == .none
-                ) { model.historyRetentionMode = .none }
-
+            HStack(alignment: .top, spacing: 12) {
                 RetentionCard(
                     symbol: "doc.text",
                     title: "Transcripts Only",
-                    description: "Save transcription text only.",
+                    description: "Save transcription text after each session. Audio recordings are discarded.",
                     isSelected: model.historyRetentionMode == .transcripts
                 ) { model.historyRetentionMode = .transcripts }
 
                 RetentionCard(
-                    symbol: "waveform",
-                    title: "Audio Only",
-                    description: "Save audio recordings only.",
-                    isSelected: model.historyRetentionMode == .audio
-                ) { model.historyRetentionMode = .audio }
-
-                RetentionCard(
                     symbol: "doc.text.below.ecg",
                     title: "Audio + Transcripts",
-                    description: "Save both audio and text.",
+                    description: "Keep both audio recordings and transcription text for a complete history you can revisit.",
                     recommended: true,
                     isSelected: model.historyRetentionMode == .both
                 ) { model.historyRetentionMode = .both }
+
+                RetentionCard(
+                    symbol: "hand.raised.fill",
+                    title: "Private",
+                    description: "Nothing is saved to disk. Transcriptions are pasted to your clipboard and forgotten.",
+                    isSelected: model.historyRetentionMode == .none
+                ) { model.historyRetentionMode = .none }
             }
+            .frame(height: 220)
             .slideIn(active: isAnimating, delay: 0.5)
+
+            Spacer()
         }
         .onAppear { isAnimating = true }
     }
@@ -59,5 +55,11 @@ struct HistoryRetentionPage: View {
 #Preview("History Retention - Off") {
     OnboardingView(model: .makePreview(page: .historyRetention) { model in
         model.historyRetentionMode = .none
+    })
+}
+
+#Preview("History Retention - Transcripts") {
+    OnboardingView(model: .makePreview(page: .historyRetention) { model in
+        model.historyRetentionMode = .transcripts
     })
 }
