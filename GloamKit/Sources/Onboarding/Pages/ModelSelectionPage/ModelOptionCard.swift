@@ -29,24 +29,7 @@ struct ModelOptionCard: View {
     var body: some View {
         Button(action: onSelect) {
             HStack(spacing: 14) {
-                Image.appIcon
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 44, height: 44)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(option.displayName)
-                        .font(.headline)
-
-                    Text(option.summary)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    Label(option.sizeLabel + " · " + option.descriptor.parameters, systemImage: "internaldrive")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
+                ModelInfoRow(option: option)
 
                 Spacer(minLength: 8)
 
