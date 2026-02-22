@@ -87,6 +87,7 @@ let package = Package(
         .target(
             name: "Onboarding",
             dependencies: [
+                .assets,
                 .shared,
                 .models,
                 .ui,

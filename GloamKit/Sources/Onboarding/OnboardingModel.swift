@@ -69,6 +69,8 @@ public final class OnboardingModel {
         switch currentPage {
         case .accessibility:
             return accessibilityAuthorized ? "Continue" : "Enable Accessibility"
+        case .microphone:
+            return microphoneAuthorized ? "Continue" : "Enable Microphone"
         case .download:
             if modelDownloadViewModel.isDownloadingModel { return "Downloading..." }
             if modelDownloadViewModel.isSelectedModelDownloaded { return "Finish Setup" }
@@ -83,7 +85,7 @@ public final class OnboardingModel {
         case .welcome, .historyRetention: false
         case .model: selectedModelOption == nil
         case .shortcut: !hasConfiguredShortcut
-        case .microphone: !microphoneAuthorized
+        case .microphone: false
         case .accessibility: false
         case .download: modelDownloadViewModel.isDownloadingModel
         }
@@ -102,6 +104,12 @@ public final class OnboardingModel {
                 completeSetup()
             } else {
                 Task { await downloadModel() }
+            }
+        case .microphone:
+            if microphoneAuthorized {
+                moveForward()
+            } else {
+                Task { await microphonePermissionButtonTapped() }
             }
         case .accessibility:
             if accessibilityAuthorized {

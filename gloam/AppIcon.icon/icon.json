@@ -1,48 +1,17 @@
 {
-  "fill" : {
-    "linear-gradient" : [
-      "display-p3:0.10383,0.10383,0.10383,1.00000",
-      "display-p3:0.04926,0.04926,0.04926,1.00000"
-    ],
-    "orientation" : {
-      "start" : {
-        "x" : 0.5,
-        "y" : 0
-      },
-      "stop" : {
-        "x" : 0.5,
-        "y" : 0.7
-      }
-    }
-  },
+  "fill" : "system-dark",
   "groups" : [
     {
       "layers" : [
         {
-          "fill" : {
-            "linear-gradient" : [
-              "display-p3:1.00000,0.71412,0.00000,1.00000",
-              "display-p3:0.96783,0.00000,0.08822,1.00000"
-            ],
-            "orientation" : {
-              "start" : {
-                "x" : 0.5,
-                "y" : 0
-              },
-              "stop" : {
-                "x" : 0.5,
-                "y" : 0.7
-              }
-            }
-          },
-          "glass" : true,
-          "image-name" : "Group 2.png",
-          "name" : "Group 2",
+          "glass" : false,
+          "image-name" : "CleanShot 2026-02-21 at 21.45.39@2x.png",
+          "name" : "CleanShot 2026-02-21 at 21.45.39@2x",
           "position" : {
-            "scale" : 0.44,
+            "scale" : 0.63,
             "translation-in-points" : [
               0,
-              0
+              -39
             ]
           }
         }

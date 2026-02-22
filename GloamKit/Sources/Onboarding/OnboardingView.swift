@@ -1,4 +1,5 @@
 import AppKit
+import Assets
 import SwiftUI
 
 public struct OnboardingView: View {
@@ -50,14 +51,6 @@ public struct OnboardingView: View {
         .onChange(of: model.selectedModelID) { _, _ in
             model.selectedModelChanged()
         }
-        .onChange(of: model.microphoneAuthorized) { _, authorized in
-            if authorized, model.currentPage == .microphone {
-                Task {
-                    try? await Task.sleep(for: .seconds(1.5))
-                    model.moveForward()
-                }
-            }
-        }
         .onAppear {
             model.windowAppeared()
             DispatchQueue.main.async {
@@ -67,24 +60,10 @@ public struct OnboardingView: View {
     }
 
     private var backgroundLayer: some View {
-        Image.blackhole
-            .resizable()
-            .scaledToFill()
-            .scaleEffect(1.12)
-            .saturation(0.72)
-            .blur(radius: 64)
-            .opacity(0.75)
-        .overlay {
-            LinearGradient(
-                colors: [
-                    .black.opacity(0.25),
-                    .black.opacity(0.55)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        }
-        .ignoresSafeArea()
+        LoopingVideoPlayer(AssetVideo.waveVideo)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .blur(radius: 32)
+            .ignoresSafeArea()
     }
 
     private func ensureOnboardingWindowsAreVisible() {
