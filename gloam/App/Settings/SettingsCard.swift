@@ -59,7 +59,10 @@ struct SettingsSection: View {
         self.label = AnyView(label().overlay(LabelOverlay()))
         self.bottomDivider = bottomDivider
         self.verticalAlignment = verticalAlignment
-        self.content = AnyView(VStack(alignment: .leading, spacing: 6) { content() })
+        self.content = AnyView(
+            VStack(alignment: .leading, spacing: 6) { content() }
+                .frame(maxWidth: .infinity, alignment: .leading)
+        )
     }
 
     init(
@@ -84,7 +87,6 @@ struct SettingsSection: View {
             label
                 .alignmentGuide(.settingsSectionLabel) { $0[.trailing] }
             content
-            Spacer()
         }
     }
 }

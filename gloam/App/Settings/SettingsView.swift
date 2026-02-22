@@ -14,27 +14,25 @@ struct GeneralPane: View {
     var body: some View {
         SettingsContainer {
             SettingsSection("Status", bottomDivider: true) {
-                LabeledContent("Status") {
-                    Text(viewModel.appModel.statusTitle)
-                        .fontWeight(.medium)
-                }
-                LabeledContent("Current Model") {
-                    Text(viewModel.appModel.currentModelSummary)
-                        .foregroundStyle(.secondary)
-                }
+                Text(viewModel.appModel.statusTitle)
+                    .fontWeight(.medium)
+                    .foregroundStyle(statusColor)
             }
 
-            SettingsSection("Permissions", bottomDivider: true) {
-                permissionRow(
-                    "Microphone",
-                    isGranted: viewModel.appModel.microphoneAuthorized,
-                    action: viewModel.requestMicrophonePermission
-                )
-                permissionRow(
-                    "Accessibility",
-                    isGranted: viewModel.appModel.accessibilityAuthorized,
-                    action: viewModel.requestAccessibilityPermission
-                )
+            SettingsSection("Permissions", bottomDivider: true, verticalAlignment: .center) {
+                HStack(spacing: 16) {
+                    permissionRow(
+                        "Microphone",
+                        isGranted: viewModel.appModel.microphoneAuthorized,
+                        action: viewModel.requestMicrophonePermission
+                    )
+                    permissionRow(
+                        "Accessibility",
+                        isGranted: viewModel.appModel.accessibilityAuthorized,
+                        action: viewModel.requestAccessibilityPermission
+                    )
+                }
+                .fixedSize()
 
                 if let message = viewModel.settingsMessage {
                     Text(message).settingDescription()
@@ -49,34 +47,43 @@ struct GeneralPane: View {
                 }
                 .fixedSize()
 
-                HStack(spacing: 8) {
-                    Text(viewModel.appModel.historyDirectoryDisplayPath)
-                        .settingDescription()
-                        .textSelection(.enabled)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
+                Text(viewModel.appModel.historyDirectoryDisplayPath)
+                    .settingDescription()
+                    .textSelection(.enabled)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
 
-                    Button("Open Folder") {
-                        viewModel.openHistoryFolder()
-                    }
-                    .controlSize(.small)
+                Button("Open in Finder") {
+                    viewModel.openHistoryFolder()
                 }
+                .controlSize(.small)
             }
         }
     }
 
     // MARK: - Helpers
 
+    private var statusColor: Color {
+        switch viewModel.appModel.sessionState {
+        case .idle:
+            return viewModel.appModel.hasCompletedSetup ? .green : .orange
+        case .recording:
+            return .red
+        case .processing:
+            return .orange
+        case .error:
+            return .red
+        }
+    }
+
     private func permissionRow(
         _ title: String,
         isGranted: Bool,
         action: @escaping () -> Void
     ) -> some View {
-        HStack {
+        HStack(spacing: 6) {
             Label(title, systemImage: isGranted ? "checkmark.circle.fill" : "xmark.circle")
                 .foregroundStyle(isGranted ? .green : .secondary)
-
-            Spacer()
 
             if !isGranted {
                 Button("Grant", action: action)
@@ -109,7 +116,7 @@ struct TranscriptionPane: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .frame(width: 240)
+                .frame(width: 200)
 
                 Text(viewModel.appModel.transcriptionMode.description)
                     .settingDescription()
@@ -147,45 +154,32 @@ struct ModelPane: View {
 
     var body: some View {
         SettingsContainer {
-            SettingsSection(bottomDivider: true, label: { EmptyView() }) {
-                Picker("Selected Model", selection: selectedModelID) {
-                    ForEach(ModelOption.allCases, id: \.rawValue) { option in
-                        Text(option.displayName).tag(option.rawValue)
-                    }
-                }
-                .fixedSize()
-
+            SettingsSection("Model") {
                 if let option = viewModel.modelDownloadViewModel.selectedModelOption {
+                    Text(option.displayName)
+                        .fontWeight(.medium)
+
                     Text(option.summary)
                         .settingDescription()
 
-                    LabeledContent("Model Size") {
+                    HStack(spacing: 6) {
                         Text(option.sizeLabel)
                             .foregroundStyle(.secondary)
+                        Text("\u{00B7}")
+                            .foregroundStyle(.tertiary)
+                        Text(downloadStatusText)
+                            .foregroundStyle(downloadStatusColor)
                     }
+                    .font(.caption)
                 }
 
-                LabeledContent("Download") {
-                    Text(downloadStatusText)
-                        .foregroundStyle(downloadStatusColor)
-                }
-
-                if shouldShowProgress {
+                if viewModel.modelDownloadViewModel.isDownloadingModel {
                     ProgressView(value: viewModel.modelDownloadViewModel.downloadProgress)
+                        .frame(maxWidth: 300)
 
-                    HStack {
-                        Text(viewModel.modelDownloadViewModel.downloadSummaryText)
-                            .font(.caption.monospacedDigit())
-                            .foregroundStyle(.secondary)
-
-                        Spacer()
-
-                        if let speedText = viewModel.modelDownloadViewModel.downloadSpeedText {
-                            Text(speedText)
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                    Text(viewModel.modelDownloadViewModel.downloadSummaryText)
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
                 }
 
                 if let downloadError = viewModel.modelDownloadViewModel.lastError {
@@ -194,53 +188,15 @@ struct ModelPane: View {
                         .foregroundStyle(.red)
                 }
             }
-
-            SettingsSection(label: { EmptyView() }) {
-                HStack(spacing: 10) {
-                    Button(downloadButtonTitle) {
-                        viewModel.downloadModel()
-                    }
-                    .disabled(
-                        viewModel.modelDownloadViewModel.isDownloadingModel
-                            || viewModel.modelDownloadViewModel.isSelectedModelDownloaded
-                    )
-
-                    Button("Setup Assistant") {
-                        viewModel.openSetupAssistant()
-                    }
-                }
-                .controlSize(.small)
-            }
         }
     }
 
     // MARK: - Helpers
 
-    private var selectedModelID: Binding<String> {
-        Binding(
-            get: { viewModel.modelDownloadViewModel.selectedModelID },
-            set: { viewModel.selectModel($0) }
-        )
-    }
-
-    private var shouldShowProgress: Bool {
-        let dm = viewModel.modelDownloadViewModel
-        return dm.isDownloadingModel
-            || dm.downloadProgress > 0
-            || !dm.downloadStatus.isEmpty
-    }
-
-    private var downloadButtonTitle: String {
-        let dm = viewModel.modelDownloadViewModel
-        if dm.isDownloadingModel { return "Downloading…" }
-        if dm.isSelectedModelDownloaded { return "Downloaded" }
-        return "Download Model"
-    }
-
     private var downloadStatusText: String {
         let dm = viewModel.modelDownloadViewModel
         if dm.isDownloadingModel {
-            return dm.downloadStatus.isEmpty ? "Downloading…" : dm.downloadStatus
+            return dm.downloadStatus.isEmpty ? "Downloading\u{2026}" : dm.downloadStatus
         }
         if dm.lastError != nil { return "Failed" }
         if dm.isSelectedModelDownloaded { return "Downloaded" }
@@ -267,12 +223,10 @@ struct ShortcutPane: View {
             SettingsSection(label: { EmptyView() }) {
                 HStack {
                     GroupBackground {
-                        VStack(alignment: .center, spacing: 12) {
-                            HStack {
-                                Text("Push-to-talk")
-                                Spacer(minLength: 0)
-                                KeyboardShortcuts.Recorder(for: .pushToTalk)
-                            }
+                        HStack {
+                            Text("Push-to-talk")
+                            Spacer(minLength: 0)
+                            KeyboardShortcuts.Recorder(for: .pushToTalk)
                         }
                         .frame(width: 400)
                         .padding()
@@ -280,8 +234,13 @@ struct ShortcutPane: View {
                 }
                 .frame(maxWidth: .infinity)
 
-                Text(viewModel.appModel.shortcutUsageText)
-                    .settingDescription()
+                HStack {
+                    Spacer()
+                    Text(viewModel.appModel.shortcutUsageText)
+                        .settingDescription()
+                        .multilineTextAlignment(.center)
+                    Spacer()
+                }
             }
         }
     }
@@ -295,29 +254,32 @@ struct AboutPane: View {
     var body: some View {
         SettingsContainer {
             SettingsSection(label: { EmptyView() }) {
-                HStack(spacing: 12) {
-                    Image(nsImage: NSApp.applicationIconImage)
-                        .resizable()
-                        .frame(width: 56, height: 56)
-                        .clipShape(.rect(cornerRadius: 12))
+                HStack {
+                    Spacer()
+                    VStack(alignment: .center, spacing: 12) {
+                        Image(nsImage: NSApp.applicationIconImage)
+                            .resizable()
+                            .frame(width: 64, height: 64)
+                            .clipShape(.rect(cornerRadius: 14))
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Gloam")
-                            .font(.title3.weight(.semibold))
-                        Text(viewModel.versionText)
-                            .foregroundStyle(.secondary)
+                        VStack(spacing: 2) {
+                            Text("Gloam")
+                                .font(.title3.weight(.semibold))
+                            Text(viewModel.versionText)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Button("Check for Updates") {
+                            viewModel.checkForUpdates()
+                        }
+                        .controlSize(.small)
+
+                        HStack(spacing: 12) {
+                            Link("aayush.art", destination: URL(string: "https://aayush.art")!)
+                            Link("GitHub", destination: URL(string: "https://github.com/Aayush9029")!)
+                        }
                     }
-                }
-                .padding(.bottom, 8)
-
-                Button("Check for Updates") {
-                    viewModel.checkForUpdates()
-                }
-                .controlSize(.small)
-
-                HStack(spacing: 12) {
-                    Link("aayush.art", destination: URL(string: "https://aayush.art")!)
-                    Link("GitHub", destination: URL(string: "https://github.com/Aayush9029")!)
+                    Spacer()
                 }
             }
         }
