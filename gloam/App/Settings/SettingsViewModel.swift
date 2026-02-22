@@ -9,86 +9,10 @@ import SwiftUI
 @MainActor
 @Observable
 final class SettingsViewModel {
-    enum Section: String, CaseIterable, Hashable, Identifiable {
-        case general
-        case model
-        case shortcut
-        case transcription
-        case permissions
-        case history
-        case about
-
-        var id: String { rawValue }
-
-        var title: String {
-            switch self {
-            case .general:
-                "General"
-            case .model:
-                "Model"
-            case .shortcut:
-                "Shortcut"
-            case .transcription:
-                "Transcription"
-            case .permissions:
-                "Permissions"
-            case .history:
-                "History"
-            case .about:
-                "About"
-            }
-        }
-
-        var systemImage: String {
-            switch self {
-            case .general:
-                "gearshape.fill"
-            case .model:
-                "cpu.fill"
-            case .shortcut:
-                "keyboard.fill"
-            case .transcription:
-                "waveform"
-            case .permissions:
-                "lock.shield.fill"
-            case .history:
-                "clock.arrow.circlepath"
-            case .about:
-                "info.circle.fill"
-            }
-        }
-
-        var fill: Color {
-            switch self {
-            case .general: .indigo
-            case .model: .purple
-            case .shortcut: .blue
-            case .transcription: .orange
-            case .permissions: .green
-            case .history: .teal
-            case .about: .gray
-            }
-        }
-    }
-
-    struct SidebarGroup: Identifiable {
-        let id: String
-        let title: String?
-        let items: [Section]
-    }
-
     let appModel: AppModel
-    var selectedSection: Section
 
-    let sidebarGroups: [SidebarGroup] = [
-        SidebarGroup(id: "primary", title: nil, items: [.general, .model, .shortcut, .transcription]),
-        SidebarGroup(id: "privacy", title: "Privacy & Data", items: [.permissions, .history]),
-        SidebarGroup(id: "about", title: "Gloam", items: [.about]),
-    ]
-
-    init(appModel: AppModel, selectedSection: Section = .general) {
+    init(appModel: AppModel) {
         self.appModel = appModel
-        self.selectedSection = selectedSection
     }
 
     var settingsMessage: String? {
@@ -99,10 +23,6 @@ final class SettingsViewModel {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "?"
         return "Version \(version) (\(build))"
-    }
-
-    var recentEntries: [TranscriptHistoryEntry] {
-        Array(appModel.recentTranscriptHistoryEntries.prefix(10))
     }
 
     var modelDownloadViewModel: ModelDownloadViewModel {
@@ -132,14 +52,6 @@ final class SettingsViewModel {
 
     func openHistoryFolder() {
         appModel.openHistoryFolderButtonTapped()
-    }
-
-    func copyHistoryEntry(_ entry: TranscriptHistoryEntry) {
-        appModel.copyTranscriptHistoryButtonTapped(entry.id)
-    }
-
-    func playHistoryAudio(_ entry: TranscriptHistoryEntry) {
-        appModel.playHistoryAudioButtonTapped(entry.id)
     }
 
     func checkForUpdates() {

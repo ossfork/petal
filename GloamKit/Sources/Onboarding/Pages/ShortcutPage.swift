@@ -19,14 +19,20 @@ struct ShortcutPage: View {
 
             Spacer()
 
-            KeyboardShortcuts.Recorder("", name: .pushToTalk)
-                .controlSize(.large)
-                .scaleEffect(3.0)
-                .slideIn(active: isAnimating, delay: 0.5)
+            GroupBackground {
+                HStack {
+                    Text("Push-to-talk")
+                    Spacer(minLength: 0)
+                    KeyboardShortcuts.Recorder(for: .pushToTalk)
+                }
+                .padding()
+            }
+            .frame(width: 360)
+            .slideIn(active: isAnimating, delay: 0.5)
 
             Spacer()
 
-            Text("⌥ Space is set as the default — click above to change it.")
+            Text("⌥ Space is set as the default — click the recorder to change it.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .slideIn(active: isAnimating, delay: 0.75)
