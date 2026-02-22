@@ -1,5 +1,4 @@
 import AppKit
-import Assets
 import SwiftUI
 
 public struct OnboardingView: View {
@@ -46,7 +45,6 @@ public struct OnboardingView: View {
             .animation(.easeIn, value: model.currentPage)
         }
         .frame(width: 820, height: 512)
-        .background(backgroundLayer)
         .preferredColorScheme(.dark)
         .onChange(of: model.selectedModelID) { _, _ in
             model.selectedModelChanged()
@@ -57,13 +55,6 @@ public struct OnboardingView: View {
                 ensureOnboardingWindowsAreVisible()
             }
         }
-    }
-
-    private var backgroundLayer: some View {
-        LoopingVideoPlayer(AssetVideo.waveVideo)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .blur(radius: 73)
-            .ignoresSafeArea()
     }
 
     private func ensureOnboardingWindowsAreVisible() {

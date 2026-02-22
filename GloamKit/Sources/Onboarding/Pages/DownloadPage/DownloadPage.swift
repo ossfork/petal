@@ -1,3 +1,4 @@
+import Assets
 import Shared
 import SwiftUI
 import UI
@@ -17,13 +18,8 @@ struct DownloadPage: View {
             .slideIn(active: isAnimating, delay: 0.25)
 
             if let option = model.selectedModelOption {
-                ModelSummaryCard(option: option)
+                downloadCard(option: option)
                     .slideIn(active: isAnimating, delay: 0.5)
-            }
-
-            if downloadModel.isDownloadingModel || downloadModel.downloadProgress > 0 || !downloadModel.downloadStatus.isEmpty {
-                downloadProgressCard
-                    .slideIn(active: isAnimating, delay: 0.75)
             }
 
             if let error = downloadModel.lastError ?? model.lastError {
@@ -39,33 +35,73 @@ struct DownloadPage: View {
 
     // MARK: - Subviews
 
-    private var downloadProgressCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(downloadModel.downloadStatus.isEmpty ? "Download status" : downloadModel.downloadStatus)
-                    .font(.subheadline.weight(.semibold))
+    private func downloadCard(option: ModelOption) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 14) {
+                Image.appIcon
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 44, height: 44)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
 
-                Spacer()
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(option.displayName)
+                        .font(.headline)
 
-                Text(downloadModel.downloadSummaryText)
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
+                    Text(option.summary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Label(option.sizeLabel + " · " + option.descriptor.parameters, systemImage: "internaldrive")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+
+                Spacer(minLength: 8)
+
+                if downloadModel.downloadProgress >= 1, !downloadModel.isDownloadingModel {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(.green)
+                }
             }
 
-            ProgressView(value: downloadModel.downloadProgress)
+            if downloadModel.isDownloadingModel || downloadModel.downloadProgress > 0 {
+                VStack(alignment: .leading, spacing: 6) {
+                    ProgressView(value: downloadModel.downloadProgress)
+                        .tint(downloadModel.downloadProgress >= 1 ? .green : .white)
 
-            if let speedText = downloadModel.downloadSpeedText {
-                Text(speedText)
-                    .font(.caption2.monospacedDigit())
-                    .foregroundStyle(.secondary)
+                    HStack {
+                        Text(downloadModel.downloadStatus.isEmpty ? "Preparing..." : downloadModel.downloadStatus)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Spacer()
+
+                        if downloadModel.isDownloadingModel {
+                            Text(downloadModel.downloadSummaryText)
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
             }
         }
-        .padding(14)
-        .background(.black.opacity(0.24), in: RoundedRectangle(cornerRadius: 12))
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .foregroundStyle(.white)
+        .background(RoundedRectangle(cornerRadius: 16).fill(Color.black))
         .overlay {
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(.white.opacity(0.08), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
         }
+        .runningBorder(
+            radius: 16,
+            lineWidth: 1,
+            animated: downloadModel.isDownloadingModel,
+            duration: 1.5,
+            colors: [.white.opacity(0.0), .white.opacity(0.7), .white.opacity(0.0)]
+        )
     }
 
     // MARK: - Computed

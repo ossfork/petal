@@ -1,3 +1,4 @@
+import Assets
 import Shared
 import SwiftUI
 import UI
@@ -7,82 +8,67 @@ struct ModelOptionCard: View {
     let isSelected: Bool
     let onSelect: () -> Void
 
+    @State private var isHovering = false
+
     // MARK: - Computed
 
     private var checkmarkIcon: String {
         isSelected ? "checkmark.circle.fill" : "circle"
     }
 
-    private var fillColor: Color {
-        isSelected ? Color.accentColor.opacity(0.18) : Color.black.opacity(0.26)
-    }
-
     private var borderColor: Color {
-        isSelected ? Color.accentColor.opacity(0.62) : Color.white.opacity(0.08)
+        isSelected ? Color.white.opacity(0.6) : Color.white.opacity(0.15)
     }
 
     private var borderWidth: CGFloat {
-        isSelected ? 1.5 : 1
+        isSelected ? 2 : 1
     }
 
     // MARK: - Body
 
     var body: some View {
         Button(action: onSelect) {
-            HStack(alignment: .top, spacing: 12) {
-                details
+            HStack(spacing: 14) {
+                Image.appIcon
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 44, height: 44)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(option.displayName)
+                        .font(.headline)
+
+                    Text(option.summary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Label(option.sizeLabel + " · " + option.descriptor.parameters, systemImage: "internaldrive")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+
                 Spacer(minLength: 8)
-                checkmark
+
+                Image(systemName: checkmarkIcon)
+                    .font(.title3)
+                    .foregroundStyle(isSelected ? .white : Color.white.opacity(0.2))
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 12).fill(fillColor))
+            .foregroundStyle(.white)
+            .background(RoundedRectangle(cornerRadius: 16).fill(Color.black))
             .overlay {
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 16)
                     .strokeBorder(borderColor, lineWidth: borderWidth)
             }
         }
         .buttonStyle(.plain)
-    }
-
-    // MARK: - Subviews
-
-    private var details: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                Text(option.displayName)
-                    .font(.headline)
-
-                if option.isRecommended {
-                    recommendedBadge
-                }
-            }
-
-            Text(option.summary)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Text(option.sizeLabel)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+        .scaleEffect(isHovering ? 1.02 : 1.0)
+        .animation(.easeOut(duration: 0.2), value: isHovering)
+        .onHover { hovering in
+            isHovering = hovering
         }
-    }
-
-    private var recommendedBadge: some View {
-        Text("Recommended")
-            .font(.caption2.weight(.semibold))
-            .capsulePill(
-                horizontalPadding: 8,
-                verticalPadding: 4,
-                fill: Color.green.opacity(0.22)
-            )
-            .foregroundStyle(.green)
-    }
-
-    private var checkmark: some View {
-        Image(systemName: checkmarkIcon)
-            .font(.title3)
-            .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
     }
 }
 

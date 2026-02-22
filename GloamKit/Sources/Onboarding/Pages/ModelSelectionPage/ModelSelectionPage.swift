@@ -28,23 +28,6 @@ struct ModelSelectionPage: View {
             }
             .slideIn(active: isAnimating, delay: 0.5)
 
-            if let option = model.selectedModelOption {
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 10) {
-                        Label(option.sizeLabel, systemImage: "externaldrive")
-                        Label(option.rawValue, systemImage: "cpu")
-                    }
-                    .font(.caption)
-
-                    Text(option.summary)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .foregroundStyle(.secondary)
-                .padding(.top, 2)
-                .slideIn(active: isAnimating, delay: 0.75)
-            }
-
             Spacer()
         }
         .onAppear { isAnimating = true }

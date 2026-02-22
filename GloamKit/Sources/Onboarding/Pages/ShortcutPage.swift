@@ -7,32 +7,29 @@ struct ShortcutPage: View {
     @State private var isAnimating = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 28) {
+        VStack(spacing: 28) {
             OnboardingHeader(
                 symbol: "keyboard",
-                title: "Set a Shortcut",
-                description: "Choose a keyboard shortcut to start recording from any app.",
+                title: "Record a Shortcut",
+                description: "Set a global key combo to instantly start and stop transcription from anywhere.",
                 layout: .vertical
             )
+            .frame(maxWidth: .infinity, alignment: .leading)
             .slideIn(active: isAnimating, delay: 0.25)
 
-            KeyboardShortcuts.Recorder("Push to talk", name: .pushToTalk)
+            Spacer()
+
+            KeyboardShortcuts.Recorder("", name: .pushToTalk)
+                .controlSize(.large)
+                .scaleEffect(3.0)
                 .slideIn(active: isAnimating, delay: 0.5)
 
-            Text("Quick press to toggle recording on and off. Hold for 2 seconds or more for push-to-talk.")
-                .font(.system(.body, design: .monospaced).weight(.medium))
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.leading)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(.black.opacity(0.34), in: RoundedRectangle(cornerRadius: 10))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 10)
-                        .strokeBorder(.white.opacity(0.1), lineWidth: 1)
-                }
-                .slideIn(active: isAnimating, delay: 0.75)
-
             Spacer()
+
+            Text("⌥ Space is set as the default — click above to change it.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .slideIn(active: isAnimating, delay: 0.75)
         }
         .onAppear { isAnimating = true }
     }

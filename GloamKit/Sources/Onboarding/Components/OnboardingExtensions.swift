@@ -34,7 +34,7 @@ struct OnboardingPageContainer<Content: View>: View {
     var body: some View {
         VStack(spacing: 0) {
             content(isAnimating)
-                .padding(24)
+                .padding()
                 .xSpacing(.center)
 
             VStack(spacing: 0) {

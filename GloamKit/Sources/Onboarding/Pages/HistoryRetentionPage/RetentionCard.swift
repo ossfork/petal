@@ -66,6 +66,7 @@ struct RetentionCard: View {
             }
             .padding(20)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .foregroundStyle(.white)
             .background(RoundedRectangle(cornerRadius: 14).fill(Color.black))
             .overlay(alignment: .bottomTrailing) {
                 Image(systemName: checkmarkIcon)
@@ -96,14 +97,7 @@ struct RetentionCard: View {
     // MARK: - Subviews
 
     private var recommendedBadge: some View {
-        Text("Recommended")
-            .font(.caption2.weight(.bold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(
-                Capsule().fill(Color.orange.opacity(0.7).gradient)
-            )
+        RecommendedBadge()
     }
 }
 

@@ -33,7 +33,6 @@ public struct LongButton: View {
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.colorScheme) private var colorScheme
     @State private var isHovering = false
-    @State private var rotation: Double = 0
 
     let text: String
     let symbol: String?
@@ -80,9 +79,19 @@ public struct LongButton: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
         .background { buttonBackground }
+        .opacity(1)
         .overlay {
             if luminous {
-                luminousBorder
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(.clear)
+                    .runningBorder(
+                        radius: 12,
+                        lineWidth: 1,
+                        animated: true,
+                        duration: 1.5,
+                        colors: [.white.opacity(0.0), .white.opacity(0.7), .white.opacity(0.0)]
+                    )
+                    .opacity(isHovering ? 1 : 0)
             }
         }
         .contentShape(.rect(cornerRadius: 12))
@@ -98,39 +107,6 @@ public struct LongButton: View {
             variant.backgroundColor
                 .clipShape(.rect(cornerRadius: 12))
         }
-    }
-
-    private var luminousBorder: some View {
-        RoundedRectangle(cornerRadius: 12)
-            .strokeBorder(.clear, lineWidth: 2)
-            .overlay {
-                GeometryReader { geo in
-                    let size = max(geo.size.width, geo.size.height) * 2
-                    AngularGradient(
-                        gradient: Gradient(colors: [
-                            .white.opacity(0.0),
-                            .white.opacity(0.0),
-                            .white.opacity(0.7),
-                            .white.opacity(0.0),
-                            .white.opacity(0.0),
-                        ]),
-                        center: .center,
-                        angle: .degrees(rotation)
-                    )
-                    .frame(width: size, height: size)
-                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
-                }
-                .mask {
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(lineWidth: 2)
-                }
-            }
-            .opacity(isHovering ? 1 : 0)
-            .onAppear {
-                withAnimation(.linear(duration: 3).repeatForever(autoreverses: false)) {
-                    rotation = 360
-                }
-            }
     }
 }
 
