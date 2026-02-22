@@ -44,8 +44,6 @@ struct ShortcutPage: View {
     }
 }
 
-#Preview("Shortcut Page") {
-    OnboardingPagePreview {
-        ShortcutPage(model: .makePreview())
-    }
+#Preview("Shortcut") {
+    OnboardingView(model: .makePreview(page: .shortcut))
 }

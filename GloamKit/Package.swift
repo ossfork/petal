@@ -3,6 +3,7 @@
 import PackageDescription
 
 extension Target.Dependency {
+    static let assets: Self = "Assets"
     static let shared: Self = "Shared"
     static let models: Self = "GloamModels"
     static let ui: Self = "UI"
@@ -28,6 +29,7 @@ let package = Package(
         .macOS(.v15)
     ],
     products: [
+        .library(name: "Assets", targets: ["Assets"]),
         .library(name: "Shared", targets: ["Shared"]),
         .library(name: "GloamModels", targets: ["GloamModels"]),
         .library(name: "UI", targets: ["UI"]),
@@ -56,6 +58,10 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "Assets",
+            resources: [.process("Resources")]
+        ),
+        .target(
             name: "Shared",
             dependencies: [
                 .dependencies,
@@ -74,6 +80,7 @@ let package = Package(
         .target(
             name: "UI",
             dependencies: [
+                .assets,
                 .shared,
             ]
         ),

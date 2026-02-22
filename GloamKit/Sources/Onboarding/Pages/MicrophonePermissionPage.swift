@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 import UI
 
@@ -38,7 +37,7 @@ struct MicrophonePermissionPage: View {
                 .foregroundStyle(.white)
                 .offset(x: 48)
 
-            onboardingAppIcon()
+            Image.appIcon
                 .resizable()
                 .scaledToFit()
                 .frame(width: 96, height: 96)
@@ -73,18 +72,12 @@ struct MicrophonePermissionPage: View {
 }
 
 #Preview("Microphone - Pending") {
-    OnboardingPagePreview {
-        MicrophonePermissionPage(
-            model: .makePreview { model in
-                model.microphonePermissionState = .notDetermined
-                model.microphoneAuthorized = false
-            }
-        )
-    }
+    OnboardingView(model: .makePreview(page: .microphone) { model in
+        model.microphonePermissionState = .notDetermined
+        model.microphoneAuthorized = false
+    })
 }
 
 #Preview("Microphone - Enabled") {
-    OnboardingPagePreview {
-        MicrophonePermissionPage(model: .makePreview())
-    }
+    OnboardingView(model: .makePreview(page: .microphone))
 }

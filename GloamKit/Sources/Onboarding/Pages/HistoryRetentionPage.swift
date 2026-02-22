@@ -126,18 +126,12 @@ struct HistoryRetentionPage: View {
     }
 }
 
-#Preview("History Retention - Recommended") {
-    OnboardingPagePreview {
-        HistoryRetentionPage(model: .makePreview())
-    }
+#Preview("History Retention") {
+    OnboardingView(model: .makePreview(page: .historyRetention))
 }
 
 #Preview("History Retention - Off") {
-    OnboardingPagePreview {
-        HistoryRetentionPage(
-            model: .makePreview { model in
-                model.historyRetentionMode = .none
-            }
-        )
-    }
+    OnboardingView(model: .makePreview(page: .historyRetention) { model in
+        model.historyRetentionMode = .none
+    })
 }

@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 import UI
 
@@ -24,22 +23,19 @@ struct AccessibilityPermissionPage: View {
 
             statusIndicator
                 .slideIn(active: isAnimating, delay: 1.0)
-
-            actionButton
-                .slideIn(active: isAnimating, delay: 1.5)
         }
         .onAppear { isAnimating = true }
     }
 
     private var iconStack: some View {
         ZStack {
-            Image("accessibility")
+            Image.accessibility
                 .resizable()
                 .scaledToFit()
                 .frame(width: 76, height: 76)
                 .offset(x: 48)
 
-            onboardingAppIcon()
+            Image.appIcon
                 .resizable()
                 .scaledToFit()
                 .frame(width: 96, height: 96)
@@ -62,29 +58,14 @@ struct AccessibilityPermissionPage: View {
         .padding(.vertical, 6)
         .background(.ultraThinMaterial, in: Capsule())
     }
-
-    @ViewBuilder
-    private var actionButton: some View {
-        if !model.accessibilityAuthorized {
-            LongButton("Enable Accessibility", symbol: "figure.wave", variant: .secondary) {
-                model.accessibilityPermissionButtonTapped()
-            }
-        }
-    }
 }
 
 #Preview("Accessibility - Pending") {
-    OnboardingPagePreview {
-        AccessibilityPermissionPage(
-            model: .makePreview { model in
-                model.accessibilityAuthorized = false
-            }
-        )
-    }
+    OnboardingView(model: .makePreview(page: .accessibility) { model in
+        model.accessibilityAuthorized = false
+    })
 }
 
 #Preview("Accessibility - Enabled") {
-    OnboardingPagePreview {
-        AccessibilityPermissionPage(model: .makePreview())
-    }
+    OnboardingView(model: .makePreview(page: .accessibility))
 }

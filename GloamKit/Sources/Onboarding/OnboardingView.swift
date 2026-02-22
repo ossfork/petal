@@ -58,14 +58,6 @@ public struct OnboardingView: View {
                 }
             }
         }
-        .onChange(of: model.accessibilityAuthorized) { _, authorized in
-            if authorized, model.currentPage == .accessibility {
-                Task {
-                    try? await Task.sleep(for: .seconds(1.5))
-                    model.moveForward()
-                }
-            }
-        }
         .onAppear {
             model.windowAppeared()
             DispatchQueue.main.async {
@@ -75,27 +67,13 @@ public struct OnboardingView: View {
     }
 
     private var backgroundLayer: some View {
-        Group {
-            if NSImage(named: "blackhole") != nil {
-                Image("blackhole")
-                    .resizable()
-                    .scaledToFill()
-                    .scaleEffect(1.12)
-                    .saturation(0.72)
-                    .blur(radius: 64)
-                    .opacity(0.75)
-            } else {
-                LinearGradient(
-                    colors: [
-                        Color(red: 0.09, green: 0.10, blue: 0.22),
-                        Color(red: 0.05, green: 0.04, blue: 0.14),
-                        Color.black
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            }
-        }
+        Image.blackhole
+            .resizable()
+            .scaledToFill()
+            .scaleEffect(1.12)
+            .saturation(0.72)
+            .blur(radius: 64)
+            .opacity(0.75)
         .overlay {
             LinearGradient(
                 colors: [

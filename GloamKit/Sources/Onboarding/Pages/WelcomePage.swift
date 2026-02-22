@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 import UI
 
@@ -7,7 +6,7 @@ struct WelcomePage: View {
 
     var body: some View {
         VStack(spacing: 24) {
-            onboardingAppIcon()
+            Image.appIcon
                 .resizable()
                 .scaledToFit()
                 .frame(width: 92, height: 92)
@@ -33,8 +32,6 @@ struct WelcomePage: View {
     }
 }
 
-#Preview("Welcome Page") {
-    OnboardingPagePreview {
-        WelcomePage()
-    }
+#Preview("Welcome") {
+    OnboardingView(model: .makePreview(page: .welcome))
 }

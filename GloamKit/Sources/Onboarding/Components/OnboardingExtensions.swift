@@ -41,13 +41,13 @@ struct OnboardingPageContainer<Content: View>: View {
                 Divider()
 
                 HStack(spacing: 10) {
-                    Spacer()
                     if showBack, let backAction {
                         LongButton("Back", symbol: "chevron.left", variant: .secondary) {
                             backAction()
                         }
                         .frame(width: 220)
                     }
+                    Spacer()
 
                     LongButton(primaryTitle, variant: .primary) {
                         primaryAction()
@@ -62,17 +62,6 @@ struct OnboardingPageContainer<Content: View>: View {
         }
         .onAppear { isAnimating = true }
     }
-}
-
-@MainActor
-func onboardingAppIcon() -> Image {
-    if let applicationIcon = NSApp.applicationIconImage,
-       applicationIcon.size != .zero
-    {
-        return Image(nsImage: applicationIcon)
-    }
-
-    return Image(systemName: "waveform.badge.mic")
 }
 
 struct OnboardingPagePreview<Content: View>: View {

@@ -110,20 +110,14 @@ struct DownloadPage: View {
 }
 
 #Preview("Download - Idle") {
-    OnboardingPagePreview {
-        DownloadPage(model: .makePreview())
-    }
+    OnboardingView(model: .makePreview(page: .download))
 }
 
 #Preview("Download - In Progress") {
-    OnboardingPagePreview {
-        DownloadPage(
-            model: .makePreview { model in
-                model.isDownloadingModel = true
-                model.downloadProgress = 0.42
-                model.downloadStatus = "Downloading model..."
-                model.downloadSpeedText = "18.2 MB/s"
-            }
-        )
-    }
+    OnboardingView(model: .makePreview(page: .download) { model in
+        model.isDownloadingModel = true
+        model.downloadProgress = 0.42
+        model.downloadStatus = "Downloading model..."
+        model.downloadSpeedText = "18.2 MB/s"
+    })
 }

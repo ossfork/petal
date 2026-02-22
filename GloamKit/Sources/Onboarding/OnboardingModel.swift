@@ -66,10 +66,16 @@ public final class OnboardingModel {
     }
 
     public var currentPrimaryTitle: String {
-        guard currentPage == .download else { return currentPage.primaryTitle }
-        if modelDownloadViewModel.isDownloadingModel { return "Downloading..." }
-        if modelDownloadViewModel.isSelectedModelDownloaded { return "Finish Setup" }
-        return currentPage.primaryTitle
+        switch currentPage {
+        case .accessibility:
+            return accessibilityAuthorized ? "Continue" : "Enable Accessibility"
+        case .download:
+            if modelDownloadViewModel.isDownloadingModel { return "Downloading..." }
+            if modelDownloadViewModel.isSelectedModelDownloaded { return "Finish Setup" }
+            return currentPage.primaryTitle
+        default:
+            return currentPage.primaryTitle
+        }
     }
 
     public var primaryDisabled: Bool {
@@ -78,7 +84,7 @@ public final class OnboardingModel {
         case .model: selectedModelOption == nil
         case .shortcut: !hasConfiguredShortcut
         case .microphone: !microphoneAuthorized
-        case .accessibility: !accessibilityAuthorized
+        case .accessibility: false
         case .download: modelDownloadViewModel.isDownloadingModel
         }
     }
@@ -96,6 +102,12 @@ public final class OnboardingModel {
                 completeSetup()
             } else {
                 Task { await downloadModel() }
+            }
+        case .accessibility:
+            if accessibilityAuthorized {
+                moveForward()
+            } else {
+                accessibilityPermissionButtonTapped()
             }
         default:
             moveForward()
