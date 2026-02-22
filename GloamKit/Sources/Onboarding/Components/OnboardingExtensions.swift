@@ -33,15 +33,12 @@ struct OnboardingPageContainer<Content: View>: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScrollView {
-                content(isAnimating)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-            }
-            .scrollIndicators(.hidden)
+            content(isAnimating)
+                .padding()
 
             VStack(spacing: 0) {
-                Divider().overlay(.white.opacity(0.08))
+                Divider()
+                    .foregroundStyle(.tertiary)
                 HStack(spacing: 10) {
                     if showBack, let backAction {
                         LongButton("Back", symbol: "chevron.left", variant: .secondary) {
@@ -73,7 +70,8 @@ struct OnboardingPageContainer<Content: View>: View {
 @MainActor
 func onboardingAppIcon() -> Image {
     if let applicationIcon = NSApp.applicationIconImage,
-       applicationIcon.size != .zero {
+       applicationIcon.size != .zero
+    {
         return Image(nsImage: applicationIcon)
     }
 

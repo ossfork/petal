@@ -17,7 +17,8 @@ public struct OnboardingView: View {
 
     private var nextPage: OnboardingModel.Page? {
         guard let currentIndex = pageOrder.firstIndex(of: currentPage),
-              pageOrder.indices.contains(currentIndex + 1) else {
+              pageOrder.indices.contains(currentIndex + 1)
+        else {
             return nil
         }
 
@@ -26,7 +27,8 @@ public struct OnboardingView: View {
 
     private var previousPage: OnboardingModel.Page? {
         guard let currentIndex = pageOrder.firstIndex(of: currentPage),
-              pageOrder.indices.contains(currentIndex - 1) else {
+              pageOrder.indices.contains(currentIndex - 1)
+        else {
             return nil
         }
 
@@ -48,37 +50,34 @@ public struct OnboardingView: View {
     }
 
     public var body: some View {
-        ZStack {
-            backgroundLayer
+        VStack {
+            switch currentPage {
+            case .welcome:
+                WelcomePage { moveForward() }
 
-            Group {
-                switch currentPage {
-                case .welcome:
-                    WelcomePage { moveForward() }
+            case .model:
+                ModelSelectionPage(model: model, moveForward) { moveBack() }
 
-                case .model:
-                    ModelSelectionPage(model: model, moveForward) { moveBack() }
+            case .shortcut:
+                ShortcutPage(model: model, moveForward) { moveBack() }
 
-                case .shortcut:
-                    ShortcutPage(model: model, moveForward) { moveBack() }
+            case .microphone:
+                MicrophonePermissionPage(model: model, moveForward) { moveBack() }
 
-                case .microphone:
-                    MicrophonePermissionPage(model: model, moveForward) { moveBack() }
+            case .accessibility:
+                AccessibilityPermissionPage(model: model, moveForward) { moveBack() }
 
-                case .accessibility:
-                    AccessibilityPermissionPage(model: model, moveForward) { moveBack() }
+            case .historyRetention:
+                HistoryRetentionPage(model: model, moveForward) { moveBack() }
 
-                case .historyRetention:
-                    HistoryRetentionPage(model: model, moveForward) { moveBack() }
-
-                case .download:
-                    DownloadPage(model: model, model.completeSetup) { moveBack() }
-                }
+            case .download:
+                DownloadPage(model: model, model.completeSetup) { moveBack() }
             }
-            .transition(.scale)
-            .animation(.easeIn, value: currentPage)
         }
+        .transition(.scale)
+        .animation(.easeIn, value: currentPage)
         .frame(width: 820, height: 512)
+        .background(backgroundLayer)
         .preferredColorScheme(.dark)
         .onAppear {
             model.windowAppeared()
