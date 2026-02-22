@@ -2,48 +2,7 @@ import AppKit
 import SwiftUI
 
 public struct OnboardingView: View {
-    @State private var currentPage: OnboardingModel.Page = .welcome
     @Bindable var model: OnboardingModel
-
-    private let pageOrder: [OnboardingModel.Page] = [
-        .welcome,
-        .model,
-        .shortcut,
-        .microphone,
-        .accessibility,
-        .historyRetention,
-        .download
-    ]
-
-    private var nextPage: OnboardingModel.Page? {
-        guard let currentIndex = pageOrder.firstIndex(of: currentPage),
-              pageOrder.indices.contains(currentIndex + 1)
-        else {
-            return nil
-        }
-
-        return pageOrder[currentIndex + 1]
-    }
-
-    private var previousPage: OnboardingModel.Page? {
-        guard let currentIndex = pageOrder.firstIndex(of: currentPage),
-              pageOrder.indices.contains(currentIndex - 1)
-        else {
-            return nil
-        }
-
-        return pageOrder[currentIndex - 1]
-    }
-
-    private func moveForward() {
-        guard let nextPage else { return }
-        currentPage = nextPage
-    }
-
-    private func moveBack() {
-        guard let previousPage else { return }
-        currentPage = previousPage
-    }
 
     public init(model: OnboardingModel) {
         self.model = model
@@ -51,31 +10,31 @@ public struct OnboardingView: View {
 
     public var body: some View {
         VStack {
-            switch currentPage {
+            switch model.currentPage {
             case .welcome:
-                WelcomePage { moveForward() }
+                WelcomePage { model.moveForward() }
 
             case .model:
-                ModelSelectionPage(model: model, moveForward) { moveBack() }
+                ModelSelectionPage(model: model, model.moveForward) { model.moveBack() }
 
             case .shortcut:
-                ShortcutPage(model: model, moveForward) { moveBack() }
+                ShortcutPage(model: model, model.moveForward) { model.moveBack() }
 
             case .microphone:
-                MicrophonePermissionPage(model: model, moveForward) { moveBack() }
+                MicrophonePermissionPage(model: model, model.moveForward) { model.moveBack() }
 
             case .accessibility:
-                AccessibilityPermissionPage(model: model, moveForward) { moveBack() }
+                AccessibilityPermissionPage(model: model, model.moveForward) { model.moveBack() }
 
             case .historyRetention:
-                HistoryRetentionPage(model: model, moveForward) { moveBack() }
+                HistoryRetentionPage(model: model, model.moveForward) { model.moveBack() }
 
             case .download:
-                DownloadPage(model: model, model.completeSetup) { moveBack() }
+                DownloadPage(model: model, model.completeSetup) { model.moveBack() }
             }
         }
         .transition(.scale)
-        .animation(.easeIn, value: currentPage)
+        .animation(.easeIn, value: model.currentPage)
         .frame(width: 820, height: 512)
         .background(backgroundLayer)
         .preferredColorScheme(.dark)
@@ -149,9 +108,29 @@ public struct OnboardingView: View {
 // MARK: - Previews
 
 #Preview("Welcome") {
-    OnboardingView(model: .makePreview())
+    OnboardingView(model: .makePreview(page: .welcome))
 }
 
 #Preview("Model Selection") {
-    OnboardingView(model: .makePreview())
+    OnboardingView(model: .makePreview(page: .model))
+}
+
+#Preview("Shortcut") {
+    OnboardingView(model: .makePreview(page: .shortcut))
+}
+
+#Preview("Microphone") {
+    OnboardingView(model: .makePreview(page: .microphone))
+}
+
+#Preview("Accessibility") {
+    OnboardingView(model: .makePreview(page: .accessibility))
+}
+
+#Preview("History Retention") {
+    OnboardingView(model: .makePreview(page: .historyRetention))
+}
+
+#Preview("Download") {
+    OnboardingView(model: .makePreview(page: .download))
 }

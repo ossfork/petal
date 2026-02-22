@@ -10,8 +10,8 @@ public enum LongButtonVariant {
 
     var backgroundColor: Color {
         switch self {
-        case .primary: .blue
-        case .secondary: .primary.opacity(0.15)
+        case .primary: .black
+        case .secondary: .primary.opacity(0.25)
         case .destructive: .red
         case .custom(let bg, _): bg
         }
@@ -37,37 +37,32 @@ public struct LongButton: View {
     let text: String
     let symbol: String?
     let variant: LongButtonVariant
-    let verticalPadding: CGFloat
     let action: () -> Void
 
     public init(
         _ text: String,
         symbol: String? = nil,
         variant: LongButtonVariant = .primary,
-        verticalPadding: CGFloat = 12,
         action: @escaping () -> Void
     ) {
         self.text = text
         self.symbol = symbol
         self.variant = variant
-        self.verticalPadding = verticalPadding
         self.action = action
     }
 
     public var body: some View {
-        Button(action: { action() }) {
+        Button(action: action) {
             buttonContent
         }
         .buttonStyle(.plain)
-        .opacity(isEnabled ? 1 : 0.5)
-        .scaleEffect(isHovering && isEnabled ? 1.02 : 1)
+        .disabled(!isEnabled)
         .animation(.easeInOut(duration: 0.15), value: isHovering)
         .onHover { hovering in
             isHovering = hovering
         }
     }
 
-    @ViewBuilder
     private var buttonContent: some View {
         Group {
             if let symbol {
@@ -79,29 +74,20 @@ public struct LongButton: View {
         .foregroundColor(variant.textColor)
         .font(.title3.weight(.medium))
         .frame(maxWidth: .infinity)
-        .padding(.vertical, verticalPadding)
+        .padding(.vertical, 12)
         .background { buttonBackground }
-        .contentShape(.capsule)
-    }
-
-    private var resolvedBackgroundColor: Color {
-        switch variant {
-        case .secondary:
-            return .primary.opacity(colorScheme == .dark ? 0.25 : 0.15)
-        default:
-            return variant.backgroundColor
-        }
+        .contentShape(.rect(cornerRadius: 12))
     }
 
     @ViewBuilder
     private var buttonBackground: some View {
         if #available(macOS 26.0, *) {
-            Capsule()
-                .fill(resolvedBackgroundColor.opacity(0.8))
-                .glassEffect(in: .capsule)
+            RoundedRectangle(cornerRadius: 12)
+                .fill(variant.backgroundColor.opacity(0.8))
+                .glassEffect(in: .rect(cornerRadius: 12))
         } else {
-            resolvedBackgroundColor
-                .clipShape(.capsule)
+            variant.backgroundColor
+                .clipShape(.rect(cornerRadius: 12))
         }
     }
 }

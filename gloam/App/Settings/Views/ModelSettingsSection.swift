@@ -1,6 +1,6 @@
+import Onboarding
 import Shared
 import SwiftUI
-import Onboarding
 import UI
 
 struct ModelSettingsSection: View {
@@ -58,12 +58,12 @@ struct ModelSettingsSection: View {
             Divider()
 
             HStack(spacing: 10) {
-                LongButton(downloadButtonTitle, symbol: "arrow.down.circle", variant: .secondary, verticalPadding: 8) {
+                LongButton(downloadButtonTitle, symbol: "arrow.down.circle") {
                     viewModel.downloadModel()
                 }
                 .disabled(viewModel.modelDownloadViewModel.isDownloadingModel || viewModel.modelDownloadViewModel.isSelectedModelDownloaded)
 
-                LongButton("Open Setup Assistant", symbol: "wand.and.stars", variant: .secondary, verticalPadding: 8) {
+                LongButton("Open Setup Assistant", symbol: "wand.and.stars") {
                     viewModel.openSetupAssistant()
                 }
             }

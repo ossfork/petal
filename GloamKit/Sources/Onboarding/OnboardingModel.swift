@@ -18,6 +18,46 @@ public final class OnboardingModel {
         case download
     }
 
+    // MARK: - Navigation
+
+    public var currentPage: Page
+
+    public let pageOrder: [Page] = [
+        .welcome,
+        .model,
+        .shortcut,
+        .microphone,
+        .accessibility,
+        .historyRetention,
+        .download,
+    ]
+
+    public var nextPage: Page? {
+        guard let currentIndex = pageOrder.firstIndex(of: currentPage),
+              pageOrder.indices.contains(currentIndex + 1)
+        else { return nil }
+        return pageOrder[currentIndex + 1]
+    }
+
+    public var previousPage: Page? {
+        guard let currentIndex = pageOrder.firstIndex(of: currentPage),
+              pageOrder.indices.contains(currentIndex - 1)
+        else { return nil }
+        return pageOrder[currentIndex - 1]
+    }
+
+    public func moveForward() {
+        guard let nextPage else { return }
+        currentPage = nextPage
+    }
+
+    public func moveBack() {
+        guard let previousPage else { return }
+        currentPage = previousPage
+    }
+
+    // MARK: - Model Download
+
     public let modelDownloadViewModel: ModelDownloadViewModel
 
     public var selectedModelID: String {
@@ -68,7 +108,8 @@ public final class OnboardingModel {
     @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
     @ObservationIgnored private let isPreviewMode: Bool
 
-    public init(downloadViewModel: ModelDownloadViewModel? = nil, isPreviewMode: Bool = false) {
+    public init(initialPage: Page = .welcome, downloadViewModel: ModelDownloadViewModel? = nil, isPreviewMode: Bool = false) {
+        self.currentPage = initialPage
         self.isPreviewMode = isPreviewMode
         modelDownloadViewModel = downloadViewModel ?? ModelDownloadViewModel(isPreviewMode: isPreviewMode)
 
@@ -225,9 +266,10 @@ public final class OnboardingModel {
 #if DEBUG
 extension OnboardingModel {
     public static func makePreview(
+        page: Page = .welcome,
         configure: (OnboardingModel) -> Void = { _ in }
     ) -> OnboardingModel {
-        let model = OnboardingModel(isPreviewMode: true)
+        let model = OnboardingModel(initialPage: page, isPreviewMode: true)
         configure(model)
         return model
     }

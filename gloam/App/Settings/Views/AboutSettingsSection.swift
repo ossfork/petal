@@ -25,7 +25,7 @@ struct AboutSettingsSection: View {
 
             Divider()
 
-            LongButton("Check for Updates", symbol: "arrow.triangle.2.circlepath", variant: .secondary, verticalPadding: 8) {
+            LongButton("Check for Updates", symbol: "arrow.triangle.2.circlepath") {
                 viewModel.checkForUpdates()
             }
 

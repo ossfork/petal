@@ -22,11 +22,11 @@ struct GeneralSettingsSection: View {
                 Divider()
 
                 HStack(spacing: 10) {
-                    LongButton("Open Onboarding", symbol: "arrow.right.circle", variant: .secondary, verticalPadding: 8) {
+                    LongButton("Open Onboarding", symbol: "arrow.right.circle") {
                         viewModel.openSetupAssistant()
                     }
 
-                    LongButton("Open History Folder", symbol: "folder", variant: .secondary, verticalPadding: 8) {
+                    LongButton("Open History Folder", symbol: "folder") {
                         viewModel.openHistoryFolder()
                     }
                 }
