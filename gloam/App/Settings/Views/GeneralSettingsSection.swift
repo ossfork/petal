@@ -22,7 +22,7 @@ struct GeneralSettingsSection: View {
                 Divider()
 
                 HStack(spacing: 10) {
-                    LongButton("Open Onboarding", symbol: "arrow.right.circle") {
+                    LongButton("Setup Assistant", symbol: "arrow.right.circle") {
                         viewModel.openSetupAssistant()
                     }
 

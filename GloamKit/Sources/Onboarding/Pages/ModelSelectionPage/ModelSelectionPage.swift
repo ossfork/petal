@@ -10,8 +10,8 @@ struct ModelSelectionPage: View {
         VStack(alignment: .leading, spacing: 24) {
             OnboardingHeader(
                 symbol: "externaldrive.fill",
-                title: "Choose your model",
-                description: "Select the local model that fits your speed and quality balance.",
+                title: "Choose a Model",
+                description: "Transcription runs entirely on-device. Select a model to get started.",
                 layout: .vertical
             )
             .slideIn(active: isAnimating, delay: 0.25)

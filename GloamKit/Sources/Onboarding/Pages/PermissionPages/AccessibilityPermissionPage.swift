@@ -6,8 +6,8 @@ struct AccessibilityPermissionPage: View {
 
     var body: some View {
         PermissionPage(
-            title: "Enable Accessibility",
-            subtitle: "Gloam needs accessibility to paste transcriptions directly.",
+            title: "Accessibility Access",
+            subtitle: "To paste transcriptions into your active app, Gloam needs accessibility access.",
             icon: Image.accessibility,
             isAuthorized: model.accessibilityAuthorized
         )

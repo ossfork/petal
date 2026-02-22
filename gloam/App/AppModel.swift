@@ -207,7 +207,7 @@ final class AppModel {
     }
 
     var shortcutUsageText: String {
-        "Tap and release quickly to toggle recording. Hold for at least \(Int(toggleActivationThresholdSeconds)) seconds for push-to-talk."
+        "Quick press to toggle recording. Hold for \(Int(toggleActivationThresholdSeconds)) seconds or more for push-to-talk."
     }
 
     var recentTranscriptHistoryEntries: [TranscriptHistoryEntry] {
@@ -277,7 +277,7 @@ final class AppModel {
 
         if microphonePermissionState == .denied {
             await permissionsClient.openMicrophonePrivacySettings()
-            lastError = "Enable microphone access in System Settings, then return to Gloam."
+            lastError = "Turn on microphone access in System Settings, then return to Gloam."
             return
         }
 
@@ -299,7 +299,7 @@ final class AppModel {
 
             if !accessibilityAuthorized {
                 await permissionsClient.openAccessibilityPrivacySettings()
-                transientMessage = "Enable Accessibility in System Settings to continue using Gloam."
+                transientMessage = "Turn on Accessibility in System Settings to continue using Gloam."
             }
         }
     }
@@ -311,7 +311,7 @@ final class AppModel {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(formattedHistoryEntry(entry), forType: .string)
-        transientMessage = "Copied transcript history entry."
+        transientMessage = "Copied to clipboard."
     }
 
     func historyTimestampText(for entry: TranscriptHistoryEntry) -> String {
@@ -328,7 +328,7 @@ final class AppModel {
     func openHistoryFolderButtonTapped() {
         let opened = historyClient.openHistoryFolder(historyRetentionMode)
         if !opened {
-            transientMessage = "History retention is off."
+            transientMessage = "History is turned off."
         }
     }
 
@@ -375,7 +375,7 @@ final class AppModel {
         }
 
         guard hasCompletedSetup else {
-            transientMessage = "Complete setup before recording."
+            transientMessage = "Complete setup to start recording."
             beginOnboardingFlow()
             showOnboardingWindow()
             return
@@ -407,7 +407,7 @@ final class AppModel {
 
             guard microphoneAuthorized else {
                 sessionState = .error("Microphone permission denied")
-                transientMessage = "Enable microphone access to record."
+                transientMessage = "Turn on microphone access to record."
                 pushToTalkIsActive = false
                 currentShortcutPressStart = nil
                 await floatingCapsuleClient.showError("Microphone denied")
@@ -467,7 +467,7 @@ final class AppModel {
 
         if holdDuration < toggleActivationThresholdSeconds {
             toggleRecordingIsActive = true
-            transientMessage = "Listening... press shortcut again to stop."
+            transientMessage = "Listening — tap your shortcut to stop."
             logger.info("Toggle recording engaged. holdDuration=\(holdDuration, privacy: .public)")
             let holdDurationText = holdDuration.formatted(.number.precision(.fractionLength(2)))
             consoleLog("Toggle recording engaged. holdDuration=\(holdDurationText)s")
@@ -555,7 +555,7 @@ final class AppModel {
             case .pasted:
                 transientMessage = nil
             case .copiedOnly:
-                transientMessage = "Accessibility permission is required. Enable it in System Settings, then try again."
+                transientMessage = "Accessibility access is needed to paste. Turn it on in System Settings, then try again."
                 await postPasteFallbackNotification()
             }
 
@@ -588,7 +588,7 @@ final class AppModel {
 
     private func handleOnboardingCompleted() {
         hasCompletedSetup = true
-        transientMessage = "Gloam is ready. Quick tap to toggle listening, or hold for push-to-talk."
+        transientMessage = "You're all set. Tap your shortcut to start, or hold for push-to-talk."
         onboardingWindowController?.close()
         onboardingModel = nil
         logger.info("Onboarding completed")
@@ -734,7 +734,7 @@ final class AppModel {
             ignoreNextShortcutKeyUp = false
             currentShortcutPressStart = nil
             sessionState = .idle
-            transientMessage = "Recording canceled."
+            transientMessage = "Recording cancelled."
             await floatingCapsuleClient.hide()
             logger.info("Recording canceled from keyboard confirmation")
             consoleLog("Recording canceled from keyboard confirmation")
@@ -770,7 +770,7 @@ final class AppModel {
 
     private func startRecordingFromDeepLink() async {
         guard hasCompletedSetup else {
-            transientMessage = "Complete setup before recording."
+            transientMessage = "Complete setup to start recording."
             beginOnboardingFlow()
             showOnboardingWindow()
             return
@@ -902,7 +902,7 @@ final class AppModel {
 
         let content = UNMutableNotificationContent()
         content.title = "Gloam"
-        content.body = "Transcript copied to clipboard. Paste manually with Command+V."
+        content.body = "Transcript copied to clipboard. Press Command-V to paste."
 
         let request = UNNotificationRequest(
             identifier: uuid().uuidString,

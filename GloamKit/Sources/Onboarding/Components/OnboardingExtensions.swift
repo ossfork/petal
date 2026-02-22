@@ -49,7 +49,7 @@ struct OnboardingPageContainer<Content: View>: View {
                     }
                     Spacer()
 
-                    LongButton(primaryTitle, variant: .primary) {
+                    LongButton(primaryTitle, variant: .primary, luminous: true) {
                         primaryAction()
                     }
                     .disabled(primaryDisabled)

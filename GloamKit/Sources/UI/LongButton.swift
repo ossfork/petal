@@ -33,21 +33,25 @@ public struct LongButton: View {
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.colorScheme) private var colorScheme
     @State private var isHovering = false
+    @State private var rotation: Double = 0
 
     let text: String
     let symbol: String?
     let variant: LongButtonVariant
+    let luminous: Bool
     let action: () -> Void
 
     public init(
         _ text: String,
         symbol: String? = nil,
         variant: LongButtonVariant = .primary,
+        luminous: Bool = false,
         action: @escaping () -> Void
     ) {
         self.text = text
         self.symbol = symbol
         self.variant = variant
+        self.luminous = luminous
         self.action = action
     }
 
@@ -76,6 +80,11 @@ public struct LongButton: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
         .background { buttonBackground }
+        .overlay {
+            if luminous {
+                luminousBorder
+            }
+        }
         .contentShape(.rect(cornerRadius: 12))
     }
 
@@ -90,12 +99,46 @@ public struct LongButton: View {
                 .clipShape(.rect(cornerRadius: 12))
         }
     }
+
+    private var luminousBorder: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .strokeBorder(.clear, lineWidth: 2)
+            .overlay {
+                GeometryReader { geo in
+                    let size = max(geo.size.width, geo.size.height) * 2
+                    AngularGradient(
+                        gradient: Gradient(colors: [
+                            .white.opacity(0.0),
+                            .white.opacity(0.0),
+                            .white.opacity(0.7),
+                            .white.opacity(0.0),
+                            .white.opacity(0.0),
+                        ]),
+                        center: .center,
+                        angle: .degrees(rotation)
+                    )
+                    .frame(width: size, height: size)
+                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                }
+                .mask {
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(lineWidth: 2)
+                }
+            }
+            .opacity(isHovering ? 1 : 0)
+            .onAppear {
+                withAnimation(.linear(duration: 3).repeatForever(autoreverses: false)) {
+                    rotation = 360
+                }
+            }
+    }
 }
 
 #if DEBUG
 #Preview {
     VStack(spacing: 16) {
         LongButton("Primary", variant: .primary) {}
+        LongButton("Luminous", variant: .primary, luminous: true) {}
         LongButton("Secondary", variant: .secondary) {}
         LongButton("Destructive", variant: .destructive) {}
         LongButton("With Symbol", symbol: "star.fill", variant: .primary) {}

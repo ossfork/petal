@@ -10,8 +10,8 @@ struct ShortcutPage: View {
         VStack(alignment: .leading, spacing: 28) {
             OnboardingHeader(
                 symbol: "keyboard",
-                title: "Set Your Shortcut",
-                description: "Use a key combo you can hit quickly in any app.",
+                title: "Set a Shortcut",
+                description: "Choose a keyboard shortcut to start recording from any app.",
                 layout: .vertical
             )
             .slideIn(active: isAnimating, delay: 0.25)
@@ -19,7 +19,7 @@ struct ShortcutPage: View {
             KeyboardShortcuts.Recorder("Push to talk", name: .pushToTalk)
                 .slideIn(active: isAnimating, delay: 0.5)
 
-            Text("Tap and release quickly to toggle recording. Hold for at least 2 seconds for push-to-talk.")
+            Text("Quick press to toggle recording on and off. Hold for 2 seconds or more for push-to-talk.")
                 .font(.system(.body, design: .monospaced).weight(.medium))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.leading)

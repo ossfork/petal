@@ -66,7 +66,7 @@ struct PermissionPage: View {
                 .fill(isAuthorized ? Color.green : Color.red)
                 .frame(width: 8, height: 8)
 
-            Text(isAuthorized ? "Enabled" : "Permission Pending")
+            Text(isAuthorized ? "Enabled" : "Not Enabled")
                 .font(.caption.weight(.semibold))
         }
         .padding(.horizontal, 12)

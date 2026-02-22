@@ -49,7 +49,7 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 id: rawValue,
                 repoID: "mlx-community/Voxtral-Mini-3B-2507-bf16",
                 name: "Voxtral Mini 3B (bf16)",
-                summary: "Validated checkpoint for stable on-device transcription quality.",
+                summary: "Recommended for accurate, on-device transcription.",
                 size: "~8.7 GB",
                 quantization: "bf16",
                 parameters: "3B",

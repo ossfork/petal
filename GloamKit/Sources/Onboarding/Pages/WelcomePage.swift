@@ -21,7 +21,7 @@ struct WelcomePage: View {
                     .font(.system(size: 40, weight: .bold, design: .rounded))
                     .multilineTextAlignment(.center)
 
-                Text("On-device transcription, powered by local models.")
+                Text("Your voice, transcribed privately on your Mac.")
                     .font(.title3)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

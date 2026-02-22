@@ -7,8 +7,8 @@ struct MicrophonePermissionPage: View {
 
     var body: some View {
         PermissionPage(
-            title: "Enable Microphone",
-            subtitle: "Gloam needs microphone access to record and transcribe your voice.",
+            title: "Microphone Access",
+            subtitle: "To record and transcribe your voice, Gloam needs microphone access.",
             icon: .microphone,
             isAuthorized: model.microphoneAuthorized
         )

@@ -11,7 +11,7 @@ struct DownloadPage: View {
             OnboardingHeader(
                 symbol: "arrow.down.circle",
                 title: "Download Model",
-                description: "Download your selected model to get started.",
+                description: "This may take a few minutes depending on your connection.",
                 layout: .vertical
             )
             .slideIn(active: isAnimating, delay: 0.25)

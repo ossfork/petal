@@ -16,9 +16,9 @@ public enum TranscriptionMode: String, CaseIterable, Identifiable, Sendable {
     public var description: String {
         switch self {
         case .verbatim:
-            return "Exact transcription of what was said"
+            return "Word-for-word transcription"
         case .smart:
-            return "Process with a custom instruction"
+            return "Refine transcription with a custom prompt"
         }
     }
 }

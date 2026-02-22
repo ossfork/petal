@@ -66,7 +66,7 @@ public final class ModelDownloadViewModel {
 
     public func downloadModel() async {
         guard let option = selectedModelOption else {
-            lastError = "Please select a valid model."
+            lastError = "Select a model to continue."
             return
         }
 
@@ -92,8 +92,8 @@ public final class ModelDownloadViewModel {
             isDownloadingModel = false
             downloadProgress = 1
             downloadSpeedText = nil
-            downloadStatus = "Download complete!"
-            transientMessage = "Model downloaded. Click Finish Setup."
+            downloadStatus = "Download complete"
+            transientMessage = "Model ready. Click Finish Setup to continue."
             lastError = nil
         } catch {
             isDownloadingModel = false
@@ -105,7 +105,7 @@ public final class ModelDownloadViewModel {
     private func refreshDownloadStateForSelectedModel() {
         if isSelectedModelDownloaded {
             downloadProgress = 1
-            downloadStatus = "Model already downloaded."
+            downloadStatus = "Model is ready."
             downloadSpeedText = nil
         } else {
             downloadProgress = 0

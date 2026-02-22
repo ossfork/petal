@@ -205,9 +205,9 @@ public final class OnboardingModel {
     public var microphonePermissionActionTitle: String {
         switch microphonePermissionState {
         case .notDetermined:
-            return "Grant Microphone"
+            return "Allow Microphone"
         case .denied:
-            return "Open Mic Settings"
+            return "Open Microphone Settings"
         case .authorized:
             return "Microphone Enabled"
         }
@@ -244,7 +244,7 @@ public final class OnboardingModel {
 
         if microphonePermissionState == .denied {
             await permissionsClient.openMicrophonePrivacySettings()
-            lastError = "Enable microphone access in System Settings, then return to Gloam."
+            lastError = "Turn on microphone access in System Settings, then return to Gloam."
             return
         }
 
@@ -295,8 +295,8 @@ public final class OnboardingModel {
         }
 
         await permissionsClient.openAccessibilityPrivacySettings()
-        lastError = "Accessibility permission is required to finish setup."
-        transientMessage = "Enable Accessibility in System Settings, then return to Gloam."
+        lastError = "Accessibility access is required to continue."
+        transientMessage = "Turn on Accessibility in System Settings, then return to Gloam."
     }
 
     private func refreshPermissionStatus() {

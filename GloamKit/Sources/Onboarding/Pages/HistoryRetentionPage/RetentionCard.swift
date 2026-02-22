@@ -31,11 +31,11 @@ struct RetentionCard: View {
     // MARK: - Computed
 
     private var borderColor: Color {
-        isSelected ? Color.white.opacity(0.5) : Color.white.opacity(0.08)
+        isSelected ? Color.white.opacity(0.6) : Color.white.opacity(0.15)
     }
 
     private var borderWidth: CGFloat {
-        isSelected ? 1.5 : 1
+        isSelected ? 2 : 1
     }
 
     private var checkmarkIcon: String {
@@ -46,18 +46,19 @@ struct RetentionCard: View {
 
     var body: some View {
         Button(action: onSelect) {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 6) {
                 Image(systemName: symbol)
-                    .font(.title)
+                    .font(.largeTitle)
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(isSelected ? .white : .secondary)
-                    .frame(width: 36, height: 36)
+                    .frame(width: 40, height: 40)
+                    .padding(.bottom, 8)
 
                 Text(title)
-                    .font(.headline)
+                    .font(.title3.weight(.semibold))
 
                 Text(description)
-                    .font(.caption)
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
@@ -101,13 +102,7 @@ struct RetentionCard: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(
-                Capsule().fill(
-                    LinearGradient(
-                        colors: [.red, .orange],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
+                Capsule().fill(Color.orange.opacity(0.7).gradient)
             )
     }
 }

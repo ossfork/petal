@@ -10,8 +10,8 @@ struct HistoryRetentionPage: View {
         VStack(alignment: .leading, spacing: 24) {
             OnboardingHeader(
                 symbol: "clock.arrow.trianglehead.counterclockwise.rotate.90",
-                title: "History & Retention",
-                description: "Choose what Gloam saves after each transcription.",
+                title: "Choose What to Keep",
+                description: "Decide what Gloam stores after each transcription.",
                 layout: .vertical
             )
             .slideIn(active: isAnimating, delay: 0.25)
@@ -19,15 +19,15 @@ struct HistoryRetentionPage: View {
             HStack(alignment: .top, spacing: 12) {
                 RetentionCard(
                     symbol: "doc.text",
-                    title: "Transcripts Only",
-                    description: "Save transcription text after each session. Audio recordings are discarded.",
+                    title: "Text Only",
+                    description: "Save the transcription text. Audio is not stored.",
                     isSelected: model.historyRetentionMode == .transcripts
                 ) { model.historyRetentionMode = .transcripts }
 
                 RetentionCard(
                     symbol: "doc.text.below.ecg",
-                    title: "Audio + Transcripts",
-                    description: "Keep both audio recordings and transcription text for a complete history you can revisit.",
+                    title: "Everything",
+                    description: "Keep audio recordings and transcription text.",
                     recommended: true,
                     isSelected: model.historyRetentionMode == .both
                 ) { model.historyRetentionMode = .both }
@@ -35,7 +35,7 @@ struct HistoryRetentionPage: View {
                 RetentionCard(
                     symbol: "hand.raised.fill",
                     title: "Private",
-                    description: "Nothing is saved to disk. Transcriptions are pasted to your clipboard and forgotten.",
+                    description: "Nothing is saved. Transcriptions are pasted and discarded.",
                     isSelected: model.historyRetentionMode == .none
                 ) { model.historyRetentionMode = .none }
             }
