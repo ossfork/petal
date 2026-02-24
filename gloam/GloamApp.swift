@@ -51,9 +51,7 @@ struct GloamApp: App {
             }
         }
 
-        Settings {
-            SettingsView(viewModel: SettingsViewModel(appModel: model))
-        }
+
     }
 }
 

@@ -20,6 +20,7 @@ struct ModelInfoRow: View {
                 Text(option.summary)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
 
                 Label(
                     option.sizeLabel
