@@ -174,8 +174,7 @@ private actor LiveMLXRuntime {
     private var loadedModel: MLXPipelineModel?
     private var voxtralPipeline: VoxtralPipeline?
     private var qwen3ASRModel: Qwen3ASRModel?
-    // WhisperKit is not Sendable; access is serialized by the actor.
-    private nonisolated(unsafe) var whisperKitInstance: WhisperKit?
+    private var whisperKitInstance: WhisperKit?
 
     func prepareModelIfNeeded(model: MLXPipelineModel) async throws {
         if loadedModel == model {
@@ -257,7 +256,7 @@ private actor LiveMLXRuntime {
         loadedModel = nil
     }
 
-    private nonisolated func transcribeWithWhisperKit(
+    private func transcribeWithWhisperKit(
         audioURL: URL,
         whisperKit: WhisperKit
     ) async throws -> String {
