@@ -7,13 +7,13 @@ import MLXAudioSTT
 import VoxtralCore
 import WhisperKit
 
-/// Root directory for all Gloam data: ~/Documents/Gloam/
+/// Root directory for all Gloam data: ~/Documents/gloam/
 private let gloamDirectory: URL = {
     FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         .appendingPathComponent("gloam")
 }()
 
-/// HubCache rooted at ~/Documents/Gloam/models/ so mlx-audio-swift stores models there.
+/// HubCache rooted at ~/Documents/gloam/models/ so mlx-audio-swift stores models there.
 private let gloamHubCache = HubCache(cacheDirectory: gloamDirectory.appendingPathComponent("models"))
 
 public enum MLXModelBackend: String, Sendable, Equatable {

@@ -33,7 +33,7 @@ public class ModelDownloader {
         if let modelPath { try? FileManager.default.removeItem(at: modelPath) }
     }
 
-    /// Default models directory (in Documents/Gloam/models)
+    /// Default models directory (in Documents/gloam/models)
     public static var modelsDirectory: URL {
         appDirectory.appendingPathComponent("models")
     }
@@ -379,15 +379,19 @@ public class ModelDownloader {
         while process.isRunning {
             try await Task.sleep(for: .seconds(1))
             let downloadedBytes = downloadedBytes(at: modelPath, paths: trackedPaths)
-            let fractionCompleted = min(max(Double(downloadedBytes) / Double(max(totalExpectedBytes, 1)), 0), 0.99)
+            let fractionCompleted = min(max(Double(downloadedBytes) / Double(max(totalExpectedBytes, 1)), 0), 1.0)
             let now = Date()
             let elapsed = now.timeIntervalSince(lastMeasureTime)
             let bytesDelta = downloadedBytes - lastMeasuredBytes
             let speedBytesPerSecond = elapsed > 0 ? Double(bytesDelta) / elapsed : nil
 
-            let percent = Int((fractionCompleted * 100).rounded())
-            let status = downloadStatus(percent: percent, speedBytesPerSecond: speedBytesPerSecond)
-            progress?(fractionCompleted, status)
+            if fractionCompleted >= 1.0 {
+                progress?(1.0, "Verifying download...")
+            } else {
+                let percent = Int((fractionCompleted * 100).rounded())
+                let status = downloadStatus(percent: percent, speedBytesPerSecond: speedBytesPerSecond)
+                progress?(fractionCompleted, status)
+            }
 
             lastMeasureTime = now
             lastMeasuredBytes = downloadedBytes

@@ -200,6 +200,8 @@ struct TranscriptionPane: View {
         HStack(spacing: 12) {
             ProgressView(value: progress.fraction)
                 .progressViewStyle(.circular)
+                .scaleEffect(0.5)
+                .frame(width: 16, height: 16)
             VStack(alignment: .leading, spacing: 2) {
                 Text("Downloading \(modelName)")
                 Text(progress.summaryText)
