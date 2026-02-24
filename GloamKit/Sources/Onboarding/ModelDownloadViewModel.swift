@@ -1,5 +1,6 @@
 import Dependencies
 import DownloadClient
+import Foundation
 import Observation
 import Shared
 
@@ -18,6 +19,7 @@ public final class ModelDownloadViewModel {
     }
 
     public var isDownloadingModel = false
+    public var isPaused = false
     public var downloadProgress = 0.0
     public var downloadStatus = ""
     public var downloadSpeedText: String?
@@ -54,6 +56,34 @@ public final class ModelDownloadViewModel {
         }
 
         return "\(percent)%"
+    }
+
+    public var modelDirectoryURL: URL? {
+        guard let option = selectedModelOption else { return nil }
+        return downloadClient.modelDirectoryURL(option)
+    }
+
+    public func pauseDownload() {
+        downloadClient.pauseDownload()
+        isPaused = true
+        isDownloadingModel = false
+        downloadStatus = "Download paused"
+        downloadSpeedText = nil
+    }
+
+    public func resumeDownload() async {
+        isPaused = false
+        await downloadModel()
+    }
+
+    public func cancelDownload() {
+        downloadClient.cancelDownload()
+        isPaused = false
+        isDownloadingModel = false
+        downloadProgress = 0
+        downloadStatus = ""
+        downloadSpeedText = nil
+        lastError = nil
     }
 
     public func selectedModelChanged() {
@@ -95,10 +125,16 @@ public final class ModelDownloadViewModel {
             downloadStatus = "Download complete"
             transientMessage = "Model ready. Click Finish Setup to continue."
             lastError = nil
+        } catch is CancellationError {
+            // Task cancelled — no-op
         } catch {
+            // pauseDownload() / cancelDownload() already set the correct state before the error arrives
+            if isPaused { return }
+            let desc = error.localizedDescription
+            if desc == "Download paused" || desc == "Download cancelled" { return }
             isDownloadingModel = false
             downloadSpeedText = nil
-            lastError = error.localizedDescription
+            lastError = desc
         }
     }
 

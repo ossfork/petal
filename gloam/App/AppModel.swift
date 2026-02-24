@@ -139,7 +139,7 @@ final class AppModel {
     @ObservationIgnored private var ignoreNextShortcutKeyUp = false
     @ObservationIgnored private var currentShortcutPressStart: Date?
     @ObservationIgnored private var onboardingWindowController: OnboardingWindowController?
-    @ObservationIgnored private var settingsWindowController: SettingsWindowController?
+    @ObservationIgnored private var settingsWindowController: NSWindowController?
     @ObservationIgnored private var transcriptionProgressTask: Task<Void, Never>?
     @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
     @ObservationIgnored private var estimatedTranscriptionRTF = 2.2
@@ -709,16 +709,7 @@ final class AppModel {
 
     private func showSettingsWindow() {
         if isPreviewMode { return }
-
-        let controller: SettingsWindowController
-        if let existing = settingsWindowController {
-            controller = existing
-        } else {
-            controller = SettingsWindowController(appModel: self)
-            settingsWindowController = controller
-        }
-
-        controller.present()
+        // TODO: rebuild settings window
     }
 
     // MARK: - Private: Shortcuts & Keyboard

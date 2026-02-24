@@ -61,7 +61,7 @@ public final class OnboardingModel {
 
     public var showBack: Bool {
         guard previousPage != nil else { return false }
-        if currentPage == .download, modelDownloadViewModel.isDownloadingModel { return false }
+        if currentPage == .download, modelDownloadViewModel.isDownloadingModel || modelDownloadViewModel.isPaused { return false }
         return true
     }
 
@@ -149,6 +149,11 @@ public final class OnboardingModel {
     public var downloadSpeedText: String? {
         get { modelDownloadViewModel.downloadSpeedText }
         set { modelDownloadViewModel.downloadSpeedText = newValue }
+    }
+
+    public var isPaused: Bool {
+        get { modelDownloadViewModel.isPaused }
+        set { modelDownloadViewModel.isPaused = newValue }
     }
 
     public var microphonePermissionState: MicrophonePermissionState = .notDetermined

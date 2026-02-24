@@ -62,6 +62,9 @@ public enum MLXTranscriptionMode: Sendable {
 public struct MLXClient: Sendable {
     public var isModelDownloaded: @Sendable (MLXModelInfo) -> Bool = { _ in false }
     public var downloadModel: @Sendable (MLXModelInfo, @escaping @Sendable (Double, String) -> Void) async throws -> Void
+    public var pauseDownload: @Sendable () -> Void = {}
+    public var cancelDownload: @Sendable () -> Void = {}
+    public var modelDirectoryURL: @Sendable (MLXModelInfo) -> URL? = { _ in nil }
     public var prepareModelIfNeeded: @Sendable (MLXPipelineModel) async throws -> Void
     public var transcribe: @Sendable (URL, MLXTranscriptionMode) async throws -> String
     public var unloadModel: @Sendable () async -> Void = {}
@@ -85,6 +88,20 @@ extension MLXClient: DependencyKey {
                     _ = try await ModelDownloader.download(info.voxtralModelInfo, progress: progress)
                 case .mlxAudioSTT, .mlxWhisper:
                     try await MLXAudioCache.downloadSnapshotIfNeeded(repoId: info.repoId, progress: progress)
+                }
+            },
+            pauseDownload: {
+                ModelDownloader.pauseDownload()
+            },
+            cancelDownload: {
+                ModelDownloader.cancelDownload()
+            },
+            modelDirectoryURL: { info in
+                switch info.backend {
+                case .voxtral:
+                    return ModelDownloader.findModelPath(for: info.voxtralModelInfo)
+                case .mlxAudioSTT, .mlxWhisper:
+                    return ModelDownloader.findModelPath(for: info.voxtralModelInfo)
                 }
             },
             prepareModelIfNeeded: { model in

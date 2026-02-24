@@ -15,6 +15,25 @@ public typealias DownloadProgressCallback = @Sendable (Double, String) -> Void
 /// Model downloader with HuggingFace Hub integration
 public class ModelDownloader {
 
+    // MARK: - Pause / Resume / Cancel
+
+    private enum DownloadIntent { case active, paused, cancelled }
+
+    nonisolated(unsafe) private static var currentProcess: Process?
+    nonisolated(unsafe) private static var downloadIntent: DownloadIntent = .active
+
+    public static func pauseDownload() {
+        guard downloadIntent == .active, let p = currentProcess, p.isRunning else { return }
+        downloadIntent = .paused
+        p.terminate()
+    }
+
+    public static func cancelDownload(modelPath: URL? = nil) {
+        downloadIntent = .cancelled
+        if let p = currentProcess, p.isRunning { p.terminate() }
+        if let modelPath { try? FileManager.default.removeItem(at: modelPath) }
+    }
+
     /// Default Hub API instance (uses system cache directory, forces online mode)
     // Swift 6: nonisolated(unsafe) for lazy-initialized singleton
     nonisolated(unsafe) private static var hubApi: HubApi = {
@@ -129,6 +148,12 @@ public class ModelDownloader {
         return nil
     }
 
+    /// Get the directory URL for a model (for "Show in Finder").
+    /// Returns the first existing path found, or the default local path.
+    public static func modelDirectory(for model: VoxtralModelInfo) -> URL {
+        findModelPath(for: model) ?? localPath(for: model)
+    }
+
     /// Verify that a sharded model has all required safetensors files
     public static func verifyShardedModel(at path: URL) -> (complete: Bool, missing: [String]) {
         let indexPath = path.appendingPathComponent("model.safetensors.index.json")
@@ -181,6 +206,10 @@ public class ModelDownloader {
 
         do {
             return try await downloadWithAria2(model, progress: progress)
+        } catch ModelDownloaderError.downloadPaused {
+            throw ModelDownloaderError.downloadPaused
+        } catch ModelDownloaderError.downloadCancelled {
+            throw ModelDownloaderError.downloadCancelled
         } catch {
             print("aria2c download failed, falling back to Hub downloader: \(error.localizedDescription)")
             progress?(0.0, "aria2c failed, falling back to default downloader…")
@@ -392,6 +421,8 @@ public class ModelDownloader {
         process.standardOutput = FileHandle.nullDevice
         process.standardError = FileHandle.nullDevice
 
+        currentProcess = process
+        downloadIntent = .active
         try process.run()
         progress?(0.0, "Downloading model files... 0%")
 
@@ -417,8 +448,18 @@ public class ModelDownloader {
         }
 
         process.waitUntilExit()
-        guard process.terminationStatus == 0 else {
-            throw ModelDownloaderError.downloadFailed("aria2c exited with code \(process.terminationStatus).")
+        currentProcess = nil
+
+        switch downloadIntent {
+        case .paused:
+            throw ModelDownloaderError.downloadPaused
+        case .cancelled:
+            try? FileManager.default.removeItem(at: modelPath)
+            throw ModelDownloaderError.downloadCancelled
+        case .active:
+            guard process.terminationStatus == 0 else {
+                throw ModelDownloaderError.downloadFailed("aria2c exited with code \(process.terminationStatus).")
+            }
         }
 
         let verification = verifyShardedModel(at: modelPath)
@@ -564,10 +605,12 @@ public class ModelDownloader {
 }
 
 /// Errors for model downloading
-public enum ModelDownloaderError: LocalizedError {
+public enum ModelDownloaderError: LocalizedError, Equatable {
     case modelNotFound
     case downloadFailed(String)
     case aria2BinaryMissing
+    case downloadPaused
+    case downloadCancelled
 
     public var errorDescription: String? {
         switch self {
@@ -577,6 +620,10 @@ public enum ModelDownloaderError: LocalizedError {
             return "Download failed: \(reason)"
         case .aria2BinaryMissing:
             return "aria2c binary is missing from the app bundle or system PATH."
+        case .downloadPaused:
+            return "Download paused"
+        case .downloadCancelled:
+            return "Download cancelled"
         }
     }
 }

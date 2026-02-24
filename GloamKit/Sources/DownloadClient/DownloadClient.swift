@@ -20,6 +20,9 @@ public struct DownloadProgress: Sendable, Equatable {
 public struct DownloadClient: Sendable {
     public var isModelDownloaded: @Sendable (ModelOption) -> Bool = { _ in false }
     public var downloadModel: @Sendable (ModelOption, @escaping @Sendable (DownloadProgress) -> Void) async throws -> Void
+    public var pauseDownload: @Sendable () -> Void = {}
+    public var cancelDownload: @Sendable () -> Void = {}
+    public var modelDirectoryURL: @Sendable (ModelOption) -> URL? = { _ in nil }
 }
 
 extension DownloadClient: DependencyKey {
@@ -40,6 +43,18 @@ extension DownloadClient: DependencyKey {
                         )
                     )
                 })
+            },
+            pauseDownload: {
+                @Dependency(\.mlxClient) var mlxClient
+                mlxClient.pauseDownload()
+            },
+            cancelDownload: {
+                @Dependency(\.mlxClient) var mlxClient
+                mlxClient.cancelDownload()
+            },
+            modelDirectoryURL: { option in
+                @Dependency(\.mlxClient) var mlxClient
+                return mlxClient.modelDirectoryURL(option.mlxModelInfo)
             }
         )
     }
