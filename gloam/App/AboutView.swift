@@ -23,8 +23,6 @@ struct AboutView: View {
 
             linksSection
 
-            modelsSection
-
             copyrightInfo
 
             Spacer()
@@ -95,33 +93,6 @@ struct AboutView: View {
         .foregroundStyle(.secondary)
     }
 
-    private var modelsSection: some View {
-        VStack(spacing: 4) {
-            Text("Models")
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-
-            ForEach(ModelCredit.allCases) { credit in
-                Button {
-                    openURL(credit.url)
-                } label: {
-                    HStack(spacing: 4) {
-                        credit.icon
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 12, height: 12)
-                        Text(credit.title)
-                            .underline()
-                    }
-                }
-            }
-        }
-        .buttonStyle(.plain)
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-        .padding(.top, 4)
-    }
-
     private var copyrightInfo: some View {
         Text("Copyright \u{00A9} Aayush Pokharel, \(appInfo.buildYear)")
             .padding(.horizontal, 48)
@@ -166,38 +137,6 @@ private struct AboutAppInfo {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d, yyyy"
         lastUpdateChecked = formatter.string(from: Date())
-    }
-}
-
-private enum ModelCredit: String, CaseIterable, Identifiable {
-    case mlxCommunity
-    case argmax
-    case mistral
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .mlxCommunity: return "MLX Community"
-        case .argmax: return "Argmax (WhisperKit)"
-        case .mistral: return "Mistral (Voxtral)"
-        }
-    }
-
-    var icon: Image {
-        switch self {
-        case .mlxCommunity: return Image("huggingface")
-        case .argmax: return Image(systemName: "waveform")
-        case .mistral: return Image("mistral")
-        }
-    }
-
-    var url: URL {
-        switch self {
-        case .mlxCommunity: return URL(string: "https://huggingface.co/mlx-community")!
-        case .argmax: return URL(string: "https://huggingface.co/argmaxinc")!
-        case .mistral: return URL(string: "https://huggingface.co/mistralai")!
-        }
     }
 }
 

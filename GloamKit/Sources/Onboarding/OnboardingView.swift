@@ -26,7 +26,7 @@ public struct OnboardingView: View {
 
                 case .model:
                     ModelSelectionPage(model: model)
-                        .xSpacing(.topLeading)
+                        
 
                 case .shortcut:
                     ShortcutPage(model: model)

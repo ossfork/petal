@@ -633,7 +633,16 @@ final class AppModel {
 
     private func showSettingsWindow() {
         if isPreviewMode { return }
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        let settingsViewModel = SettingsViewModel(appModel: self)
+        NSApp.setActivationPolicy(.regular)
+        Task {
+            await windowClient.closeAll(WindowConfig.settings.id)
+            await windowClient.show(.settings, {
+                SwiftUI.NSHostingView(rootView: SettingsView(viewModel: settingsViewModel))
+            }, {
+                NSApp.setActivationPolicy(.accessory)
+            })
+        }
     }
 
     // MARK: - Private: Shortcuts & Keyboard

@@ -13,6 +13,18 @@ extension WindowConfig {
         size: CGSize(width: 280, height: 500)
     )
 
+    public static let settings = WindowConfig(
+        id: "GloamSettingsWindow",
+        title: "Gloam Settings",
+        style: .chromeless(.init(
+            hidesCloseButton: false,
+            hidesMiniaturizeButton: true,
+            hidesZoomButton: true,
+            isFloating: true
+        )),
+        size: CGSize(width: 500, height: 420)
+    )
+
     public static let onboarding = WindowConfig(
         id: "GloamOnboardingWindow",
         title: "Gloam Onboarding",

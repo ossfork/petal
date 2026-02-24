@@ -7,29 +7,30 @@ struct ModelSelectionPage: View {
     @State private var isAnimating = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            OnboardingHeader(
-                symbol: "externaldrive.fill",
-                title: "Choose a Model",
-                description: "Transcription runs entirely on-device. Choose between Qwen, Whisper, and Voxtral model families.",
-                layout: .vertical
-            )
-            .slideIn(active: isAnimating, delay: 0.25)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                OnboardingHeader(
+                    symbol: "externaldrive.fill",
+                    title: "Choose a Model",
+                    description: "Transcription runs entirely on-device. Choose between Qwen, Whisper, and Voxtral model families.",
+                    layout: .vertical
+                )
+                .slideIn(active: isAnimating, delay: 0.25)
 
-            VStack(spacing: 10) {
-                ForEach(ModelOption.allCases) { option in
-                    ModelOptionCard(
-                        option: option,
-                        isSelected: option.rawValue == model.selectedModelID
-                    ) {
-                        model.selectedModelID = option.rawValue
+                VStack(spacing: 10) {
+                    ForEach(ModelOption.allCases) { option in
+                        ModelOptionCard(
+                            option: option,
+                            isSelected: option.rawValue == model.selectedModelID
+                        ) {
+                            model.selectedModelID = option.rawValue
+                        }
                     }
                 }
+                .slideIn(active: isAnimating, delay: 0.5)
             }
-            .slideIn(active: isAnimating, delay: 0.5)
-
-            Spacer()
         }
+        .scrollIndicators(.hidden)
         .onAppear { isAnimating = true }
     }
 }
