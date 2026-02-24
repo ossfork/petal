@@ -18,18 +18,34 @@ public class ModelDownloader {
 
     private enum DownloadIntent { case active, paused, cancelled }
 
-    nonisolated(unsafe) private static var currentProcess: Process?
+    nonisolated(unsafe) private static var daemonProcess: Process?
+    nonisolated(unsafe) private static var rpcClient: Aria2RPCClient?
+    nonisolated(unsafe) private static var activeGIDs: [String] = []
     nonisolated(unsafe) private static var downloadIntent: DownloadIntent = .active
 
     public static func pauseDownload() {
-        guard downloadIntent == .active, let p = currentProcess, p.isRunning else { return }
+        guard downloadIntent == .active else { return }
         downloadIntent = .paused
-        p.terminate()
+        let client = rpcClient
+        let gids = activeGIDs
+        Task {
+            for gid in gids {
+                _ = try? await client?.pause(gid: gid)
+            }
+        }
     }
 
     public static func cancelDownload(modelPath: URL? = nil) {
         downloadIntent = .cancelled
-        if let p = currentProcess, p.isRunning { p.terminate() }
+        let client = rpcClient
+        let gids = activeGIDs
+        Task {
+            for gid in gids {
+                _ = try? await client?.forceRemove(gid: gid)
+            }
+            _ = try? await client?.forceShutdown()
+        }
+        if let p = daemonProcess, p.isRunning { p.terminate() }
         if let modelPath { try? FileManager.default.removeItem(at: modelPath) }
     }
 
@@ -333,24 +349,25 @@ public class ModelDownloader {
             throw ModelDownloaderError.downloadFailed("No model files found in HuggingFace tree.")
         }
 
-        let manifestURL = try createAria2Manifest(
-            repoId: model.repoId,
-            files: filteredFiles.map(\.path),
-            destination: modelPath
-        )
-
-        defer {
-            try? FileManager.default.removeItem(at: manifestURL)
+        // Ensure subdirectories exist for nested files
+        for file in filteredFiles {
+            let parent = modelPath.appendingPathComponent((file.path as NSString).deletingLastPathComponent)
+            if parent.path != modelPath.path {
+                try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
+            }
         }
 
-        let totalExpectedBytes = filteredFiles.reduce(Int64(0)) { partialResult, file in
-            partialResult + max(file.resolvedSize, 1)
-        }
+        // Start aria2c as RPC daemon
+        let port = UInt16.random(in: 49152...65000)
+        let token = UUID().uuidString
 
         let process = Process()
         process.executableURL = aria2cURL
         process.arguments = [
-            "--input-file=\(manifestURL.path)",
+            "--enable-rpc=true",
+            "--rpc-listen-port=\(port)",
+            "--rpc-secret=\(token)",
+            "--rpc-listen-all=false",
             "--dir=\(modelPath.path)",
             "--continue=true",
             "--allow-overwrite=true",
@@ -360,45 +377,96 @@ public class ModelDownloader {
             "--min-split-size=1M",
             "--summary-interval=0",
             "--console-log-level=warn",
-            "--download-result=hide"
+            "--download-result=hide",
+            "--check-certificate=false"
         ]
-
-        // Avoid pipe back-pressure deadlocks for long-running downloads.
         process.standardOutput = FileHandle.nullDevice
         process.standardError = FileHandle.nullDevice
 
-        currentProcess = process
+        let client = Aria2RPCClient()
+        await client.initialize(port: port, token: token)
+        rpcClient = client
+        daemonProcess = process
+        activeGIDs = []
         downloadIntent = .active
+
         try process.run()
-        progress?(0.0, "Downloading model files... 0%")
 
-        var lastMeasureTime = Date()
-        var lastMeasuredBytes: Int64 = 0
-        let trackedPaths = filteredFiles.map(\.path)
-
-        while process.isRunning {
-            try await Task.sleep(for: .seconds(1))
-            let downloadedBytes = downloadedBytes(at: modelPath, paths: trackedPaths)
-            let fractionCompleted = min(max(Double(downloadedBytes) / Double(max(totalExpectedBytes, 1)), 0), 1.0)
-            let now = Date()
-            let elapsed = now.timeIntervalSince(lastMeasureTime)
-            let bytesDelta = downloadedBytes - lastMeasuredBytes
-            let speedBytesPerSecond = elapsed > 0 ? Double(bytesDelta) / elapsed : nil
-
-            if fractionCompleted >= 1.0 {
-                progress?(1.0, "Verifying download...")
-            } else {
-                let percent = Int((fractionCompleted * 100).rounded())
-                let status = downloadStatus(percent: percent, speedBytesPerSecond: speedBytesPerSecond)
-                progress?(fractionCompleted, status)
+        // Wait for daemon to become ready
+        var daemonReady = false
+        for _ in 0..<30 {
+            try await Task.sleep(for: .milliseconds(100))
+            if let _ = try? await client.getVersion() {
+                daemonReady = true
+                break
             }
-
-            lastMeasureTime = now
-            lastMeasuredBytes = downloadedBytes
         }
 
-        process.waitUntilExit()
-        currentProcess = nil
+        guard daemonReady else {
+            process.terminate()
+            daemonProcess = nil
+            rpcClient = nil
+            throw ModelDownloaderError.downloadFailed("aria2c RPC daemon failed to start.")
+        }
+
+        // Submit each file as a download via RPC
+        var gids: [String] = []
+        for file in filteredFiles {
+            let encodedPath = encodePathForURL(file.path)
+            let url = "https://huggingface.co/\(model.repoId)/resolve/main/\(encodedPath)?download=true"
+            let gid = try await client.addUri([url], options: [
+                "out": file.path
+            ])
+            gids.append(gid)
+        }
+        activeGIDs = gids
+
+        progress?(0.0, "Downloading model files... 0%")
+
+        // Poll RPC for progress
+        while true {
+            try await Task.sleep(for: .seconds(1))
+
+            if downloadIntent != .active { break }
+
+            let active = (try? await client.tellActive()) ?? []
+            let waiting = (try? await client.tellWaiting()) ?? []
+            let stopped = (try? await client.tellStopped()) ?? []
+
+            let all = active + waiting + stopped
+
+            var totalBytes: Int64 = 0
+            var completedBytes: Int64 = 0
+            var totalSpeed: Int64 = 0
+
+            for status in all {
+                totalBytes += Int64(status.totalLength) ?? 0
+                completedBytes += Int64(status.completedLength) ?? 0
+                totalSpeed += Int64(status.downloadSpeed) ?? 0
+            }
+
+            // Check for errors in stopped downloads
+            for status in stopped {
+                if status.status == "error" {
+                    let msg = status.errorMessage ?? "Unknown error (code: \(status.errorCode ?? "?"))"
+                    shutdownDaemon()
+                    throw ModelDownloaderError.downloadFailed("aria2c download error: \(msg)")
+                }
+            }
+
+            if totalBytes > 0 {
+                let fraction = min(Double(completedBytes) / Double(totalBytes), 1.0)
+                let percent = Int((fraction * 100).rounded())
+                let speedBytesPerSecond: Double? = totalSpeed > 0 ? Double(totalSpeed) : nil
+                let status = downloadStatus(percent: percent, speedBytesPerSecond: speedBytesPerSecond)
+                progress?(fraction, status)
+            }
+
+            // All done when nothing is active or waiting
+            if active.isEmpty && waiting.isEmpty { break }
+        }
+
+        shutdownDaemon()
 
         switch downloadIntent {
         case .paused:
@@ -407,9 +475,7 @@ public class ModelDownloader {
             try? FileManager.default.removeItem(at: modelPath)
             throw ModelDownloaderError.downloadCancelled
         case .active:
-            guard process.terminationStatus == 0 else {
-                throw ModelDownloaderError.downloadFailed("aria2c exited with code \(process.terminationStatus).")
-            }
+            break
         }
 
         let verification = verifyShardedModel(at: modelPath)
@@ -419,6 +485,16 @@ public class ModelDownloader {
 
         progress?(1.0, "Download complete!")
         return modelPath
+    }
+
+    private static func shutdownDaemon() {
+        let client = rpcClient
+        let process = daemonProcess
+        Task { _ = try? await client?.forceShutdown() }
+        if let process, process.isRunning { process.terminate() }
+        daemonProcess = nil
+        rpcClient = nil
+        activeGIDs = []
     }
 
     private static func fetchModelFiles(repoId: String) async throws -> [HuggingFaceTreeItem] {
@@ -438,32 +514,6 @@ public class ModelDownloader {
         }
     }
 
-    private static func createAria2Manifest(
-        repoId: String,
-        files: [String],
-        destination: URL
-    ) throws -> URL {
-        let tempURL = destination.appendingPathComponent(".aria2-input-\(UUID().uuidString).txt")
-        var lines: [String] = []
-        lines.reserveCapacity(files.count * 3)
-
-        for file in files {
-            let encodedPath = encodePathForURL(file)
-            let fileURL = "https://huggingface.co/\(repoId)/resolve/main/\(encodedPath)?download=true"
-            lines.append(fileURL)
-            lines.append("  out=\(file)")
-            lines.append("")
-
-            let parent = destination.appendingPathComponent((file as NSString).deletingLastPathComponent)
-            if parent.path != destination.path {
-                try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
-            }
-        }
-
-        try lines.joined(separator: "\n").write(to: tempURL, atomically: true, encoding: .utf8)
-        return tempURL
-    }
-
     private static func encodePathForURL(_ path: String) -> String {
         path
             .split(separator: "/")
@@ -471,22 +521,6 @@ public class ModelDownloader {
                 String(component).addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? String(component)
             }
             .joined(separator: "/")
-    }
-
-    private static func downloadedBytes(at basePath: URL, paths: [String]) -> Int64 {
-        var total: Int64 = 0
-        let fm = FileManager.default
-
-        for relativePath in paths {
-            let filePath = basePath.appendingPathComponent(relativePath).path
-            guard let attrs = try? fm.attributesOfItem(atPath: filePath),
-                  let fileSize = attrs[.size] as? Int64 else {
-                continue
-            }
-            total += fileSize
-        }
-
-        return total
     }
 
     private static func findAria2cBinaryURL() -> URL? {

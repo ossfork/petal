@@ -377,13 +377,7 @@ final class AppModel {
             return
         }
 
-        let isCurrentlyRecording = await audioClient.isRecording()
-
-        if toggleRecordingIsActive, !isCurrentlyRecording {
-            toggleRecordingIsActive = false
-        }
-
-        if toggleRecordingIsActive, isCurrentlyRecording {
+        if toggleRecordingIsActive {
             toggleRecordingIsActive = false
             ignoreNextShortcutKeyUp = true
             logger.info("Toggle recording stop requested")
@@ -391,6 +385,8 @@ final class AppModel {
             await stopRecordingAndTranscribe()
             return
         }
+
+        let isCurrentlyRecording = await audioClient.isRecording()
 
         guard !pushToTalkIsActive else { return }
 
