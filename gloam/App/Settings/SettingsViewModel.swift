@@ -3,7 +3,6 @@ import Dependencies
 import HistoryClient
 import ModelDownloadFeature
 import Observation
-import Onboarding
 import PermissionsClient
 import Shared
 
@@ -25,10 +24,11 @@ final class SettingsViewModel {
     var selectedModelID: String {
         get { downloadModel.selectedModelID }
         set {
-            downloadModel.$selectedModelID.withLock { $0 = newValue }
-            downloadModel.selectedModelChanged()
+            appModel.selectedModelID = newValue
         }
     }
+
+    var isWarmingModel: Bool { appModel.isWarmingModel }
 
     var historyDirectoryPath: String {
         historyClient.historyDirectoryPath()
@@ -42,11 +42,13 @@ final class SettingsViewModel {
     }
 
     let downloadModel: ModelDownloadModel
+    private let appModel: AppModel
     @ObservationIgnored @Dependency(\.permissionsClient) private var permissionsClient
     @ObservationIgnored @Dependency(\.historyClient) private var historyClient
 
     init(appModel: AppModel) {
         self.downloadModel = appModel.modelDownloadViewModel
+        self.appModel = appModel
     }
 
     func refreshPermissions() async {

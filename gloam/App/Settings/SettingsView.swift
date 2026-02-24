@@ -3,6 +3,7 @@ import KeyboardShortcuts
 import ModelDownloadFeature
 import Shared
 import SwiftUI
+import UI
 
 // MARK: - Settings Root
 
@@ -115,6 +116,16 @@ struct TranscriptionPane: View {
                 }
 
                 modelDownloadStatus
+
+                if viewModel.isWarmingModel {
+                    HStack(spacing: 8) {
+                        Image(systemName: "flame.fill")
+                            .foregroundStyle(.orange)
+                        Text("Warming up…")
+                            .foregroundStyle(.secondary)
+                    }
+                    .shimmering()
+                }
             }
 
             Section("Audio Preprocessing") {

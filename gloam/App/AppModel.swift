@@ -14,7 +14,6 @@ import Onboarding
 import os
 import PasteClient
 import PermissionsClient
-import Sauce
 import Shared
 import SoundClient
 import TranscriptionClient
@@ -40,8 +39,6 @@ final class AppModel {
     @ObservationIgnored @Shared(.hasCompletedSetup) var hasCompletedSetup = false
     @ObservationIgnored @Shared(.transcriptionMode) var transcriptionMode: TranscriptionMode = .verbatim
     @ObservationIgnored @Shared(.smartPrompt) var smartPrompt = "Clean up filler words and repeated phrases. Return a polished version of what was said."
-    @ObservationIgnored @Shared(.trimSilenceEnabled) var trimSilenceEnabled = true
-    @ObservationIgnored @Shared(.autoSpeedEnabled) var autoSpeedEnabled = true
     @ObservationIgnored @Shared(.compressHistoryAudio) var compressHistoryAudio = false
     @ObservationIgnored @Shared(.historyRetentionMode) var historyRetentionMode: HistoryRetentionMode = .both
     @ObservationIgnored @Shared(.transcriptHistoryDays) var transcriptHistoryDays: [TranscriptHistoryDay] = []
@@ -59,6 +56,7 @@ final class AppModel {
     var sessionState: SessionState = .idle
     var lastError: String?
     var transientMessage: String?
+    var isWarmingModel = false
     var microphonePermissionState: MicrophonePermissionState = .notDetermined
     var microphoneAuthorized = false
     var accessibilityAuthorized = false
@@ -133,14 +131,6 @@ final class AppModel {
         ModelOption(rawValue: selectedModelID)
     }
 
-    var availableTranscriptionModes: [TranscriptionMode] {
-        selectedModelOption?.supportedTranscriptionModes ?? [.verbatim]
-    }
-
-    var selectedModelSupportsSmartTranscription: Bool {
-        selectedModelOption?.supportsSmartTranscription ?? false
-    }
-
     var isSelectedModelDownloaded: Bool {
         modelDownloadViewModel.isSelectedModelDownloaded
     }
@@ -180,34 +170,12 @@ final class AppModel {
         }
     }
 
-    var currentModelSummary: String {
-        guard let selectedModelOption else { return "No model selected" }
-        return "\(selectedModelOption.displayName) - \(selectedModelOption.sizeLabel)"
-    }
-
-    var shortcutDisplayText: String {
-        guard let shortcut = KeyboardShortcuts.getShortcut(for: .pushToTalk) else {
-            return "No shortcut set"
-        }
-        let modifiers = shortcut.modifiers.description
-        let key = Sauce.shared.key(for: shortcut.carbonKeyCode)?.rawValue.uppercased() ?? "?"
-        return "Current: \(modifiers)\(key)"
-    }
-
-    var shortcutUsageText: String {
-        "Quick press to toggle recording. Hold for \(Int(toggleActivationThresholdSeconds)) seconds or more for push-to-talk."
-    }
-
     var recentTranscriptHistoryEntries: [TranscriptHistoryEntry] {
         transcriptHistoryDays
             .flatMap(\.entries)
             .sorted { $0.timestamp > $1.timestamp }
             .prefix(20)
             .map { $0 }
-    }
-
-    var historyDirectoryDisplayPath: String {
-        historyClient.historyDirectoryPath()
     }
 
     // MARK: - Setup
@@ -217,6 +185,15 @@ final class AppModel {
         let normalizedMode = normalizedTranscriptionMode(transcriptionMode)
         if transcriptionMode != normalizedMode {
             $transcriptionMode.withLock { $0 = normalizedMode }
+        }
+        guard hasCompletedSetup, isSelectedModelDownloaded else { return }
+        isWarmingModel = true
+        transientMessage = "Warming up \(selectedModelOption?.displayName ?? "model")…"
+        Task {
+            await transcriptionClient.unloadModel()
+            await warmModelTask()
+            isWarmingModel = false
+            transientMessage = nil
         }
     }
 
@@ -308,41 +285,6 @@ final class AppModel {
         pasteboard.clearContents()
         pasteboard.setString(formattedHistoryEntry(entry), forType: .string)
         transientMessage = "Copied to clipboard."
-    }
-
-    func historyTimestampText(for entry: TranscriptHistoryEntry) -> String {
-        entry.timestamp.formatted(date: .abbreviated, time: .shortened)
-    }
-
-    func historyMetadataText(for entry: TranscriptHistoryEntry) -> String {
-        let elapsed = entry.transcriptionElapsedSeconds.formatted(.number.precision(.fractionLength(2)))
-        let audio = entry.audioDurationSeconds.formatted(.number.precision(.fractionLength(2)))
-        let persisted = entry.transcriptRelativePath != nil || entry.audioRelativePath != nil ? "saved" : "not saved"
-        return "\(entry.transcriptionMode.capitalized) • \(entry.modelID) • \(entry.characterCount) chars • \(elapsed)s elapsed • \(audio)s audio • \(persisted)"
-    }
-
-    func openHistoryFolderButtonTapped() {
-        let opened = historyClient.openHistoryFolder(historyRetentionMode)
-        if !opened {
-            transientMessage = "History is turned off."
-        }
-    }
-
-    func playHistoryAudioButtonTapped(_ entryID: UUID) {
-        guard
-            let entry = transcriptHistoryDays.flatMap(\.entries).first(where: { $0.id == entryID }),
-            let audioRelativePath = entry.audioRelativePath
-        else {
-            transientMessage = "No saved audio for this entry."
-            return
-        }
-
-        guard let audioURL = historyClient.historyAudioURL(audioRelativePath) else {
-            transientMessage = "Saved audio file not found."
-            return
-        }
-
-        NSWorkspace.shared.open(audioURL)
     }
 
     // MARK: - Deep Links

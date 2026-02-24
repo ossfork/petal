@@ -6,10 +6,5 @@ public extension Image {
     static let microphone = Image("microphone", bundle: .module)
     static let openai = Image("openai", bundle: .module)
     static let qwen = Image("qwen", bundle: .module)
-    static let huggingface = Image("huggingface", bundle: .module)
     static let mistral = Image("mistral", bundle: .module)
-}
-
-public enum AssetVideo {
-    public static let waveVideo = "wave-video"
 }

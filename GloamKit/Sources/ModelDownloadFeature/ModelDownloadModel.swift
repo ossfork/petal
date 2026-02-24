@@ -40,7 +40,7 @@ public final class ModelDownloadModel {
     }
 
     public func downloadButtonTapped() async {
-        await startDownload(resetProgress: true)
+        await startDownload()
     }
 
     public func pauseButtonTapped() {
@@ -51,7 +51,7 @@ public final class ModelDownloadModel {
 
     public func resumeButtonTapped() async {
         guard state.isPaused else { return }
-        await startDownload(resetProgress: false)
+        await startDownload()
     }
 
     public func cancelButtonTapped() {
@@ -93,7 +93,7 @@ public final class ModelDownloadModel {
         cancelButtonTapped()
     }
 
-    private func startDownload(resetProgress: Bool) async {
+    private func startDownload() async {
         guard let option = selectedModelOption else {
             let message = "Select a model to continue."
             state = .failed(message)

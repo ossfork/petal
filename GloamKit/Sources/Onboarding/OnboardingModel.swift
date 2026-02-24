@@ -187,17 +187,6 @@ public final class OnboardingModel {
         KeyboardShortcuts.getShortcut(for: .pushToTalk) != nil
     }
 
-    public var microphonePermissionActionTitle: String {
-        switch microphonePermissionState {
-        case .notDetermined:
-            return "Allow Microphone"
-        case .denied:
-            return "Open Microphone Settings"
-        case .authorized:
-            return "Microphone Enabled"
-        }
-    }
-
     // MARK: - Actions
 
     public func windowAppeared() {

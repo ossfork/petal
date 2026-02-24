@@ -3,11 +3,11 @@ import Dependencies
 import DependenciesMacros
 import Foundation
 
-public enum AudioClientError: LocalizedError, Sendable {
+enum AudioClientError: LocalizedError, Sendable {
     case notRecording
     case failedToStart
 
-    public var errorDescription: String? {
+    var errorDescription: String? {
         switch self {
         case .notRecording:
             return "No recording is currently active."

@@ -1,9 +1,9 @@
 import SwiftUI
 
-public struct IntelligenceGradient: View {
-    public init() {}
+struct IntelligenceGradient: View {
+    init() {}
 
-    public static let gradient = LinearGradient(
+    static let gradient = LinearGradient(
         stops: [
             Gradient.Stop(color: Color(red: 1, green: 0.67, blue: 0.31), location: 0.00),
             Gradient.Stop(color: Color(red: 1, green: 0.44, blue: 0.11), location: 0.15),
@@ -18,14 +18,14 @@ public struct IntelligenceGradient: View {
         endPoint: .trailing
     )
 
-    public var body: some View {
+    var body: some View {
         Rectangle()
             .fill(Self.gradient)
     }
 }
 
-public struct IntelligenceGradientModifier: ViewModifier {
-    public func body(content: Content) -> some View {
+struct IntelligenceGradientModifier: ViewModifier {
+    func body(content: Content) -> some View {
         content
             .opacity(0.01)
             .overlay(

@@ -31,7 +31,6 @@ public enum LongButtonVariant {
 
 public struct LongButton: View {
     @Environment(\.isEnabled) private var isEnabled
-    @Environment(\.colorScheme) private var colorScheme
     @State private var isHovering = false
 
     let text: String
