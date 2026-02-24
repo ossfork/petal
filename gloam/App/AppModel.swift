@@ -334,7 +334,7 @@ final class AppModel {
             return
         }
 
-        let isCurrentlyRecording = await audioClient.isRecording()
+        _ = await audioClient.isRecording()
 
         guard !pushToTalkIsActive else { return }
 
