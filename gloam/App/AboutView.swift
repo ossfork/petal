@@ -23,8 +23,6 @@ struct AboutView: View {
 
             linksSection
 
-            copyrightInfo
-
             Spacer()
         }
         .frame(width: 280, height: 500 - 28)
@@ -60,8 +58,12 @@ struct AboutView: View {
             Spacer()
             VStack(alignment: .trailing) {
                 AboutInfoRow(label: "Build", value: appInfo.build)
-                AboutInfoRow(label: "Github", value: "Aayush9029")
-                AboutInfoRow(label: "Designed By", value: "Aayush")
+                AboutInfoRow(label: "Github", value: "Aayush9029") {
+                    openURL(URL(string: "https://github.com/Aayush9029")!)
+                }
+                AboutInfoRow(label: "Designed By", value: "Aayush") {
+                    openURL(URL(string: "https://aayush.art")!)
+                }
                 AboutInfoRow(label: "Last Update", value: appInfo.lastUpdateChecked)
                 AboutInfoRow(label: "Made in", value: "Toronto, CA")
             }
@@ -80,26 +82,21 @@ struct AboutView: View {
     }
 
     private var linksSection: some View {
-        VStack {
-            ForEach(AboutLinkType.allCases) { linkType in
-                Button(linkType.title) {
-                    openURL(linkType.url)
-                }
+        VStack(spacing: 2) {
+            Button("aayush.art") {
+                openURL(URL(string: "https://aayush.art")!)
             }
-        }
-        .underline()
-        .buttonStyle(.plain)
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-    }
+            .underline()
+            .buttonStyle(.plain)
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
 
-    private var copyrightInfo: some View {
-        Text("Copyright \u{00A9} Aayush Pokharel, \(appInfo.buildYear)")
-            .padding(.horizontal, 48)
-            .font(.caption2)
-            .foregroundStyle(.tertiary)
-            .multilineTextAlignment(.center)
-            .padding(.top, 4)
+            Text("Copyright \u{00A9} Aayush Pokharel, \(appInfo.buildYear)")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.horizontal, 56)
     }
 }
 
@@ -108,12 +105,18 @@ struct AboutView: View {
 private struct AboutInfoRow: View {
     let label: String
     let value: String
+    var action: (() -> Void)?
 
     var body: some View {
         HStack {
             Text(label)
             HStack {
-                Text(value)
+                if let action {
+                    Text(value)
+                        .onTapGesture(perform: action)
+                } else {
+                    Text(value)
+                }
                 Spacer()
             }
             .foregroundStyle(.secondary)
@@ -140,23 +143,3 @@ private struct AboutAppInfo {
     }
 }
 
-private enum AboutLinkType: String, CaseIterable, Identifiable {
-    case website
-    case github
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .website: return "aayush.art"
-        case .github: return "GitHub"
-        }
-    }
-
-    var url: URL {
-        switch self {
-        case .website: return URL(string: "https://aayush.art")!
-        case .github: return URL(string: "https://github.com/Aayush9029/gloam")!
-        }
-    }
-}

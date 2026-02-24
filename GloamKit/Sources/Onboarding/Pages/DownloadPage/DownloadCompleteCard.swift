@@ -38,7 +38,7 @@ struct DownloadCompleteCard: View {
 
     private func showInFinder() {
         guard let url = modelDirectoryURL else { return }
-        NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path)
+        NSWorkspace.shared.activateFileViewerSelecting([url])
     }
 }
 

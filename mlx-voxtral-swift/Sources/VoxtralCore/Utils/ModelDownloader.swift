@@ -6,7 +6,6 @@
  */
 
 import Foundation
-import Hub
 
 /// Progress callback for download updates
 /// Swift 6: @Sendable for safe cross-isolation usage
@@ -33,19 +32,6 @@ public class ModelDownloader {
         if let p = currentProcess, p.isRunning { p.terminate() }
         if let modelPath { try? FileManager.default.removeItem(at: modelPath) }
     }
-
-    /// Default Hub API instance (uses system cache directory, forces online mode)
-    // Swift 6: nonisolated(unsafe) for lazy-initialized singleton
-    nonisolated(unsafe) private static var hubApi: HubApi = {
-        // Disable network monitor that can incorrectly trigger offline mode
-        // This happens when connection is detected as "constrained" or "expensive"
-        setenv("CI_DISABLE_NETWORK_MONITOR", "1", 1)
-
-        return HubApi(
-            downloadBase: appDirectory,
-            useOfflineMode: false
-        )
-    }()
 
     /// Default models directory (in Documents/Gloam/models)
     public static var modelsDirectory: URL {
@@ -204,65 +190,25 @@ public class ModelDownloader {
         print("Repository: \(model.repoId)")
         print()
 
-        do {
-            return try await downloadWithAria2(model, progress: progress)
-        } catch ModelDownloaderError.downloadPaused {
-            throw ModelDownloaderError.downloadPaused
-        } catch ModelDownloaderError.downloadCancelled {
-            throw ModelDownloaderError.downloadCancelled
-        } catch {
-            print("aria2c download failed, falling back to Hub downloader: \(error.localizedDescription)")
-            progress?(0.0, "aria2c failed, falling back to default downloader…")
-        }
-
-        // Fallback: Hub API snapshot download
-        let modelUrl = try await hubApi.snapshot(
-            from: model.repoId,
-            matching: ["*.json", "*.safetensors", "*.txt"],
-            progressHandler: { snapshotProgress, speedBytesPerSecond in
-                let fractionCompleted = min(max(snapshotProgress.fractionCompleted, 0), 1)
-                let percent = Int((fractionCompleted * 100).rounded())
-                let status = downloadStatus(percent: percent, speedBytesPerSecond: speedBytesPerSecond)
-                progress?(fractionCompleted, status)
-            }
-        )
-
-        // Verify the download is complete
-        let verification = verifyShardedModel(at: modelUrl)
-        if !verification.complete {
-            print("\nWarning: Download may be incomplete. Missing files: \(verification.missing)")
-            print("You may need to manually download these files or re-run the download.")
-        }
-
-        progress?(1.0, "Download complete!")
-        print("\nDownload complete: \(modelUrl.path)")
-
-        return modelUrl
+        return try await downloadWithAria2(model, progress: progress)
     }
 
-    /// Download a model by repo ID directly
+    /// Download a model by repo ID directly using aria2c
     public static func downloadByRepoId(
         _ repoId: String,
         progress: DownloadProgressCallback? = nil
     ) async throws -> URL {
-        progress?(0.0, "Starting download...")
-        print("\nDownloading from HuggingFace: \(repoId)")
-
-        let modelUrl = try await hubApi.snapshot(
-            from: repoId,
-            matching: ["*.json", "*.safetensors", "*.txt"],
-            progressHandler: { snapshotProgress, speedBytesPerSecond in
-                let fractionCompleted = min(max(snapshotProgress.fractionCompleted, 0), 1)
-                let percent = Int((fractionCompleted * 100).rounded())
-                let status = downloadStatus(percent: percent, speedBytesPerSecond: speedBytesPerSecond)
-                progress?(fractionCompleted, status)
-            }
+        let model = VoxtralModelInfo(
+            id: repoId.replacingOccurrences(of: "/", with: "--"),
+            repoId: repoId,
+            name: repoId,
+            description: "",
+            size: "Unknown",
+            quantization: "Unknown",
+            parameters: "Unknown",
+            recommended: false
         )
-
-        progress?(1.0, "Download complete!")
-        print("Model available at: \(modelUrl.path)")
-
-        return modelUrl
+        return try await download(model, progress: progress)
     }
 
     /// Resolve a model identifier to a local path, downloading if necessary
@@ -525,14 +471,15 @@ public class ModelDownloader {
 
     private static func downloadedBytes(at basePath: URL, paths: [String]) -> Int64 {
         var total: Int64 = 0
+        let fm = FileManager.default
 
         for relativePath in paths {
-            let fileURL = basePath.appendingPathComponent(relativePath)
-            guard let values = try? fileURL.resourceValues(forKeys: [.fileSizeKey]),
-                  let fileSize = values.fileSize else {
+            let filePath = basePath.appendingPathComponent(relativePath).path
+            guard let attrs = try? fm.attributesOfItem(atPath: filePath),
+                  let fileSize = attrs[.size] as? Int64 else {
                 continue
             }
-            total += Int64(fileSize)
+            total += fileSize
         }
 
         return total

@@ -26,11 +26,11 @@ public final class OnboardingModel {
 
     public let pageOrder: [Page] = [
         .welcome,
-        .model,
         .shortcut,
         .microphone,
         .accessibility,
         .historyRetention,
+        .model,
         .download,
     ]
 

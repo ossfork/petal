@@ -76,7 +76,11 @@ struct DownloadPage: View {
                 onResume: { Task { await downloadModel.resumeDownload() } },
                 onCancel: { downloadModel.cancelDownload() }
             )
-        case .notDownloaded, .preparing, .failed:
+        case .preparing:
+            ProgressView()
+                .controlSize(.small)
+                .frame(maxWidth: .infinity, alignment: .center)
+        case .notDownloaded, .failed:
             EmptyView()
         }
     }

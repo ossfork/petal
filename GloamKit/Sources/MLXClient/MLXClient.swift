@@ -461,9 +461,9 @@ private extension MLXPipelineModel {
     var whisperKitVariant: String? {
         switch self {
         case .whisperLargeV3Turbo:
-            return "large-v3-turbo"
+            return "openai_whisper-large-v3_turbo"
         case .whisperTiny:
-            return "tiny"
+            return "openai_whisper-tiny"
         case .mini3b, .qwen3ASR06B4bit:
             return nil
         }
@@ -511,9 +511,9 @@ private enum WhisperKitCache {
     private static func whisperKitModelName(for variant: String) -> String {
         switch variant {
         case "whisper-large-v3-turbo":
-            return "large-v3-turbo"
+            return "openai_whisper-large-v3_turbo"
         case "whisper-tiny":
-            return "tiny"
+            return "openai_whisper-tiny"
         default:
             return variant
         }

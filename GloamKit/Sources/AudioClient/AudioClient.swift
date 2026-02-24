@@ -63,99 +63,123 @@ public extension DependencyValues {
 }
 
 @MainActor
-private final class LiveAudioCaptureRuntime: NSObject {
-    private var recorder: AVAudioRecorder?
-    private var meterTask: Task<Void, Never>?
+private final class LiveAudioCaptureRuntime {
+    private var engine: AVAudioEngine?
+    private var audioFile: AVAudioFile?
+    private var writeQueue: DispatchQueue?
+    private var recordingURL: URL?
     private var levelHandler: @Sendable (Double) -> Void = { _ in }
     private var rollingLevels: [Double] = []
     private let rollingWindowSize = 8
 
     var isRecording: Bool {
-        recorder != nil
+        engine?.isRunning ?? false
     }
 
     func startRecording(levelHandler: @escaping @Sendable (Double) -> Void) throws {
-        guard recorder == nil else { return }
-
+        guard engine == nil else { return }
         self.levelHandler = levelHandler
 
         let audioURL = FileManager.default.temporaryDirectory
             .appending(path: "gloam-\(UUID().uuidString).m4a")
 
-        let settings: [String: Any] = [
-            AVFormatIDKey: kAudioFormatMPEG4AAC,
-            AVSampleRateKey: 16_000,
-            AVNumberOfChannelsKey: 1,
-            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
-        ]
+        let engine = AVAudioEngine()
+        let inputNode = engine.inputNode
+        let inputFormat = inputNode.outputFormat(forBus: 0)
 
-        let recorder = try AVAudioRecorder(url: audioURL, settings: settings)
-        recorder.isMeteringEnabled = true
-        recorder.prepareToRecord()
+        let audioFile = try AVAudioFile(
+            forWriting: audioURL,
+            settings: [
+                AVFormatIDKey: kAudioFormatMPEG4AAC,
+                AVSampleRateKey: inputFormat.sampleRate,
+                AVNumberOfChannelsKey: inputFormat.channelCount,
+                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
+            ]
+        )
 
-        guard recorder.record() else {
-            throw AudioClientError.failedToStart
+        let writeQueue = DispatchQueue(label: "com.gloam.audioWrite")
+
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: inputFormat) { [weak self] buffer, _ in
+            writeQueue.async {
+                try? audioFile.write(from: buffer)
+            }
+            let level = Self.calculateLevel(from: buffer)
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                let smoothed = self.smoothedLevel(for: level)
+                self.levelHandler(smoothed)
+            }
         }
 
-        self.recorder = recorder
+        engine.prepare()
+        try engine.start()
+
+        self.engine = engine
+        self.audioFile = audioFile
+        self.writeQueue = writeQueue
+        self.recordingURL = audioURL
         rollingLevels.removeAll(keepingCapacity: true)
-        startMetering()
     }
 
     func stopRecording() throws -> URL {
-        guard let recorder else {
+        guard let engine, let url = recordingURL else {
             throw AudioClientError.notRecording
         }
 
-        meterTask?.cancel()
-        meterTask = nil
+        engine.inputNode.removeTap(onBus: 0)
+        engine.stop()
+        writeQueue?.sync {}
 
-        recorder.stop()
-        self.recorder = nil
+        self.engine = nil
+        self.audioFile = nil
+        self.writeQueue = nil
+        self.recordingURL = nil
         rollingLevels.removeAll(keepingCapacity: true)
         levelHandler(0)
 
-        return recorder.url
+        return url
     }
 
     func cancelRecording() {
-        guard let recorder else { return }
+        guard let engine else { return }
 
-        meterTask?.cancel()
-        meterTask = nil
+        engine.inputNode.removeTap(onBus: 0)
+        engine.stop()
+        writeQueue?.sync {}
 
-        let url = recorder.url
-        recorder.stop()
-        self.recorder = nil
+        let url = recordingURL
+        self.engine = nil
+        self.audioFile = nil
+        self.writeQueue = nil
+        self.recordingURL = nil
         rollingLevels.removeAll(keepingCapacity: true)
         levelHandler(0)
-        try? FileManager.default.removeItem(at: url)
-    }
-
-    private func startMetering() {
-        meterTask?.cancel()
-        meterTask = Task { [weak self] in
-            while !Task.isCancelled {
-                guard let self, let recorder = self.recorder else { return }
-
-                recorder.updateMeters()
-                let averagePower = recorder.averagePower(forChannel: 0)
-                let normalized = max(0, min(1, (averagePower + 50) / 50))
-                let smoothed = self.smoothedLevel(for: normalized)
-                self.levelHandler(smoothed)
-
-                try? await Task.sleep(for: .milliseconds(40))
-            }
+        if let url {
+            try? FileManager.default.removeItem(at: url)
         }
     }
 
-    private func smoothedLevel(for newLevel: Float) -> Double {
-        rollingLevels.append(Double(newLevel))
+    private static func calculateLevel(from buffer: AVAudioPCMBuffer) -> Double {
+        guard let channelData = buffer.floatChannelData else { return 0 }
+        let frames = Int(buffer.frameLength)
+        guard frames > 0 else { return 0 }
 
+        var sum: Float = 0
+        let data = channelData[0]
+        for i in 0..<frames {
+            let sample = data[i]
+            sum += sample * sample
+        }
+        let rms = sqrt(sum / Float(frames))
+        let db = 20 * log10(max(rms, 1e-7))
+        return Double(max(0, min(1, (db + 50) / 50)))
+    }
+
+    private func smoothedLevel(for newLevel: Double) -> Double {
+        rollingLevels.append(newLevel)
         if rollingLevels.count > rollingWindowSize {
             rollingLevels.removeFirst(rollingLevels.count - rollingWindowSize)
         }
-
         let sum = rollingLevels.reduce(0, +)
         return sum / Double(rollingLevels.count)
     }
