@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UI
 
 public struct OnboardingView: View {
     @Bindable var model: OnboardingModel
@@ -21,9 +22,11 @@ public struct OnboardingView: View {
                 switch model.currentPage {
                 case .welcome:
                     WelcomePage()
+                        .xSpacing(.center)
 
                 case .model:
                     ModelSelectionPage(model: model)
+                        .xSpacing(.topLeading)
 
                 case .shortcut:
                     ShortcutPage(model: model)
@@ -36,16 +39,17 @@ public struct OnboardingView: View {
 
                 case .historyRetention:
                     HistoryRetentionPage(model: model)
+                        .xSpacing(.topLeading)
 
                 case .download:
                     DownloadPage(model: model)
+                        .xSpacing(.topLeading)
                 }
             }
             .transition(.scale)
             .animation(.easeIn, value: model.currentPage)
         }
         .frame(width: 820, height: 512)
-        .preferredColorScheme(.dark)
         .onChange(of: model.selectedModelID) { _, _ in
             model.selectedModelChanged()
         }
