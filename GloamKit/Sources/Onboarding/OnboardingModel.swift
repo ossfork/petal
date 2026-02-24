@@ -1,6 +1,7 @@
 import Dependencies
 import Foundation
 import KeyboardShortcuts
+import ModelDownloadFeature
 import Observation
 import PermissionsClient
 import Sauce
@@ -124,11 +125,11 @@ public final class OnboardingModel {
 
     // MARK: - Model Download
 
-    public let modelDownloadViewModel: ModelDownloadViewModel
+    public let modelDownloadViewModel: ModelDownloadModel
 
     public var selectedModelID: String {
         get { modelDownloadViewModel.selectedModelID }
-        set { modelDownloadViewModel.selectedModelID = newValue }
+        set { modelDownloadViewModel.$selectedModelID.withLock { $0 = newValue } }
     }
 
     public var isDownloadingModel: Bool {
@@ -174,13 +175,13 @@ public final class OnboardingModel {
     @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
     @ObservationIgnored private let isPreviewMode: Bool
 
-    public init(initialPage: Page = .welcome, downloadViewModel: ModelDownloadViewModel? = nil, isPreviewMode: Bool = false) {
+    public init(initialPage: Page = .welcome, downloadViewModel: ModelDownloadModel? = nil, isPreviewMode: Bool = false) {
         self.currentPage = initialPage
         self.isPreviewMode = isPreviewMode
-        modelDownloadViewModel = downloadViewModel ?? ModelDownloadViewModel(isPreviewMode: isPreviewMode)
+        modelDownloadViewModel = downloadViewModel ?? ModelDownloadModel(isPreviewMode: isPreviewMode)
 
         if isPreviewMode {
-            historyRetentionMode = .both
+            $historyRetentionMode.withLock { $0 = .both }
             microphonePermissionState = .authorized
             microphoneAuthorized = true
             accessibilityAuthorized = true
@@ -268,7 +269,7 @@ public final class OnboardingModel {
     }
 
     public func completeSetup() {
-        hasCompletedSetup = true
+        $hasCompletedSetup.withLock { $0 = true }
         permissionMonitorTask?.cancel()
         onCompleted?()
     }

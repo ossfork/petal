@@ -20,10 +20,10 @@ func qwenModelIDsMapToQwenOption() {
 
 @Test
 func whisperModelIDsMapToWhisperOptions() {
-    #expect(ModelOption.from(modelID: "whisper-large-v3") == .whisperLargeV3TurboASRFP16)
-    #expect(ModelOption.from(modelID: "mlx-community/whisper-large-v3-turbo-asr-fp16") == .whisperLargeV3TurboASRFP16)
-    #expect(ModelOption.from(modelID: "whisper-tiny") == .whisperTinyMLX)
-    #expect(ModelOption.from(modelID: "mlx-community/whisper-tiny-mlx") == .whisperTinyMLX)
+    #expect(ModelOption.from(modelID: "whisper-large-v3-turbo") == .whisperLargeV3Turbo)
+    #expect(ModelOption.from(modelID: "whisper-large-v3") == .whisperLargeV3Turbo)
+    #expect(ModelOption.from(modelID: "whisper-tiny") == .whisperTiny)
+    #expect(ModelOption.from(modelID: "whisper-tiny-mlx") == .whisperTiny)
 }
 
 @Test
@@ -37,7 +37,7 @@ func modelOptionDescriptorMatchesRawValue() {
 func modelCatalogIncludesBothBackends() {
     #expect(ModelOption.allCases.contains(.mini3b))
     #expect(ModelOption.allCases.contains(.qwen3ASR06B4bit))
-    #expect(ModelOption.allCases.contains(.whisperLargeV3TurboASRFP16))
+    #expect(ModelOption.allCases.contains(.whisperLargeV3Turbo))
 }
 
 @Test
@@ -59,11 +59,11 @@ func qwenSupportsVerbatimOnly() {
 
 @Test
 func whisperSupportsVerbatimOnly() {
-    #expect(ModelOption.whisperLargeV3TurboASRFP16.supportedTranscriptionModes == [.verbatim])
-    #expect(!ModelOption.whisperLargeV3TurboASRFP16.supportsSmartTranscription)
-    #expect(ModelOption.whisperTinyMLX.supportedTranscriptionModes == [.verbatim])
-    #expect(!ModelOption.whisperTinyMLX.supportsSmartTranscription)
-    #expect(ModelOption.whisperLargeV3TurboASRFP16.providerDisplayName == "OpenAI Whisper")
+    #expect(ModelOption.whisperLargeV3Turbo.supportedTranscriptionModes == [.verbatim])
+    #expect(!ModelOption.whisperLargeV3Turbo.supportsSmartTranscription)
+    #expect(ModelOption.whisperTiny.supportedTranscriptionModes == [.verbatim])
+    #expect(!ModelOption.whisperTiny.supportsSmartTranscription)
+    #expect(ModelOption.whisperLargeV3Turbo.providerDisplayName == "WhisperKit")
 }
 
 @Test

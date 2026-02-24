@@ -55,11 +55,11 @@ public final class ModelDownloadModel {
 
     public init(isPreviewMode: Bool = false) {
         if isPreviewMode {
-            selectedModelID = ModelOption.defaultOption.rawValue
+            $selectedModelID.withLock { $0 = ModelOption.defaultOption.rawValue }
             return
         }
 
-        selectedModelID = ModelOption.from(modelID: selectedModelID).rawValue
+        $selectedModelID.withLock { $0 = ModelOption.from(modelID: $0).rawValue }
         refreshDownloadStateForSelectedModel()
     }
 

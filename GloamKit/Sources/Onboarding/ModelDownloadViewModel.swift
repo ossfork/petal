@@ -1,3 +1,0 @@
-import ModelDownloadFeature
-
-public typealias ModelDownloadViewModel = ModelDownloadModel

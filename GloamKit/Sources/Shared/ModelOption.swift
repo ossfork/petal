@@ -3,7 +3,7 @@ import Foundation
 public enum ModelProvider: String, Sendable, Equatable {
     case voxtralCore = "Voxtral Core"
     case mlxAudioSTT = "MLX Audio STT"
-    case openAIWhisper = "OpenAI Whisper"
+    case whisperKit = "WhisperKit"
 }
 
 public struct ModelDescriptor: Sendable, Equatable {
@@ -42,14 +42,14 @@ public struct ModelDescriptor: Sendable, Equatable {
 
 public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
     case qwen3ASR06B4bit = "qwen3-asr-0.6b-4bit"
-    case whisperLargeV3TurboASRFP16 = "whisper-large-v3-turbo-asr-fp16"
-    case whisperTinyMLX = "whisper-tiny-mlx"
+    case whisperLargeV3Turbo = "whisper-large-v3-turbo"
+    case whisperTiny = "whisper-tiny"
     case mini3b = "mini-3b"
     case mini3b8bit = "mini-3b-8bit"
     case mini3b4bit = "mini-3b-4bit"
 
     // Keep legacy Voxtral IDs readable while exposing current catalog options in UI.
-    public static var allCases: [ModelOption] { [.qwen3ASR06B4bit, .whisperLargeV3TurboASRFP16, .whisperTinyMLX, .mini3b] }
+    public static var allCases: [ModelOption] { [.qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny, .mini3b] }
     public static let defaultOption: Self = .qwen3ASR06B4bit
 
     public var id: String { rawValue }
@@ -68,28 +68,28 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 provider: .mlxAudioSTT,
                 recommended: true
             )
-        case .whisperLargeV3TurboASRFP16:
+        case .whisperLargeV3Turbo:
             return ModelDescriptor(
                 id: rawValue,
-                repoID: "mlx-community/whisper-large-v3-turbo-asr-fp16",
-                name: "Whisper Large V3 Turbo (fp16)",
-                summary: "High-accuracy Whisper model for multilingual transcription (requires `mlx-whisper`).",
+                repoID: "argmaxinc/whisperkit-coreml",
+                name: "Whisper Large V3 Turbo",
+                summary: "High-accuracy Whisper model for multilingual transcription via WhisperKit.",
                 size: "~1.6 GB",
-                quantization: "fp16",
+                quantization: "CoreML",
                 parameters: "809M",
-                provider: .openAIWhisper,
+                provider: .whisperKit,
                 recommended: false
             )
-        case .whisperTinyMLX:
+        case .whisperTiny:
             return ModelDescriptor(
                 id: rawValue,
-                repoID: "mlx-community/whisper-tiny-mlx",
-                name: "Whisper Tiny (MLX)",
-                summary: "Smallest Whisper option for fast, lightweight transcription (requires `mlx-whisper`).",
+                repoID: "argmaxinc/whisperkit-coreml",
+                name: "Whisper Tiny",
+                summary: "Smallest Whisper option for fast, lightweight transcription via WhisperKit.",
                 size: "~150 MB",
-                quantization: "fp16",
+                quantization: "CoreML",
                 parameters: "39M",
-                provider: .openAIWhisper,
+                provider: .whisperKit,
                 recommended: false
             )
         case .mini3b:
@@ -157,7 +157,7 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
 
     public var supportedTranscriptionModes: [TranscriptionMode] {
         switch self {
-        case .qwen3ASR06B4bit, .whisperLargeV3TurboASRFP16, .whisperTinyMLX:
+        case .qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny:
             return [.verbatim]
         case .mini3b, .mini3b8bit, .mini3b4bit:
             return TranscriptionMode.allCases
@@ -182,15 +182,15 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
              "qwen3-asr-0.6b",
              "mlx-community/qwen3-asr-0.6b-4bit":
             return .qwen3ASR06B4bit
-        case Self.whisperLargeV3TurboASRFP16.rawValue,
-             "whisper-large-v3-turbo",
+        case Self.whisperLargeV3Turbo.rawValue,
+             "whisper-large-v3-turbo-asr-fp16",
              "whisper-large-v3",
              "mlx-community/whisper-large-v3-turbo-asr-fp16":
-            return .whisperLargeV3TurboASRFP16
-        case Self.whisperTinyMLX.rawValue,
-             "whisper-tiny",
+            return .whisperLargeV3Turbo
+        case Self.whisperTiny.rawValue,
+             "whisper-tiny-mlx",
              "mlx-community/whisper-tiny-mlx":
-            return .whisperTinyMLX
+            return .whisperTiny
         case Self.mini3b.rawValue,
              Self.mini3b8bit.rawValue,
              Self.mini3b4bit.rawValue,

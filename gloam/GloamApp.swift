@@ -3,6 +3,7 @@ import Darwin
 import os
 import Sparkle
 import SwiftUI
+import WindowClient
 
 @main
 struct GloamApp: App {
@@ -88,7 +89,7 @@ private final class SingleInstanceLock {
     }
 }
 
-final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate {
     let updaterController = SPUStandardUpdaterController(
         startingUpdater: false,
         updaterDelegate: nil,
@@ -96,7 +97,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     )
     weak var model: AppModel?
     var updatesModel: CheckForUpdatesModel?
-    private var aboutBoxWindowController: NSWindowController?
+    @Dependency(\.windowClient) private var windowClient
     private let logger = Logger(subsystem: "com.optimalapps.gloam", category: "AppDelegate")
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -115,42 +116,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
 
-    nonisolated func windowWillClose(_ notification: Notification) {
-        Task { @MainActor in
-            let closingWindow = notification.object as? NSWindow
-            if closingWindow == self.aboutBoxWindowController?.window {
-                closingWindow?.delegate = nil
-                self.aboutBoxWindowController = nil
-                NSApp.setActivationPolicy(.accessory)
-            }
-        }
-    }
-
     @objc
     func showAboutPanel() {
-        guard aboutBoxWindowController == nil else {
-            aboutBoxWindowController?.window?.makeKeyAndOrderFront(nil)
-            return
-        }
-
         NSApp.setActivationPolicy(.regular)
-
-        let styleMask: NSWindow.StyleMask = [.closable, .titled, .fullSizeContentView]
-        let window = NSWindow()
-        window.styleMask = styleMask
-        window.isMovableByWindowBackground = true
-        window.backgroundColor = .clear
-        window.level = .floating
-        window.titlebarAppearsTransparent = true
-        window.titleVisibility = .hidden
-        window.delegate = self
-        window.contentView = NSHostingView(rootView: AboutView(updatesModel: updatesModel))
-        window.center()
-
-        aboutBoxWindowController = NSWindowController(window: window)
-        aboutBoxWindowController?.showWindow(aboutBoxWindowController?.window)
-
-        NSApp.activate(ignoringOtherApps: true)
+        let updatesModel = self.updatesModel
+        Task {
+            await windowClient.show(.about, {
+                NSHostingView(rootView: AboutView(updatesModel: updatesModel))
+            }, {
+                NSApp.setActivationPolicy(.accessory)
+            })
+        }
     }
 
     private func enforceSingleInstance() {

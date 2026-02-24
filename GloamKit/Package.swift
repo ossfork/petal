@@ -14,6 +14,7 @@ extension Target.Dependency {
     static let permissionsClient: Self = "PermissionsClient"
     static let downloadClient: Self = "DownloadClient"
     static let historyClient: Self = "HistoryClient"
+    static let windowClient: Self = "WindowClient"
 
     static let dependencies: Self = .product(name: "Dependencies", package: "swift-dependencies")
     static let dependenciesMacros: Self = .product(name: "DependenciesMacros", package: "swift-dependencies")
@@ -27,6 +28,7 @@ extension Target.Dependency {
     static let mlxAudioSTT: Self = .product(name: "MLXAudioSTT", package: "MLXAudio")
     static let huggingFace: Self = .product(name: "HuggingFace", package: "swift-huggingface")
     static let voxtralCore: Self = .product(name: "VoxtralCore", package: "MLXVoxtralSwift")
+    static let whisperKit: Self = .product(name: "WhisperKit", package: "WhisperKit")
 }
 
 let package = Package(
@@ -54,6 +56,7 @@ let package = Package(
         .library(name: "HistoryClient", targets: ["HistoryClient"]),
         .library(name: "SoundClient", targets: ["SoundClient"]),
         .library(name: "LogClient", targets: ["LogClient"]),
+        .library(name: "WindowClient", targets: ["WindowClient"]),
     ],
     dependencies: [
         .package(name: "MLXAudio", path: "../mlx-audio-swift"),
@@ -61,10 +64,11 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.11.0"),
         .package(url: "https://github.com/pointfreeco/swift-sharing.git", from: "2.7.4"),
         .package(url: "https://github.com/pointfreeco/swift-identified-collections", from: "1.1.1"),
-        .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "1.7.0"),
+        .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "1.7.2"),
         .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.4.0"),
         .package(url: "https://github.com/Clipy/Sauce.git", from: "2.4.1"),
-        .package(url: "https://github.com/huggingface/swift-huggingface.git", from: "0.6.0"),
+        .package(url: "https://github.com/huggingface/swift-huggingface", from: "0.7.1"),
+        .package(url: "https://github.com/argmaxinc/WhisperKit", from: "0.15.0"),
     ],
     targets: [
         .target(
@@ -158,6 +162,7 @@ let package = Package(
                 .mlxAudioCore,
                 .mlxAudioSTT,
                 .huggingFace,
+                .whisperKit,
             ]
         ),
         .target(
@@ -205,6 +210,14 @@ let package = Package(
             name: "LogClient",
             dependencies: [
                 .shared,
+            ]
+        ),
+        .target(
+            name: "WindowClient",
+            dependencies: [
+                .dependencies,
+                .dependenciesMacros,
+                .casePaths,
             ]
         ),
         .testTarget(

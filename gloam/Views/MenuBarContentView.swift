@@ -112,7 +112,7 @@ struct MenuBarContentView: View {
                         id: UUID(),
                         timestamp: Date(),
                         transcript: "This transcript should copy from the history submenu.",
-                        modelID: ModelOption.whisperLargeV3TurboASRFP16.rawValue,
+                        modelID: ModelOption.whisperLargeV3Turbo.rawValue,
                         transcriptionMode: "smart",
                         audioDurationSeconds: 5.8,
                         transcriptionElapsedSeconds: 1.9,

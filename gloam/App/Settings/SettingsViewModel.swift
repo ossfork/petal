@@ -1,5 +1,6 @@
 import Dependencies
 import HistoryClient
+import ModelDownloadFeature
 import Observation
 import Onboarding
 import PermissionsClient
@@ -8,6 +9,14 @@ import Shared
 @MainActor
 @Observable
 final class SettingsViewModel {
+    @ObservationIgnored @Shared(.trimSilenceEnabled) var trimSilenceEnabled = true
+    @ObservationIgnored @Shared(.autoSpeedEnabled) var autoSpeedEnabled = true
+    @ObservationIgnored @Shared(.transcriptionMode) var transcriptionMode: TranscriptionMode = .verbatim
+    @ObservationIgnored @Shared(.smartPrompt) var smartPrompt = "Clean up filler words and repeated phrases. Return a polished version of what was said."
+    @ObservationIgnored @Shared(.historyRetentionMode) var historyRetentionMode: HistoryRetentionMode = .both
+    @ObservationIgnored @Shared(.compressHistoryAudio) var compressHistoryAudio = false
+    @ObservationIgnored @Shared(.transcriptHistoryDays) private var transcriptHistoryDays: [TranscriptHistoryDay] = []
+
     var microphoneAuthorized = false
     var accessibilityAuthorized = false
     var permissionMessage: String?
@@ -48,36 +57,6 @@ final class SettingsViewModel {
         modelDownloadViewModel.lastError
     }
 
-    var trimSilenceEnabled: Bool {
-        get { appModel.trimSilenceEnabled }
-        set { appModel.trimSilenceEnabled = newValue }
-    }
-
-    var autoSpeedEnabled: Bool {
-        get { appModel.autoSpeedEnabled }
-        set { appModel.autoSpeedEnabled = newValue }
-    }
-
-    var transcriptionMode: TranscriptionMode {
-        get { appModel.transcriptionMode }
-        set { appModel.transcriptionMode = newValue }
-    }
-
-    var smartPrompt: String {
-        get { appModel.smartPrompt }
-        set { appModel.smartPrompt = newValue }
-    }
-
-    var historyRetentionMode: HistoryRetentionMode {
-        get { appModel.historyRetentionMode }
-        set { appModel.historyRetentionModeChanged(newValue) }
-    }
-
-    var compressHistoryAudio: Bool {
-        get { appModel.compressHistoryAudio }
-        set { appModel.compressHistoryAudio = newValue }
-    }
-
     var selectedModelOption: ModelOption? {
         modelDownloadViewModel.selectedModelOption
     }
@@ -86,13 +65,11 @@ final class SettingsViewModel {
         historyClient.historyDirectoryPath()
     }
 
-    private let appModel: AppModel
-    private let modelDownloadViewModel: ModelDownloadViewModel
+    private let modelDownloadViewModel: ModelDownloadModel
     @ObservationIgnored @Dependency(\.permissionsClient) private var permissionsClient
     @ObservationIgnored @Dependency(\.historyClient) private var historyClient
 
     init(appModel: AppModel) {
-        self.appModel = appModel
         self.modelDownloadViewModel = appModel.modelDownloadViewModel
     }
 
@@ -133,6 +110,11 @@ final class SettingsViewModel {
 
     func cancelButtonTapped() {
         modelDownloadViewModel.cancelButtonTapped()
+    }
+
+    func historyRetentionModeChanged(_ mode: HistoryRetentionMode) {
+        historyRetentionMode = mode
+        transcriptHistoryDays = historyClient.applyRetention(mode, transcriptHistoryDays)
     }
 
     func openHistoryInFinder() {

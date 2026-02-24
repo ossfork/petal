@@ -162,8 +162,8 @@ private extension ModelProvider {
             return .voxtral
         case .mlxAudioSTT:
             return .mlxAudioSTT
-        case .openAIWhisper:
-            return .mlxWhisper
+        case .whisperKit:
+            return .whisperKit
         }
     }
 }

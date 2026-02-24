@@ -31,7 +31,7 @@ struct HistoryRetentionPage: View {
                 title: "Text Only",
                 description: "Save the transcription text. Audio is not stored.",
                 isSelected: model.historyRetentionMode == .transcripts
-            ) { model.historyRetentionMode = .transcripts }
+            ) { model.$historyRetentionMode.withLock { $0 = .transcripts } }
 
             RetentionCard(
                 symbol: "doc.text.below.ecg",
@@ -39,14 +39,14 @@ struct HistoryRetentionPage: View {
                 description: "Keep audio recordings and transcription text.",
                 recommended: true,
                 isSelected: model.historyRetentionMode == .both
-            ) { model.historyRetentionMode = .both }
+            ) { model.$historyRetentionMode.withLock { $0 = .both } }
 
             RetentionCard(
                 symbol: "hand.raised.fill",
                 title: "Private",
                 description: "Nothing is saved. Transcriptions are pasted and discarded.",
                 isSelected: model.historyRetentionMode == .none
-            ) { model.historyRetentionMode = .none }
+            ) { model.$historyRetentionMode.withLock { $0 = .none } }
         }
         .frame(height: 220)
         .slideIn(active: isAnimating, delay: 0.5)
@@ -59,12 +59,12 @@ struct HistoryRetentionPage: View {
 
 #Preview("History Retention - Off") {
     OnboardingView(model: .makePreview(page: .historyRetention) { model in
-        model.historyRetentionMode = .none
+        model.$historyRetentionMode.withLock { $0 = .none }
     })
 }
 
 #Preview("History Retention - Transcripts") {
     OnboardingView(model: .makePreview(page: .historyRetention) { model in
-        model.historyRetentionMode = .transcripts
+        model.$historyRetentionMode.withLock { $0 = .transcripts }
     })
 }

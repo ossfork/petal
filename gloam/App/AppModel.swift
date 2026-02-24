@@ -8,6 +8,7 @@ import KeyboardClient
 import KeyboardShortcuts
 import LogClient
 import Observation
+import ModelDownloadFeature
 import Onboarding
 import os
 import PasteClient
@@ -17,6 +18,7 @@ import Shared
 import SoundClient
 import TranscriptionClient
 import UserNotifications
+import WindowClient
 
 @MainActor
 @Observable
@@ -43,7 +45,7 @@ final class AppModel {
     @ObservationIgnored @Shared(.historyRetentionMode) var historyRetentionMode: HistoryRetentionMode = .both
     @ObservationIgnored @Shared(.transcriptHistoryDays) var transcriptHistoryDays: [TranscriptHistoryDay] = []
 
-    let modelDownloadViewModel: ModelDownloadViewModel
+    let modelDownloadViewModel: ModelDownloadModel
 
     var selectedModelID: String {
         get { modelDownloadViewModel.selectedModelID }
@@ -74,6 +76,7 @@ final class AppModel {
     @ObservationIgnored @Dependency(\.soundClient) private var soundClient
     @ObservationIgnored @Dependency(\.historyClient) private var historyClient
     @ObservationIgnored @Dependency(\.logClient) private var logClient
+    @ObservationIgnored @Dependency(\.windowClient) private var windowClient
     @ObservationIgnored private let logger = Logger(subsystem: "com.optimalapps.gloam", category: "AppModel")
 
     @ObservationIgnored private let isPreviewMode: Bool
@@ -84,7 +87,6 @@ final class AppModel {
     @ObservationIgnored private var isAwaitingCancelRecordingConfirmation = false
     @ObservationIgnored private var ignoreNextShortcutKeyUp = false
     @ObservationIgnored private var currentShortcutPressStart: Date?
-    @ObservationIgnored private var onboardingWindowController: OnboardingWindowController?
     @ObservationIgnored private var transcriptionProgressTask: Task<Void, Never>?
     @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
     @ObservationIgnored private var estimatedTranscriptionRTF = 2.2
@@ -96,7 +98,7 @@ final class AppModel {
 
     init(isPreviewMode: Bool = AppModel.isRunningInSwiftUIPreview) {
         self.isPreviewMode = isPreviewMode
-        modelDownloadViewModel = ModelDownloadViewModel(isPreviewMode: isPreviewMode)
+        modelDownloadViewModel = ModelDownloadModel(isPreviewMode: isPreviewMode)
 
         if isPreviewMode {
             hasCompletedSetup = true
@@ -206,11 +208,6 @@ final class AppModel {
         if transcriptionMode != normalizedMode {
             transcriptionMode = normalizedMode
         }
-    }
-
-    func historyRetentionModeChanged(_ mode: HistoryRetentionMode) {
-        historyRetentionMode = mode
-        transcriptHistoryDays = historyClient.applyRetention(mode, transcriptHistoryDays)
     }
 
     func changeModelButtonTapped() {
@@ -614,7 +611,7 @@ final class AppModel {
         selectedModelDidChange()
         hasCompletedSetup = true
         transientMessage = "You're all set. Tap your shortcut to start, or hold for push-to-talk."
-        onboardingWindowController?.close()
+        Task { await windowClient.close(WindowConfig.onboarding.id) }
         onboardingModel = nil
         logger.info("Onboarding completed")
         consoleLog("Onboarding completed")
@@ -625,27 +622,12 @@ final class AppModel {
         if isPreviewMode { return }
         guard let onboardingModel else { return }
 
-        let controller = OnboardingWindowController(onboardingModel: onboardingModel)
-        onboardingWindowController = controller
-
-        if let onboardingWindow = controller.window {
-            for window in NSApp.windows {
-                guard
-                    window !== onboardingWindow,
-                    window.identifier?.rawValue == "GloamOnboardingWindow"
-                else { continue }
-                window.close()
-            }
+        Task {
+            await windowClient.closeAll(WindowConfig.onboarding.id)
+            await windowClient.show(.onboarding, {
+                NSHostingView(rootView: OnboardingView(model: onboardingModel))
+            }, {})
         }
-
-        NSRunningApplication.current.activate(options: [.activateAllWindows])
-        controller.showWindow(nil)
-        controller.window?.center()
-        controller.window?.collectionBehavior.insert(.moveToActiveSpace)
-        controller.window?.collectionBehavior.insert(.fullScreenAuxiliary)
-        controller.window?.orderFrontRegardless()
-        controller.window?.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func showSettingsWindow() {

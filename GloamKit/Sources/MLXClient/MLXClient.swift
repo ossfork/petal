@@ -5,11 +5,12 @@ import HuggingFace
 import MLXAudioCore
 import MLXAudioSTT
 import VoxtralCore
+import WhisperKit
 
 public enum MLXModelBackend: String, Sendable, Equatable {
     case voxtral
     case mlxAudioSTT
-    case mlxWhisper
+    case whisperKit
 }
 
 public struct MLXModelInfo: Sendable, Equatable {
@@ -49,8 +50,8 @@ public struct MLXModelInfo: Sendable, Equatable {
 public enum MLXPipelineModel: String, Sendable {
     case mini3b
     case qwen3ASR06B4bit
-    case whisperLargeV3TurboASRFP16
-    case whisperTinyMLX
+    case whisperLargeV3Turbo
+    case whisperTiny
 }
 
 public enum MLXTranscriptionMode: Sendable {
@@ -98,8 +99,10 @@ extension MLXClient: DependencyKey {
                 switch info.backend {
                 case .voxtral:
                     return ModelDownloader.findModelPath(for: info.voxtralModelInfo) != nil
-                case .mlxAudioSTT, .mlxWhisper:
+                case .mlxAudioSTT:
                     return MLXAudioCache.isModelDownloaded(repoId: info.repoId)
+                case .whisperKit:
+                    return WhisperKitCache.isModelDownloaded(variant: info.id)
                 }
             },
             downloadModel: { info, progress in
@@ -107,8 +110,10 @@ extension MLXClient: DependencyKey {
                     switch info.backend {
                     case .voxtral:
                         _ = try await ModelDownloader.download(info.voxtralModelInfo, progress: progress)
-                    case .mlxAudioSTT, .mlxWhisper:
+                    case .mlxAudioSTT:
                         try await MLXAudioCache.downloadSnapshotIfNeeded(repoId: info.repoId, progress: progress)
+                    case .whisperKit:
+                        try await WhisperKitCache.downloadIfNeeded(variant: info.id, progress: progress)
                     }
                 } catch {
                     throw normalizeDownloadError(error)
@@ -124,8 +129,10 @@ extension MLXClient: DependencyKey {
                 switch info.backend {
                 case .voxtral:
                     return ModelDownloader.findModelPath(for: info.voxtralModelInfo)
-                case .mlxAudioSTT, .mlxWhisper:
+                case .mlxAudioSTT:
                     return ModelDownloader.findModelPath(for: info.voxtralModelInfo)
+                case .whisperKit:
+                    return WhisperKitCache.modelDirectoryURL(variant: info.id)
                 }
             },
             prepareModelIfNeeded: { model in
@@ -167,6 +174,8 @@ private actor LiveMLXRuntime {
     private var loadedModel: MLXPipelineModel?
     private var voxtralPipeline: VoxtralPipeline?
     private var qwen3ASRModel: Qwen3ASRModel?
+    // WhisperKit is not Sendable; access is serialized by the actor.
+    private nonisolated(unsafe) var whisperKitInstance: WhisperKit?
 
     func prepareModelIfNeeded(model: MLXPipelineModel) async throws {
         if loadedModel == model {
@@ -197,8 +206,12 @@ private actor LiveMLXRuntime {
                 throw MLXError.invalidModelIdentifier(model.rawValue)
             }
             self.qwen3ASRModel = try await Qwen3ASRModel.fromPretrained(repoID)
-        case .whisperLargeV3TurboASRFP16, .whisperTinyMLX:
-            break
+
+        case .whisperLargeV3Turbo, .whisperTiny:
+            guard let variant = model.whisperKitVariant else {
+                throw MLXError.invalidModelIdentifier(model.rawValue)
+            }
+            self.whisperKitInstance = try await WhisperKit(model: variant)
         }
 
         self.loadedModel = model
@@ -227,11 +240,12 @@ private actor LiveMLXRuntime {
                 throw MLXError.pipelineUnavailable
             }
             return try transcribeWithQwen(audioURL: audioURL, mode: mode, model: qwen3ASRModel)
-        case .whisperLargeV3TurboASRFP16, .whisperTinyMLX:
-            guard let repoID = loadedModel.whisperRepoID else {
-                throw MLXError.invalidModelIdentifier(loadedModel.rawValue)
+
+        case .whisperLargeV3Turbo, .whisperTiny:
+            guard let whisperKitInstance else {
+                throw MLXError.pipelineUnavailable
             }
-            return try await transcribeWithWhisper(audioURL: audioURL, mode: mode, repoID: repoID)
+            return try await transcribeWithWhisperKit(audioURL: audioURL, whisperKit: whisperKitInstance)
         }
     }
 
@@ -239,7 +253,21 @@ private actor LiveMLXRuntime {
         voxtralPipeline?.unload()
         voxtralPipeline = nil
         qwen3ASRModel = nil
+        whisperKitInstance = nil
         loadedModel = nil
+    }
+
+    private nonisolated func transcribeWithWhisperKit(
+        audioURL: URL,
+        whisperKit: WhisperKit
+    ) async throws -> String {
+        let results = try await whisperKit.transcribe(audioPath: audioURL.path)
+        let text = results.map(\.text).joined(separator: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else {
+            throw MLXError.pipelineUnavailable
+        }
+        return text
     }
 
     // Qwen3 ASR currently supports direct ASR generation only, so smart mode falls back to verbatim output.
@@ -263,27 +291,11 @@ private actor LiveMLXRuntime {
         }
     }
 
-    private func transcribeWithWhisper(
-        audioURL: URL,
-        mode: MLXTranscriptionMode,
-        repoID: String
-    ) async throws -> String {
-        let text = try await runWhisperTranscription(audioURL: audioURL, repoID: repoID)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        switch mode {
-        case .verbatim:
-            return text
-        case .smart:
-            return text
-        }
-    }
 }
 
 private enum MLXError: LocalizedError {
     case invalidModelIdentifier(String)
     case pipelineUnavailable
-    case whisperRuntimeUnavailable(String)
 
     var errorDescription: String? {
         switch self {
@@ -291,8 +303,6 @@ private enum MLXError: LocalizedError {
             return "Invalid model identifier: \(identifier)"
         case .pipelineUnavailable:
             return "Transcription pipeline is not available."
-        case let .whisperRuntimeUnavailable(message):
-            return "Whisper runtime is unavailable: \(message)"
         }
     }
 }
@@ -425,106 +435,64 @@ private extension MLXModelInfo {
 private extension MLXPipelineModel {
     var qwenRepoID: String? {
         switch self {
-        case .mini3b:
+        case .mini3b, .whisperLargeV3Turbo, .whisperTiny:
             return nil
         case .qwen3ASR06B4bit:
             return "mlx-community/Qwen3-ASR-0.6B-4bit"
-        case .whisperLargeV3TurboASRFP16, .whisperTinyMLX:
-            return nil
         }
     }
 
-    var whisperRepoID: String? {
+    var whisperKitVariant: String? {
         switch self {
+        case .whisperLargeV3Turbo:
+            return "large-v3-turbo"
+        case .whisperTiny:
+            return "tiny"
         case .mini3b, .qwen3ASR06B4bit:
             return nil
-        case .whisperLargeV3TurboASRFP16:
-            return "mlx-community/whisper-large-v3-turbo-asr-fp16"
-        case .whisperTinyMLX:
-            return "mlx-community/whisper-tiny-mlx"
         }
     }
 }
 
-private func runWhisperTranscription(audioURL: URL, repoID: String) async throws -> String {
-    try await Task.detached(priority: .utility) {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        process.arguments = [
-            "python3",
-            "-c",
-            """
-            import json
-            import sys
+private enum WhisperKitCache {
+    static func isModelDownloaded(variant: String) -> Bool {
+        guard let url = modelDirectoryURL(variant: variant) else { return false }
+        return FileManager.default.fileExists(atPath: url.path)
+    }
 
-            audio_path = sys.argv[1]
-            repo_id = sys.argv[2]
+    static func downloadIfNeeded(
+        variant: String,
+        progress: @escaping @Sendable (Double, String) -> Void
+    ) async throws {
+        progress(0, "Downloading WhisperKit model...")
+        // WhisperKit handles download internally during init.
+        // We trigger it here so the download client can report progress.
+        _ = try await WhisperKit(model: whisperKitModelName(for: variant))
+        progress(1, "Download complete")
+    }
 
-            try:
-                import mlx_whisper
-            except Exception:
-                print(json.dumps({
-                    "error": "Python module `mlx_whisper` is required for Whisper models. Install it with `pip3 install mlx-whisper`."
-                }))
-                raise SystemExit(2)
+    static func modelDirectoryURL(variant: String) -> URL? {
+        let baseDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
+            .appendingPathComponent("huggingface")
+            .appendingPathComponent("models")
+            .appendingPathComponent("argmaxinc")
+            .appendingPathComponent("whisperkit-coreml")
+        guard let baseDir else { return nil }
 
-            result = mlx_whisper.transcribe(audio_path, path_or_hf_repo=repo_id, language="en")
-            if isinstance(result, dict):
-                text = result.get("text", "")
-            else:
-                text = str(result)
-            print(json.dumps({"text": text}))
-            """,
-            audioURL.path,
-            repoID,
-        ]
+        let modelName = whisperKitModelName(for: variant)
+        let modelDir = baseDir.appendingPathComponent(modelName)
+        guard FileManager.default.fileExists(atPath: modelDir.path) else { return nil }
+        return modelDir
+    }
 
-        let stdoutPipe = Pipe()
-        let stderrPipe = Pipe()
-        process.standardOutput = stdoutPipe
-        process.standardError = stderrPipe
-
-        do {
-            try process.run()
-        } catch {
-            throw MLXError.whisperRuntimeUnavailable(error.localizedDescription)
+    private static func whisperKitModelName(for variant: String) -> String {
+        switch variant {
+        case "whisper-large-v3-turbo":
+            return "large-v3-turbo"
+        case "whisper-tiny":
+            return "tiny"
+        default:
+            return variant
         }
-
-        process.waitUntilExit()
-
-        let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
-        let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
-        let stdoutText = String(decoding: stdoutData, as: UTF8.self)
-        let stderrText = String(decoding: stderrData, as: UTF8.self)
-
-        let lines = stdoutText
-            .split(whereSeparator: \.isNewline)
-            .map(String.init)
-            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-
-        if let lastLine = lines.last,
-           let data = lastLine.data(using: .utf8),
-           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-        {
-            if process.terminationStatus == 0 {
-                if let text = json["text"] as? String {
-                    return text
-                }
-                throw MLXError.whisperRuntimeUnavailable("Whisper returned an unexpected payload.")
-            }
-
-            let message = (json["error"] as? String) ?? stderrText.trimmingCharacters(in: .whitespacesAndNewlines)
-            throw MLXError.whisperRuntimeUnavailable(message.isEmpty ? "Unknown Whisper runtime error." : message)
-        }
-
-        if process.terminationStatus == 0 {
-            let fallback = stdoutText.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !fallback.isEmpty {
-                return fallback
-            }
-        }
-
-        let message = stderrText.trimmingCharacters(in: .whitespacesAndNewlines)
-        throw MLXError.whisperRuntimeUnavailable(message.isEmpty ? "Whisper transcription failed." : message)
-    }.value
+    }
 }

@@ -1,3 +1,4 @@
+import ModelDownloadFeature
 import Shared
 import SwiftUI
 import UI
@@ -83,7 +84,7 @@ struct DownloadPage: View {
         downloadModel.downloadProgress >= 1 && !downloadModel.isDownloadingModel && !downloadModel.isPaused
     }
 
-    private var downloadModel: ModelDownloadViewModel {
+    private var downloadModel: ModelDownloadModel {
         model.modelDownloadViewModel
     }
 }

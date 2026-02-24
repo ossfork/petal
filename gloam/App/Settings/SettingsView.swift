@@ -152,24 +152,15 @@ struct TranscriptionPane: View {
             }
 
             Section("Audio Preprocessing") {
-                Toggle("Trim silence", isOn: Binding(
-                    get: { viewModel.trimSilenceEnabled },
-                    set: { viewModel.trimSilenceEnabled = $0 }
-                ))
-                Toggle("Auto speed-up", isOn: Binding(
-                    get: { viewModel.autoSpeedEnabled },
-                    set: { viewModel.autoSpeedEnabled = $0 }
-                ))
+                Toggle("Trim silence", isOn: Binding(viewModel.$trimSilenceEnabled))
+                Toggle("Auto speed-up", isOn: Binding(viewModel.$autoSpeedEnabled))
                 Text("Remove leading/trailing silence and speed up quiet audio before transcription.")
                     .settingDescription()
             }
 
             if viewModel.selectedModelOption?.supportsSmartTranscription == true {
                 Section("Mode") {
-                    Picker("Transcription Mode", selection: Binding(
-                        get: { viewModel.transcriptionMode },
-                        set: { viewModel.transcriptionMode = $0 }
-                    )) {
+                    Picker("Transcription Mode", selection: Binding(viewModel.$transcriptionMode)) {
                         ForEach(TranscriptionMode.allCases) { mode in
                             Text(mode.displayName).tag(mode)
                         }
@@ -181,10 +172,7 @@ struct TranscriptionPane: View {
 
                 if viewModel.transcriptionMode == .smart {
                     Section("Smart Prompt") {
-                        TextField("Prompt", text: Binding(
-                            get: { viewModel.smartPrompt },
-                            set: { viewModel.smartPrompt = $0 }
-                        ), axis: .vertical)
+                        TextField("Prompt", text: Binding(viewModel.$smartPrompt), axis: .vertical)
                         .lineLimit(3...6)
                     }
                 }
@@ -204,7 +192,7 @@ struct HistoryPane: View {
             Section("Retention") {
                 Picker("Keep", selection: Binding(
                     get: { viewModel.historyRetentionMode },
-                    set: { viewModel.historyRetentionMode = $0 }
+                    set: { viewModel.historyRetentionModeChanged($0) }
                 )) {
                     ForEach(HistoryRetentionMode.allCases) { mode in
                         Text(mode.displayName).tag(mode)
@@ -213,10 +201,7 @@ struct HistoryPane: View {
             }
 
             Section("Compression") {
-                Toggle("Compress audio", isOn: Binding(
-                    get: { viewModel.compressHistoryAudio },
-                    set: { viewModel.compressHistoryAudio = $0 }
-                ))
+                Toggle("Compress audio", isOn: Binding(viewModel.$compressHistoryAudio))
                 Text("Convert saved audio to AAC to save disk space.")
                     .settingDescription()
             }
