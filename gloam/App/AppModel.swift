@@ -115,6 +115,7 @@ final class AppModel {
     var accessibilityAuthorized = false
 
     var onboardingModel: OnboardingModel?
+    @ObservationIgnored var updatesModel: CheckForUpdatesModel?
 
     @ObservationIgnored @Dependency(\.continuousClock) private var clock
     @ObservationIgnored @Dependency(\.date.now) private var now
@@ -139,7 +140,7 @@ final class AppModel {
     @ObservationIgnored private var ignoreNextShortcutKeyUp = false
     @ObservationIgnored private var currentShortcutPressStart: Date?
     @ObservationIgnored private var onboardingWindowController: OnboardingWindowController?
-    @ObservationIgnored private var settingsWindowController: NSWindowController?
+    @ObservationIgnored private var settingsWindowController: SettingsWindowController?
     @ObservationIgnored private var transcriptionProgressTask: Task<Void, Never>?
     @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
     @ObservationIgnored private var estimatedTranscriptionRTF = 2.2
@@ -709,7 +710,21 @@ final class AppModel {
 
     private func showSettingsWindow() {
         if isPreviewMode { return }
-        // TODO: rebuild settings window
+
+        if let existing = settingsWindowController?.window, existing.isVisible {
+            existing.orderFrontRegardless()
+            existing.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
+        let viewModel = SettingsViewModel(appModel: self)
+        let controller = SettingsWindowController(viewModel: viewModel, updatesModel: updatesModel)
+        settingsWindowController = controller
+        controller.window?.center()
+        controller.window?.orderFrontRegardless()
+        controller.window?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     // MARK: - Private: Shortcuts & Keyboard

@@ -37,6 +37,7 @@ struct GloamApp: App {
                     if updatesModel == nil {
                         updatesModel = CheckForUpdatesModel(updater: appDelegate.updaterController.updater)
                         menuBarViewModel.setUpdatesModel(updatesModel)
+                        model.updatesModel = updatesModel
                     }
                 }
         }
