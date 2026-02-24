@@ -122,6 +122,9 @@ extension MLXClient: TestDependencyKey {
         Self(
             isModelDownloaded: { _ in false },
             downloadModel: { _, _ in },
+            pauseDownload: {},
+            cancelDownload: {},
+            modelDirectoryURL: { _ in nil },
             prepareModelIfNeeded: { _ in },
             transcribe: { _, _ in "Test transcription" },
             unloadModel: {}

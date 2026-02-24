@@ -64,7 +64,10 @@ extension DownloadClient: TestDependencyKey {
     public static var testValue: Self {
         Self(
             isModelDownloaded: { _ in false },
-            downloadModel: { _, _ in }
+            downloadModel: { _, _ in },
+            pauseDownload: {},
+            cancelDownload: {},
+            modelDirectoryURL: { _ in nil }
         )
     }
 }
