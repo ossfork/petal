@@ -7,11 +7,27 @@ struct ModelInfoRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            providerIcon
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 44, height: 44)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+            ZStack(alignment: .bottomTrailing) {
+                providerIcon
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 44, height: 44)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                if option.provider == .voxtralCore {
+                    Image.appleIntelligence
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 16, height: 16)
+                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                .strokeBorder(.black.opacity(0.4), lineWidth: 1)
+                        )
+                        .offset(x: 2, y: 2)
+                }
+            }
+            .frame(width: 44, height: 44)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(option.displayName)
@@ -29,14 +45,16 @@ struct ModelInfoRow: View {
                         color: .orange
                     )
                     ratingView(
-                        icon: "brain",
+                        icon: "sparkle",
                         score: option.descriptor.smartScore,
-                        color: .cyan
+                        color: .yellow
                     )
 
-                    Text(option.sizeLabel)
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
+                    if let sizeLabel = option.sizeLabel {
+                        Text(sizeLabel)
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
                 }
             }
         }
@@ -44,9 +62,9 @@ struct ModelInfoRow: View {
 
     private func ratingView(icon: String, score: Int, color: Color) -> some View {
         HStack(spacing: 2) {
-            ForEach(0..<5, id: \.self) { i in
+            ForEach(0 ..< 5, id: \.self) { i in
                 Image(systemName: icon)
-                    .foregroundStyle(i < score ? AnyShapeStyle(color) : AnyShapeStyle(.quaternary))
+                    .foregroundStyle(i < score ? AnyShapeStyle(color) : AnyShapeStyle(.tertiary))
             }
         }
         .font(.system(size: 9))

@@ -27,10 +27,7 @@ public class VoxtralPipeline: @unchecked Sendable {
     public enum Model: String, CaseIterable, Sendable {
         case mini3b = "mini-3b"
         case mini3b8bit = "mini-3b-8bit"
-        case mini3b4bit = "mini-3b-4bit"
-        case small24b = "small-24b"
         case small24b8bit = "small-24b-8bit"
-        case small4bit = "small-4bit"
 
         /// Get the HuggingFace repo ID for this model
         public var repoId: String {
@@ -38,15 +35,9 @@ public class VoxtralPipeline: @unchecked Sendable {
             case .mini3b:
                 return "mlx-community/Voxtral-Mini-3B-2507-bf16"
             case .mini3b8bit:
-                return "mlx-community/Voxtral-Mini-3B-2507-bf16"
-            case .mini3b4bit:
-                return "mlx-community/Voxtral-Mini-3B-2507-bf16"
-            case .small24b:
-                return "mistralai/Voxtral-Small-24B-2507"
+                return "mzbac/voxtral-mini-3b-8bit"
             case .small24b8bit:
                 return "mzbac/Voxtral-Small-24B-2507-8bit"
-            case .small4bit:
-                return "VincentGOURBIN/voxtral-small-4bit-mixed"
             }
         }
 
@@ -54,11 +45,8 @@ public class VoxtralPipeline: @unchecked Sendable {
         public var displayName: String {
             switch self {
             case .mini3b: return "Voxtral Mini 3B (bf16)"
-            case .mini3b8bit: return "Voxtral Mini 3B (Legacy 8-bit Selection)"
-            case .mini3b4bit: return "Voxtral Mini 3B (Legacy 4-bit Selection)"
-            case .small24b: return "Voxtral Small 24B (Full)"
+            case .mini3b8bit: return "Voxtral Mini 3B (8-bit)"
             case .small24b8bit: return "Voxtral Small 24B (8-bit)"
-            case .small4bit: return "Voxtral Small (4-bit)"
             }
         }
 

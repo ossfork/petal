@@ -15,7 +15,7 @@ public struct ModelDescriptor: Sendable, Equatable {
     public let repoID: String
     public let name: String
     public let summary: String
-    public let size: String
+    public let size: String?
     public let quantization: String
     public let parameters: String
     public let provider: ModelProvider
@@ -30,7 +30,7 @@ public struct ModelDescriptor: Sendable, Equatable {
         repoID: String,
         name: String,
         summary: String,
-        size: String,
+        size: String? = nil,
         quantization: String,
         parameters: String,
         provider: ModelProvider,
@@ -59,11 +59,17 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
     case whisperTiny = "whisper-tiny"
     case mini3b = "mini-3b"
     case mini3b8bit = "mini-3b-8bit"
-    case mini3b4bit = "mini-3b-4bit"
+    case small24b8bit = "small-24b-8bit"
 
-    // Keep legacy Voxtral IDs readable while exposing current catalog options in UI.
     public static var allCases: [ModelOption] {
-        var options: [ModelOption] = [.qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny, .mini3b]
+        var options: [ModelOption] = [
+            .qwen3ASR06B4bit,
+            .whisperLargeV3Turbo,
+            .whisperTiny,
+            .mini3b,
+            .mini3b8bit,
+            .small24b8bit,
+        ]
         if isAppleSpeechSupportedOnCurrentDevice {
             options.insert(.appleSpeech, at: 0)
         }
@@ -93,7 +99,6 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 repoID: "apple/speech-transcriber",
                 name: "Apple Speech (Built-in)",
                 summary: "Uses Apple's on-device Speech framework. No model download required.",
-                size: "No download",
                 quantization: "System",
                 parameters: "On-device",
                 provider: .appleSpeech,
@@ -160,29 +165,29 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
         case .mini3b8bit:
             return ModelDescriptor(
                 id: rawValue,
-                repoID: "mlx-community/Voxtral-Mini-3B-2507-bf16",
-                name: "Voxtral Mini 3B (Legacy 8-bit Selection)",
-                summary: "Automatically mapped to the validated bf16 checkpoint.",
-                size: "~8.7 GB",
-                quantization: "bf16",
+                repoID: "mzbac/voxtral-mini-3b-8bit",
+                name: "Voxtral Mini 3B (8-bit)",
+                summary: "Quantized 3B model for lower memory usage with Smart mode support.",
+                size: "~4.6 GB",
+                quantization: "8-bit",
                 parameters: "3B",
                 provider: .voxtralCore,
                 recommended: false,
-                speedScore: 2,
-                smartScore: 5
+                speedScore: 3,
+                smartScore: 4
             )
-        case .mini3b4bit:
+        case .small24b8bit:
             return ModelDescriptor(
                 id: rawValue,
-                repoID: "mlx-community/Voxtral-Mini-3B-2507-bf16",
-                name: "Voxtral Mini 3B (Legacy 4-bit Selection)",
-                summary: "Automatically mapped to the validated bf16 checkpoint.",
-                size: "~8.7 GB",
-                quantization: "bf16",
-                parameters: "3B",
+                repoID: "mzbac/Voxtral-Small-24B-2507-8bit",
+                name: "Voxtral Small 24B (8-bit)",
+                summary: "Higher-quality 24B Voxtral model, quantized for MLX with Smart mode support.",
+                size: "~25 GB",
+                quantization: "8-bit",
+                parameters: "24B",
                 provider: .voxtralCore,
                 recommended: false,
-                speedScore: 2,
+                speedScore: 1,
                 smartScore: 5
             )
         }
@@ -196,7 +201,7 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
         descriptor.summary
     }
 
-    public var sizeLabel: String {
+    public var sizeLabel: String? {
         descriptor.size
     }
 
@@ -216,7 +221,7 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .appleSpeech:
             return false
-        case .qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny, .mini3b, .mini3b8bit, .mini3b4bit:
+        case .qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny, .mini3b, .mini3b8bit, .small24b8bit:
             return true
         }
     }
@@ -225,7 +230,7 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .appleSpeech, .qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny:
             return [.verbatim]
-        case .mini3b, .mini3b8bit, .mini3b4bit:
+        case .mini3b, .mini3b8bit, .small24b8bit:
             return TranscriptionMode.allCases
         }
     }
@@ -262,10 +267,20 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
              "mlx-community/whisper-tiny-mlx":
             return .whisperTiny
         case Self.mini3b.rawValue,
-             Self.mini3b8bit.rawValue,
-             Self.mini3b4bit.rawValue,
              "mlx-community/voxtral-mini-3b-2507-bf16":
             return .mini3b
+        case Self.mini3b8bit.rawValue,
+             "mzbac/voxtral-mini-3b-8bit":
+            return .mini3b8bit
+        case Self.small24b8bit.rawValue,
+             "mzbac/voxtral-small-24b-2507-8bit":
+            return .small24b8bit
+        case "mini-3b-4bit", "mzbac/voxtral-mini-3b-4bit-mixed":
+            return .mini3b8bit
+        case "small-24b", "small-4bit",
+             "mistralai/voxtral-small-24b-2507",
+             "vincentgourbin/voxtral-small-4bit-mixed":
+            return .small24b8bit
         default:
             return .defaultOption
         }

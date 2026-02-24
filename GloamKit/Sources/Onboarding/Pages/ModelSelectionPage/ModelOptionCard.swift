@@ -35,12 +35,12 @@ struct ModelOptionCard: View {
 
                 Image(systemName: checkmarkIcon)
                     .font(.title3)
-                    .foregroundStyle(isSelected ? .white : Color.white.opacity(0.2))
+                    .foregroundStyle(isSelected ? .primary : .tertiary)
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
             .foregroundStyle(.white)
-            .background(RoundedRectangle(cornerRadius: 16).fill(Color.black))
+            .background(.black, in: .rect(cornerRadius: 16))
             .overlay {
                 RoundedRectangle(cornerRadius: 16)
                     .strokeBorder(borderColor, lineWidth: borderWidth)

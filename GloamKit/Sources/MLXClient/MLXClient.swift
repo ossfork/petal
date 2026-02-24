@@ -8,10 +8,8 @@ import VoxtralCore
 import WhisperKit
 
 /// Root directory for all Gloam data: ~/Documents/gloam/
-private let gloamDirectory: URL = {
-    FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        .appendingPathComponent("gloam")
-}()
+private let gloamDirectory: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+    .appendingPathComponent("gloam")
 
 /// HubCache rooted at ~/Documents/gloam/models/ so mlx-audio-swift stores models there.
 private let gloamHubCache = HubCache(cacheDirectory: gloamDirectory.appendingPathComponent("models"))
@@ -27,7 +25,7 @@ public struct MLXModelInfo: Sendable, Equatable {
     public var repoId: String
     public var name: String
     public var summary: String
-    public var size: String
+    public var size: String?
     public var quantization: String
     public var parameters: String
     public var backend: MLXModelBackend
@@ -38,7 +36,7 @@ public struct MLXModelInfo: Sendable, Equatable {
         repoId: String,
         name: String,
         summary: String,
-        size: String,
+        size: String? = nil,
         quantization: String,
         parameters: String,
         backend: MLXModelBackend,
@@ -58,6 +56,8 @@ public struct MLXModelInfo: Sendable, Equatable {
 
 public enum MLXPipelineModel: String, Sendable {
     case mini3b
+    case mini3b8bit
+    case small24b8bit
     case qwen3ASR06B4bit
     case whisperLargeV3Turbo
     case whisperTiny
@@ -207,7 +207,7 @@ private actor LiveMLXRuntime {
         unloadModel()
 
         switch model {
-        case .mini3b:
+        case .mini3b, .mini3b8bit, .small24b8bit:
             var config = VoxtralPipeline.Configuration.default
             config.maxTokens = 256
             config.temperature = 0.0
@@ -215,28 +215,28 @@ private actor LiveMLXRuntime {
             config.repetitionPenalty = 1.15
 
             let pipeline = VoxtralPipeline(
-                model: .mini3b,
+                model: model.voxtralModel,
                 backend: .hybrid,
                 configuration: config
             )
 
             try await pipeline.loadModel()
-            self.voxtralPipeline = pipeline
+            voxtralPipeline = pipeline
 
         case .qwen3ASR06B4bit:
             guard let repoID = model.qwenRepoID else {
                 throw MLXError.invalidModelIdentifier(model.rawValue)
             }
-            self.qwen3ASRModel = try await Qwen3ASRModel.fromPretrained(repoID, cache: gloamHubCache)
+            qwen3ASRModel = try await Qwen3ASRModel.fromPretrained(repoID, cache: gloamHubCache)
 
         case .whisperLargeV3Turbo, .whisperTiny:
             guard let variant = model.whisperKitVariant else {
                 throw MLXError.invalidModelIdentifier(model.rawValue)
             }
-            self.whisperKitInstance = try await WhisperKit(model: variant, downloadBase: gloamDirectory)
+            whisperKitInstance = try await WhisperKit(model: variant, downloadBase: gloamDirectory)
         }
 
-        self.loadedModel = model
+        loadedModel = model
     }
 
     func transcribe(audioURL: URL, mode: MLXTranscriptionMode) async throws -> String {
@@ -245,7 +245,7 @@ private actor LiveMLXRuntime {
         }
 
         switch loadedModel {
-        case .mini3b:
+        case .mini3b, .mini3b8bit, .small24b8bit:
             guard let voxtralPipeline else {
                 throw MLXError.pipelineUnavailable
             }
@@ -307,7 +307,6 @@ private actor LiveMLXRuntime {
             return text
         }
     }
-
 }
 
 private enum MLXError: LocalizedError {
@@ -389,9 +388,9 @@ private enum MLXAudioCache {
             repoId: repoId,
             name: repoId,
             description: "MLX Audio model",
-            size: "Unknown",
-            quantization: "Unknown",
-            parameters: "Unknown",
+            size: "",
+            quantization: "",
+            parameters: "",
             recommended: false
         )
 
@@ -449,7 +448,7 @@ private extension MLXModelInfo {
             repoId: repoId,
             name: name,
             description: summary,
-            size: size,
+            size: size ?? "",
             quantization: quantization,
             parameters: parameters,
             recommended: recommended
@@ -460,7 +459,7 @@ private extension MLXModelInfo {
 private extension MLXPipelineModel {
     var qwenRepoID: String? {
         switch self {
-        case .mini3b, .whisperLargeV3Turbo, .whisperTiny:
+        case .mini3b, .mini3b8bit, .small24b8bit, .whisperLargeV3Turbo, .whisperTiny:
             return nil
         case .qwen3ASR06B4bit:
             return "mlx-community/Qwen3-ASR-0.6B-4bit"
@@ -473,8 +472,21 @@ private extension MLXPipelineModel {
             return "openai_whisper-large-v3_turbo"
         case .whisperTiny:
             return "openai_whisper-tiny"
-        case .mini3b, .qwen3ASR06B4bit:
+        case .mini3b, .mini3b8bit, .small24b8bit, .qwen3ASR06B4bit:
             return nil
+        }
+    }
+
+    var voxtralModel: VoxtralPipeline.Model {
+        switch self {
+        case .mini3b:
+            return .mini3b
+        case .mini3b8bit:
+            return .mini3b8bit
+        case .small24b8bit:
+            return .small24b8bit
+        case .qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny:
+            return .mini3b
         }
     }
 }

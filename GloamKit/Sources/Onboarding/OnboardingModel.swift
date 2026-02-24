@@ -32,14 +32,12 @@ public final class OnboardingModel {
             .shortcut,
             .microphone,
             .accessibility,
-        ]
-        if foundationModelClient.isAvailable() {
-            pages.append(.appleIntelligence)
-        }
-        pages.append(contentsOf: [
             .historyRetention,
             .model,
-        ])
+        ]
+        if shouldShowAppleIntelligencePage {
+            pages.append(.appleIntelligence)
+        }
         if selectedModelOption?.requiresDownload ?? true {
             pages.append(.download)
         }
@@ -86,7 +84,7 @@ public final class OnboardingModel {
     public var currentPrimaryTitle: String {
         switch currentPage {
         case .model:
-            if selectedModelOption?.requiresDownload == false {
+            if shouldCompleteAfterModelSelection {
                 return "Finish Setup"
             }
             return currentPage.primaryTitle
@@ -94,6 +92,8 @@ public final class OnboardingModel {
             return accessibilityAuthorized ? "Continue" : "Enable Accessibility"
         case .microphone:
             return microphoneAuthorized ? "Continue" : "Enable Microphone"
+        case .appleIntelligence:
+            return nextPage == nil ? "Finish Setup" : "Continue"
         case .download:
             if modelDownloadViewModel.state.isActive { return "Downloading..." }
             if modelDownloadViewModel.state.isDownloaded { return "Finish Setup" }
@@ -121,8 +121,8 @@ public final class OnboardingModel {
 
         switch currentPage {
         case .model:
-            guard let selectedModelOption else { return }
-            if selectedModelOption.requiresDownload {
+            guard selectedModelOption != nil else { return }
+            if nextPage != nil {
                 moveForward()
             } else {
                 completeSetup()
@@ -147,6 +147,12 @@ public final class OnboardingModel {
                 moveForward()
             } else {
                 accessibilityPermissionButtonTapped()
+            }
+        case .appleIntelligence:
+            if let _ = nextPage {
+                moveForward()
+            } else {
+                completeSetup()
             }
         default:
             moveForward()
@@ -204,6 +210,20 @@ public final class OnboardingModel {
 
     public var selectedModelOption: ModelOption? {
         modelDownloadViewModel.selectedModelOption
+    }
+
+    private var shouldShowAppleIntelligencePage: Bool {
+        guard foundationModelClient.isAvailable() else { return false }
+        guard let selectedModelOption else { return false }
+        if selectedModelOption.provider == .voxtralCore {
+            return false
+        }
+        return !selectedModelOption.supportsSmartTranscription
+    }
+
+    private var shouldCompleteAfterModelSelection: Bool {
+        guard selectedModelOption != nil else { return false }
+        return nextPage == nil
     }
 
     public var hasConfiguredShortcut: Bool {

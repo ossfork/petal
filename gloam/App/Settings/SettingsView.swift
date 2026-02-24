@@ -95,9 +95,8 @@ struct TranscriptionPane: View {
                             providerIcon(for: option)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 16, height: 16)
-                                .scaleEffect(0.9)
-                                .clipShape(RoundedRectangle(cornerRadius: 3))
+                                .frame(width: 12, height: 12)
+                                .clipShape(.rect(cornerRadius: 3))
                             Text(option.displayName)
                             if option.isRecommended {
                                 Text("Recommended")
@@ -109,13 +108,14 @@ struct TranscriptionPane: View {
                     }
                 }
 
-                if let model = viewModel.downloadModel.selectedModelOption {
-                    LabeledContent("Size") {
-                        Text(model.sizeLabel)
+                if let selectedModel = viewModel.downloadModel.selectedModelOption {
+                    if let size = selectedModel.sizeLabel {
+                        LabeledContent("Size") {
+                            Text(size)
+                        }
                     }
+                    modelDownloadStatus
                 }
-
-                modelDownloadStatus
 
                 if viewModel.isWarmingModel {
                     HStack(spacing: 8) {
@@ -176,7 +176,7 @@ struct TranscriptionPane: View {
                 if viewModel.transcriptionMode == .smart {
                     Section("Smart Prompt") {
                         TextField("Prompt", text: Binding(viewModel.$smartPrompt), axis: .vertical)
-                            .lineLimit(3...6)
+                            .lineLimit(3 ... 6)
                     }
                 }
             }

@@ -8,8 +8,10 @@ func modelOptionFallbackUsesDefault() {
 
 @Test
 func legacyModelIDsMapToValidatedModel() {
-    #expect(ModelOption.from(modelID: "mini-3b-8bit") == .mini3b)
-    #expect(ModelOption.from(modelID: "mini-3b-4bit") == .mini3b)
+    #expect(ModelOption.from(modelID: "mini-3b-8bit") == .mini3b8bit)
+    #expect(ModelOption.from(modelID: "mini-3b-4bit") == .mini3b8bit)
+    #expect(ModelOption.from(modelID: "small-24b-8bit") == .small24b8bit)
+    #expect(ModelOption.from(modelID: "small-24b") == .small24b8bit)
 }
 
 @Test
@@ -36,6 +38,8 @@ func modelOptionDescriptorMatchesRawValue() {
 @Test
 func modelCatalogIncludesBothBackends() {
     #expect(ModelOption.allCases.contains(.mini3b))
+    #expect(ModelOption.allCases.contains(.mini3b8bit))
+    #expect(ModelOption.allCases.contains(.small24b8bit))
     #expect(ModelOption.allCases.contains(.qwen3ASR06B4bit))
     #expect(ModelOption.allCases.contains(.whisperLargeV3Turbo))
 }

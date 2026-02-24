@@ -44,7 +44,7 @@ public enum ModelRegistry {
 
     /// All available models
     public static let models: [VoxtralModelInfo] = [
-        // Validated mini model
+        // Validated base mini model
         VoxtralModelInfo(
             id: "mini-3b",
             repoId: "mlx-community/Voxtral-Mini-3B-2507-bf16",
@@ -56,54 +56,25 @@ public enum ModelRegistry {
             recommended: true
         ),
 
-        // Official Mistral models (full precision - require more memory)
-        VoxtralModelInfo(
-            id: "small-24b",
-            repoId: "mistralai/Voxtral-Small-24B-2507",
-            name: "Voxtral Small 24B (Official)",
-            description: "Official Mistral model - full precision, requires ~48GB memory",
-            size: "~48 GB",
-            quantization: "float16",
-            parameters: "24B"
-        ),
-
-        // Legacy mini selections mapped to the validated bf16 model
+        // Quantized mini model
         VoxtralModelInfo(
             id: "mini-3b-8bit",
-            repoId: "mlx-community/Voxtral-Mini-3B-2507-bf16",
-            name: "Voxtral Mini 3B (Legacy 8-bit Selection)",
-            description: "Automatically mapped to the validated bf16 checkpoint",
-            size: "~8.7 GB",
-            quantization: "bf16",
-            parameters: "3B"
-        ),
-        VoxtralModelInfo(
-            id: "mini-3b-4bit",
-            repoId: "mlx-community/Voxtral-Mini-3B-2507-bf16",
-            name: "Voxtral Mini 3B (Legacy 4-bit Selection)",
-            description: "Automatically mapped to the validated bf16 checkpoint",
-            size: "~8.7 GB",
-            quantization: "bf16",
+            repoId: "mzbac/voxtral-mini-3b-8bit",
+            name: "Voxtral Mini 3B (8-bit)",
+            description: "Quantized 3B variant for lower memory use with strong quality",
+            size: "~4.6 GB",
+            quantization: "8-bit",
             parameters: "3B"
         ),
 
-        // Small 24B quantized models (higher quality, more resources needed)
+        // Quantized large model tier
         VoxtralModelInfo(
             id: "small-24b-8bit",
-            repoId: "VincentGOURBIN/voxtral-small-8bit",
+            repoId: "mzbac/Voxtral-Small-24B-2507-8bit",
             name: "Voxtral Small 24B (8-bit)",
             description: "Higher quality, requires more memory (~25GB)",
             size: "~25 GB",
             quantization: "8-bit",
-            parameters: "24B"
-        ),
-        VoxtralModelInfo(
-            id: "small-4bit",
-            repoId: "VincentGOURBIN/voxtral-small-4bit-mixed",
-            name: "Voxtral Small (4-bit mixed)",
-            description: "Memory efficient large model (~12GB)",
-            size: "~12 GB",
-            quantization: "4-bit mixed",
             parameters: "24B"
         ),
     ]
