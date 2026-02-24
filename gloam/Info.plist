@@ -33,6 +33,8 @@
   <true/>
   <key>NSMicrophoneUsageDescription</key>
   <string>Gloam records audio while you hold your push-to-talk shortcut.</string>
+  <key>NSSpeechRecognitionUsageDescription</key>
+  <string>Gloam uses Apple Speech to transcribe recordings on supported Macs.</string>
   <key>SUAutomaticallyUpdate</key>
   <true/>
   <key>SUEnableAutomaticChecks</key>

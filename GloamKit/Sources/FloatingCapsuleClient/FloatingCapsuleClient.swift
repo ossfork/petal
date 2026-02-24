@@ -13,6 +13,7 @@ public struct FloatingCapsuleClient: Sendable {
     public var updateLevel: @Sendable (Double) async -> Void = { _ in }
     public var showTranscribing: @Sendable () async -> Void = {}
     public var updateTranscriptionProgress: @Sendable (Double) async -> Void = { _ in }
+    public var showRefining: @Sendable () async -> Void = {}
     public var showCancelConfirmation: @Sendable () async -> Void = {}
     public var showError: @Sendable (String) async -> Void = { _ in }
     public var hide: @Sendable () async -> Void = {}
@@ -39,6 +40,9 @@ extension FloatingCapsuleClient: DependencyKey {
             updateTranscriptionProgress: { progress in
                 await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.updateTranscriptionProgress(progress) }
             },
+            showRefining: {
+                await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.showRefining() }
+            },
             showCancelConfirmation: {
                 await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.showCancelConfirmation() }
             },
@@ -61,6 +65,7 @@ extension FloatingCapsuleClient: TestDependencyKey {
             updateLevel: { _ in },
             showTranscribing: {},
             updateTranscriptionProgress: { _ in },
+            showRefining: {},
             showCancelConfirmation: {},
             showError: { _ in },
             hide: {}
@@ -123,6 +128,11 @@ private final class LiveFloatingCapsuleRuntime {
     func showTranscribing() {
         state.transcriptionProgress = 0
         state.phase = .transcribing
+        showWindowIfNeeded()
+    }
+
+    func showRefining() {
+        state.phase = .refining
         showWindowIfNeeded()
     }
 

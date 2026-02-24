@@ -1,5 +1,6 @@
 import AppKit
 import Dependencies
+import FoundationModelClient
 import HistoryClient
 import ModelDownloadFeature
 import Observation
@@ -15,6 +16,7 @@ final class SettingsViewModel {
     @ObservationIgnored @Shared(.smartPrompt) var smartPrompt = "Clean up filler words and repeated phrases. Return a polished version of what was said."
     @ObservationIgnored @Shared(.historyRetentionMode) var historyRetentionMode: HistoryRetentionMode = .both
     @ObservationIgnored @Shared(.compressHistoryAudio) var compressHistoryAudio = false
+    @ObservationIgnored @Shared(.appleIntelligenceEnabled) var appleIntelligenceEnabled = false
     @ObservationIgnored @Shared(.transcriptHistoryDays) private var transcriptHistoryDays: [TranscriptHistoryDay] = []
 
     var microphoneAuthorized = false
@@ -41,10 +43,21 @@ final class SettingsViewModel {
             .map { $0 }
     }
 
+    var appleIntelligenceAvailable: Bool {
+        foundationModelClient.isAvailable()
+    }
+
+    /// Whether smart mode should be available for the currently selected model.
+    var smartModeAvailable: Bool {
+        downloadModel.selectedModelOption?.supportsSmartTranscription == true
+            || appleIntelligenceEnabled
+    }
+
     let downloadModel: ModelDownloadModel
     private let appModel: AppModel
     @ObservationIgnored @Dependency(\.permissionsClient) private var permissionsClient
     @ObservationIgnored @Dependency(\.historyClient) private var historyClient
+    @ObservationIgnored @Dependency(\.foundationModelClient) private var foundationModelClient
 
     init(appModel: AppModel) {
         self.downloadModel = appModel.modelDownloadViewModel

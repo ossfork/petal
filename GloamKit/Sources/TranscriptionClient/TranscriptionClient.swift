@@ -6,6 +6,9 @@ import AudioSpeedClient
 import AudioTrimClient
 import MLXClient
 import Shared
+#if canImport(Speech)
+import Speech
+#endif
 
 @DependencyClient
 public struct TranscriptionClient: Sendable {
@@ -19,14 +22,18 @@ extension TranscriptionClient: DependencyKey {
     public static var liveValue: Self {
         Self(
             prepareModelIfNeeded: { option in
+                guard option.requiresDownload else { return }
                 @Dependency(\.mlxClient) var mlxClient
-                try await mlxClient.prepareModelIfNeeded(option.pipelineModel)
+                guard let pipelineModel = option.pipelineModel else { return }
+                try await mlxClient.prepareModelIfNeeded(pipelineModel)
             },
             transcribe: { audioURL, option, mode, prompt in
                 @Dependency(\.mlxClient) var mlxClient
                 @Dependency(\.audioTrimClient) var trimClient
                 @Dependency(\.audioSpeedClient) var speedClient
-                try await mlxClient.prepareModelIfNeeded(option.pipelineModel)
+                if option.requiresDownload, let pipelineModel = option.pipelineModel {
+                    try await mlxClient.prepareModelIfNeeded(pipelineModel)
+                }
 
                 @Shared(.trimSilenceEnabled) var trimEnabled
                 @Shared(.autoSpeedEnabled) var speedEnabled
@@ -55,6 +62,10 @@ extension TranscriptionClient: DependencyKey {
                     for generatedURL in generatedAudioURLs {
                         try? FileManager.default.removeItem(at: generatedURL)
                     }
+                }
+
+                if option == .appleSpeech {
+                    return try await Self.transcribeWithAppleSpeech(workingAudioURL)
                 }
 
                 return try await mlxClient.transcribe(
@@ -125,8 +136,10 @@ private extension TranscriptionClient {
 }
 
 private extension ModelOption {
-    var pipelineModel: MLXPipelineModel {
+    var pipelineModel: MLXPipelineModel? {
         switch self {
+        case .appleSpeech:
+            return nil
         case .qwen3ASR06B4bit:
             return .qwen3ASR06B4bit
         case .whisperLargeV3Turbo:
@@ -139,6 +152,102 @@ private extension ModelOption {
             return .mini3b
         case .mini3b4bit:
             return .mini3b
+        }
+    }
+}
+
+private extension TranscriptionClient {
+    static func transcribeWithAppleSpeech(_ audioURL: URL) async throws -> String {
+        #if canImport(Speech)
+        if #available(macOS 26, *) {
+            return try await AppleSpeechRuntime.transcribe(audioURL: audioURL)
+        }
+        #endif
+        throw AppleSpeechError.unavailable
+    }
+}
+
+#if canImport(Speech)
+@available(macOS 26, *)
+private enum AppleSpeechRuntime {
+    static func transcribe(audioURL: URL) async throws -> String {
+        guard SpeechTranscriber.isAvailable else {
+            throw AppleSpeechError.unavailable
+        }
+
+        let supportedLocales = await SpeechTranscriber.supportedLocales
+        let installedLocales = await SpeechTranscriber.installedLocales
+
+        let supportedIDs = Set(supportedLocales.map(normalizedLocaleIdentifier))
+        let installedSupportedLocales = installedLocales.filter { locale in
+            supportedIDs.contains(normalizedLocaleIdentifier(locale))
+        }
+
+        guard !installedSupportedLocales.isEmpty else {
+            throw AppleSpeechError.noInstalledLocale
+        }
+
+        let locale = preferredLocale(from: installedSupportedLocales)
+        let transcriber = SpeechTranscriber(
+            locale: locale,
+            transcriptionOptions: [],
+            reportingOptions: [],
+            attributeOptions: []
+        )
+        let analyzer = SpeechAnalyzer(modules: [transcriber])
+        let audioFile = try AVAudioFile(forReading: audioURL)
+        try await analyzer.start(inputAudioFile: audioFile, finishAfterFile: true)
+
+        var transcript = AttributedString()
+        for try await result in transcriber.results {
+            transcript += result.text
+        }
+
+        let text = String(transcript.characters).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else {
+            throw AppleSpeechError.emptyTranscript
+        }
+        return text
+    }
+
+    private static func preferredLocale(from locales: [Locale]) -> Locale {
+        let current = normalizedLocaleIdentifier(Locale.current)
+        if let exactMatch = locales.first(where: { normalizedLocaleIdentifier($0) == current }) {
+            return exactMatch
+        }
+
+        if let currentLanguage = Locale.current.language.languageCode?.identifier.lowercased(),
+           let languageMatch = locales.first(where: {
+               $0.language.languageCode?.identifier.lowercased() == currentLanguage
+           })
+        {
+            return languageMatch
+        }
+
+        return locales[0]
+    }
+
+    private static func normalizedLocaleIdentifier(_ locale: Locale) -> String {
+        locale.identifier
+            .replacingOccurrences(of: "_", with: "-")
+            .lowercased()
+    }
+}
+#endif
+
+private enum AppleSpeechError: LocalizedError {
+    case unavailable
+    case noInstalledLocale
+    case emptyTranscript
+
+    var errorDescription: String? {
+        switch self {
+        case .unavailable:
+            return "Apple Speech is not available on this Mac."
+        case .noInstalledLocale:
+            return "No installed Apple Speech locale is available. Add a dictation language in System Settings."
+        case .emptyTranscript:
+            return "No speech detected."
         }
     }
 }

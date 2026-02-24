@@ -11,6 +11,7 @@ public final class FloatingCapsuleState {
         case trimming
         case speeding
         case transcribing
+        case refining
         case error(String)
     }
 
@@ -94,6 +95,8 @@ public struct FloatingCapsuleView: View {
                         .foregroundStyle(.primary)
                 }
                 .floatingCapsuleChrome()
+            case .refining:
+                RefiningCapsuleContent()
             case .error:
                 HStack(spacing: 8) {
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -176,6 +179,53 @@ public struct CircularProgressRing: View {
     }
 }
 
+private struct RefiningCapsuleContent: View {
+    @State private var rotation: Double = 0
+
+    private let gradientColors: [Color] = [
+        .orange,
+        .pink,
+        .purple,
+        .blue,
+        .teal,
+        .green,
+        .yellow,
+        .orange,
+    ]
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "apple.intelligence")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(.purple)
+
+            Text("Refining")
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .foregroundStyle(.primary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial, in: Capsule())
+        .overlay {
+            Capsule()
+                .stroke(
+                    AngularGradient(
+                        colors: gradientColors,
+                        center: .center,
+                        startAngle: .degrees(rotation),
+                        endAngle: .degrees(rotation + 360)
+                    ),
+                    lineWidth: 2
+                )
+        }
+        .onAppear {
+            withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
+                rotation = 360
+            }
+        }
+    }
+}
+
 @MainActor
 private func makePreviewState(
     phase: FloatingCapsuleState.Phase,
@@ -211,6 +261,10 @@ private func capsulePreview(_ state: FloatingCapsuleState) -> some View {
 
 #Preview("Transcribing") {
     capsulePreview(makePreviewState(phase: .transcribing, progress: 0.64))
+}
+
+#Preview("Refining") {
+    capsulePreview(makePreviewState(phase: .refining))
 }
 
 #Preview("Error") {

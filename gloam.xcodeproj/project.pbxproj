@@ -30,6 +30,7 @@
 		B1000001000000000000000D /* GloamModels in Frameworks */ = {isa = PBXBuildFile; productRef = B1000004000000000000000D /* GloamModels */; };
 		B1000001000000000000000E /* UI in Frameworks */ = {isa = PBXBuildFile; productRef = B1000004000000000000000E /* UI */; };
 		B1000001000000000000000F /* WindowClient in Frameworks */ = {isa = PBXBuildFile; productRef = B1000004000000000000000F /* WindowClient */; };
+		B10000010000000000000010 /* FoundationModelClient in Frameworks */ = {isa = PBXBuildFile; productRef = B10000040000000000000010 /* FoundationModelClient */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -87,6 +88,7 @@
 				B1000001000000000000000D /* GloamModels in Frameworks */,
 				B1000001000000000000000E /* UI in Frameworks */,
 				B1000001000000000000000F /* WindowClient in Frameworks */,
+				B10000010000000000000010 /* FoundationModelClient in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -155,6 +157,7 @@
 				B1000004000000000000000D /* GloamModels */,
 				B1000004000000000000000E /* UI */,
 				B1000004000000000000000F /* WindowClient */,
+				B10000040000000000000010 /* FoundationModelClient */,
 			);
 			productName = gloam;
 			productReference = 51F869592F469BEA004C06DD /* gloam.app */;
@@ -635,6 +638,10 @@
 		B1000004000000000000000F /* WindowClient */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = WindowClient;
+		};
+		B10000040000000000000010 /* FoundationModelClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FoundationModelClient;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

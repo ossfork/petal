@@ -1,4 +1,5 @@
 import AppKit
+import Assets
 import SwiftUI
 import UI
 
@@ -36,6 +37,9 @@ public struct OnboardingView: View {
 
                 case .accessibility:
                     AccessibilityPermissionPage(model: model)
+
+                case .appleIntelligence:
+                    AppleIntelligencePage(model: model)
 
                 case .historyRetention:
                     HistoryRetentionPage(model: model)
@@ -105,6 +109,10 @@ public struct OnboardingView: View {
 
 #Preview("Accessibility") {
     OnboardingView(model: .makePreview(page: .accessibility))
+}
+
+#Preview("Apple Intelligence") {
+    OnboardingView(model: .makePreview(page: .appleIntelligence))
 }
 
 #Preview("History Retention") {

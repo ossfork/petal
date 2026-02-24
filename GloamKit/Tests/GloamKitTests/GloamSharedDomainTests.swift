@@ -72,3 +72,17 @@ func voxtralSupportsSmartAndVerbatim() {
     #expect(ModelOption.mini3b.supportedTranscriptionModes.contains(.smart))
     #expect(ModelOption.mini3b.supportsSmartTranscription)
 }
+
+@Test
+func appleSpeechRequiresNoDownload() {
+    #expect(!ModelOption.appleSpeech.requiresDownload)
+    #expect(ModelOption.appleSpeech.supportedTranscriptionModes == [.verbatim])
+}
+
+@Test
+func appleSpeechVisibilityMatchesCurrentDeviceSupport() {
+    #expect(
+        ModelOption.allCases.contains(.appleSpeech)
+            == ModelOption.isAppleSpeechSupportedOnCurrentDevice
+    )
+}

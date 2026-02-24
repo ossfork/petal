@@ -7,7 +7,7 @@ import Testing
 
 @Test
 func downloadClientNormalizesProgressAndExtractsSpeedText() async throws {
-    var updates: [DownloadProgress] = []
+    let updates = ProgressRecorder()
 
     try await withDependencies {
         $0.mlxClient.downloadModel = { _, progress in
@@ -16,15 +16,16 @@ func downloadClientNormalizesProgressAndExtractsSpeedText() async throws {
         }
     } operation: {
         try await DownloadClient.liveValue.downloadModel(.defaultOption) { update in
-            updates.append(update)
+            updates.record(update)
         }
     }
 
-    #expect(updates.count == 2)
-    #expect(updates[0].fractionCompleted == 1)
-    #expect(updates[0].speedText == "18.2 MB/s")
-    #expect(updates[1].fractionCompleted == 0)
-    #expect(updates[1].speedText == nil)
+    let snapshot = updates.snapshot()
+    #expect(snapshot.count == 2)
+    #expect(snapshot[0].fractionCompleted == 1)
+    #expect(snapshot[0].speedText == "18.2 MB/s")
+    #expect(snapshot[1].fractionCompleted == 0)
+    #expect(snapshot[1].speedText == nil)
 }
 
 @Test
@@ -62,6 +63,39 @@ func downloadClientMapsUnexpectedErrorsToFailedCase() async {
     }
 }
 
+@Test
+func downloadClientSkipsMLXForNoDownloadModels() async throws {
+    let updates = ProgressRecorder()
+    let callRecorder = CallRecorder()
+
+    try await withDependencies {
+        $0.mlxClient.downloadModel = { _, _ in
+            await callRecorder.recordCall()
+        }
+    } operation: {
+        try await DownloadClient.liveValue.downloadModel(.appleSpeech) { update in
+            updates.record(update)
+        }
+    }
+
+    let snapshot = updates.snapshot()
+    #expect(await callRecorder.callCount() == 0)
+    #expect(snapshot.count == 1)
+    #expect(snapshot[0].fractionCompleted == 1)
+    #expect(snapshot[0].status == "No download required for this model.")
+}
+
+@Test
+func noDownloadModelIsAlwaysReportedAsDownloaded() {
+    let downloaded = withDependencies {
+        $0.mlxClient.isModelDownloaded = { _ in false }
+    } operation: {
+        DownloadClient.liveValue.isModelDownloaded(.appleSpeech)
+    }
+
+    #expect(downloaded)
+}
+
 private func assertMappedFailure(from source: MLXDownloadError, expected: DownloadClientFailure) async {
     do {
         try await withDependencies {
@@ -76,5 +110,34 @@ private func assertMappedFailure(from source: MLXDownloadError, expected: Downlo
         #expect(error == expected)
     } catch {
         Issue.record("Expected DownloadClientFailure, got \(error.localizedDescription).")
+    }
+}
+
+private actor CallRecorder {
+    private var calls = 0
+
+    func recordCall() {
+        calls += 1
+    }
+
+    func callCount() -> Int {
+        calls
+    }
+}
+
+private final class ProgressRecorder: @unchecked Sendable {
+    private let lock = NSLock()
+    private var values: [DownloadProgress] = []
+
+    func record(_ value: DownloadProgress) {
+        lock.lock()
+        values.append(value)
+        lock.unlock()
+    }
+
+    func snapshot() -> [DownloadProgress] {
+        lock.lock()
+        defer { lock.unlock() }
+        return values
     }
 }

@@ -50,13 +50,31 @@ extension DownloadClient: DependencyKey {
     public static var liveValue: Self {
         Self(
             isModelDownloaded: { option in
+                if !option.requiresDownload {
+                    return true
+                }
                 @Dependency(\.mlxClient) var mlxClient
-                return mlxClient.isModelDownloaded(option.mlxModelInfo)
+                guard let info = option.mlxModelInfo else { return false }
+                return mlxClient.isModelDownloaded(info)
             },
             downloadModel: { option, progress in
+                if !option.requiresDownload {
+                    progress(
+                        DownloadProgress(
+                            fractionCompleted: 1,
+                            status: "No download required for this model.",
+                            speedText: nil
+                        )
+                    )
+                    return
+                }
+
                 @Dependency(\.mlxClient) var mlxClient
+                guard let info = option.mlxModelInfo else {
+                    throw DownloadClientFailure.failed("Selected model does not support downloads.")
+                }
                 do {
-                    try await mlxClient.downloadModel(option.mlxModelInfo, { fractionCompleted, status in
+                    try await mlxClient.downloadModel(info, { fractionCompleted, status in
                         progress(
                             DownloadProgress(
                                 fractionCompleted: min(max(fractionCompleted, 0), 1),
@@ -78,12 +96,20 @@ extension DownloadClient: DependencyKey {
                 mlxClient.cancelDownload()
             },
             modelDirectoryURL: { option in
+                if !option.requiresDownload {
+                    return nil
+                }
                 @Dependency(\.mlxClient) var mlxClient
-                return mlxClient.modelDirectoryURL(option.mlxModelInfo)
+                guard let info = option.mlxModelInfo else { return nil }
+                return mlxClient.modelDirectoryURL(info)
             },
             deleteModel: { option in
+                if !option.requiresDownload {
+                    return
+                }
                 @Dependency(\.mlxClient) var mlxClient
-                try await mlxClient.deleteModel(option.mlxModelInfo)
+                guard let info = option.mlxModelInfo else { return }
+                try await mlxClient.deleteModel(info)
             }
         )
     }
@@ -145,7 +171,8 @@ private extension DownloadClientFailure {
 }
 
 private extension ModelOption {
-    var mlxModelInfo: MLXModelInfo {
+    var mlxModelInfo: MLXModelInfo? {
+        guard requiresDownload else { return nil }
         let descriptor = descriptor
         return MLXModelInfo(
             id: descriptor.id,
@@ -155,20 +182,21 @@ private extension ModelOption {
             size: descriptor.size,
             quantization: descriptor.quantization,
             parameters: descriptor.parameters,
-            backend: descriptor.provider.mlxBackend,
+            backend: mlxBackend,
             recommended: descriptor.recommended
         )
     }
-}
 
-private extension ModelProvider {
     var mlxBackend: MLXModelBackend {
         switch self {
-        case .voxtralCore:
-            return .voxtral
-        case .mlxAudioSTT:
+        case .appleSpeech:
+            // Apple Speech is handled outside MLX download/runtime paths.
             return .mlxAudioSTT
-        case .whisperKit:
+        case .mini3b, .mini3b8bit, .mini3b4bit:
+            return .voxtral
+        case .qwen3ASR06B4bit:
+            return .mlxAudioSTT
+        case .whisperLargeV3Turbo, .whisperTiny:
             return .whisperKit
         }
     }

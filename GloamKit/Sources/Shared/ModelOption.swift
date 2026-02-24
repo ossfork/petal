@@ -1,7 +1,11 @@
 import Foundation
+#if canImport(Speech)
+import Speech
+#endif
 
 public enum ModelProvider: String, Sendable, Equatable {
     case voxtralCore = "Voxtral Core"
+    case appleSpeech = "Apple Speech"
     case mlxAudioSTT = "MLX Audio STT"
     case whisperKit = "WhisperKit"
 }
@@ -41,6 +45,7 @@ public struct ModelDescriptor: Sendable, Equatable {
 }
 
 public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
+    case appleSpeech = "apple-speech"
     case qwen3ASR06B4bit = "qwen3-asr-0.6b-4bit"
     case whisperLargeV3Turbo = "whisper-large-v3-turbo"
     case whisperTiny = "whisper-tiny"
@@ -49,13 +54,43 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
     case mini3b4bit = "mini-3b-4bit"
 
     // Keep legacy Voxtral IDs readable while exposing current catalog options in UI.
-    public static var allCases: [ModelOption] { [.qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny, .mini3b] }
+    public static var allCases: [ModelOption] {
+        var options: [ModelOption] = [.qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny, .mini3b]
+        if isAppleSpeechSupportedOnCurrentDevice {
+            options.insert(.appleSpeech, at: 0)
+        }
+        return options
+    }
+
     public static let defaultOption: Self = .qwen3ASR06B4bit
 
-    public var id: String { rawValue }
+    public static var isAppleSpeechSupportedOnCurrentDevice: Bool {
+        #if canImport(Speech)
+        if #available(macOS 26, *) {
+            return SpeechTranscriber.isAvailable
+        }
+        #endif
+        return false
+    }
+
+    public var id: String {
+        rawValue
+    }
 
     public var descriptor: ModelDescriptor {
         switch self {
+        case .appleSpeech:
+            return ModelDescriptor(
+                id: rawValue,
+                repoID: "apple/speech-transcriber",
+                name: "Apple Speech (Built-in)",
+                summary: "Uses Apple's on-device Speech framework. No model download required.",
+                size: "No download",
+                quantization: "System",
+                parameters: "On-device",
+                provider: .appleSpeech,
+                recommended: false
+            )
         case .qwen3ASR06B4bit:
             return ModelDescriptor(
                 id: rawValue,
@@ -155,9 +190,18 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
         descriptor.recommended
     }
 
+    public var requiresDownload: Bool {
+        switch self {
+        case .appleSpeech:
+            return false
+        case .qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny, .mini3b, .mini3b8bit, .mini3b4bit:
+            return true
+        }
+    }
+
     public var supportedTranscriptionModes: [TranscriptionMode] {
         switch self {
-        case .qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny:
+        case .appleSpeech, .qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny:
             return [.verbatim]
         case .mini3b, .mini3b8bit, .mini3b4bit:
             return TranscriptionMode.allCases
@@ -178,6 +222,10 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
             .lowercased()
 
         switch normalized {
+        case Self.appleSpeech.rawValue,
+             "apple-speech-transcriber",
+             "speechtranscriber":
+            return isAppleSpeechSupportedOnCurrentDevice ? .appleSpeech : .defaultOption
         case Self.qwen3ASR06B4bit.rawValue,
              "qwen3-asr-0.6b",
              "mlx-community/qwen3-asr-0.6b-4bit":

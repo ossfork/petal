@@ -137,7 +137,31 @@ struct TranscriptionPane: View {
                     .settingDescription()
             }
 
-            if viewModel.downloadModel.selectedModelOption?.supportsSmartTranscription == true {
+            Section {
+                if viewModel.appleIntelligenceAvailable {
+                    Toggle("Enhance with Apple Intelligence", isOn: Binding(viewModel.$appleIntelligenceEnabled))
+                    Text("Post-process transcriptions on-device to fix grammar, punctuation, and formatting. Enables Smart mode for all models.")
+                        .settingDescription()
+                } else {
+                    LabeledContent("Status") {
+                        Text("Unavailable")
+                            .foregroundStyle(.secondary)
+                    }
+                    Text("Requires macOS 26 with Apple Intelligence enabled.")
+                        .settingDescription()
+                }
+            } header: {
+                HStack(spacing: 6) {
+                    Image.appleIntelligence
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 16, height: 16)
+                        .clipShape(RoundedRectangle(cornerRadius: 3))
+                    Text("Apple Intelligence")
+                }
+            }
+
+            if viewModel.smartModeAvailable {
                 Section("Mode") {
                     Picker("Transcription Mode", selection: Binding(viewModel.$transcriptionMode)) {
                         ForEach(TranscriptionMode.allCases) { mode in
@@ -170,6 +194,7 @@ struct TranscriptionPane: View {
 
     private func providerIcon(for option: ModelOption) -> Image {
         switch option.provider {
+        case .appleSpeech: .swiftLogo
         case .mlxAudioSTT: .qwen
         case .whisperKit: .openai
         case .voxtralCore: .mistral
@@ -178,30 +203,37 @@ struct TranscriptionPane: View {
 
     @ViewBuilder
     private var modelDownloadStatus: some View {
-        switch viewModel.downloadModel.state {
-        case .downloaded:
+        if let selectedModel = viewModel.downloadModel.selectedModelOption, !selectedModel.requiresDownload {
             LabeledContent("Status") {
-                Label("Downloaded", systemImage: "checkmark.circle.fill")
+                Label("Ready (No download required)", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(.green)
             }
-            Button("Delete Model", role: .destructive) {
-                showDeleteConfirmation = true
+        } else {
+            switch viewModel.downloadModel.state {
+            case .downloaded:
+                LabeledContent("Status") {
+                    Label("Downloaded", systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                }
+                Button("Delete Model", role: .destructive) {
+                    showDeleteConfirmation = true
+                }
+            case let .downloading(progress):
+                downloadProgressSection(progress: progress, isPaused: false)
+            case let .paused(progress):
+                downloadProgressSection(progress: progress, isPaused: true)
+            case .notDownloaded, .preparing:
+                Button("Download Model") {
+                    Task { await viewModel.downloadButtonTapped() }
+                }
+            case let .failed(message):
+                Button("Download Model") {
+                    Task { await viewModel.downloadButtonTapped() }
+                }
+                Text(message)
+                    .foregroundStyle(.red)
+                    .font(.caption)
             }
-        case let .downloading(progress):
-            downloadProgressSection(progress: progress, isPaused: false)
-        case let .paused(progress):
-            downloadProgressSection(progress: progress, isPaused: true)
-        case .notDownloaded, .preparing:
-            Button("Download Model") {
-                Task { await viewModel.downloadButtonTapped() }
-            }
-        case let .failed(message):
-            Button("Download Model") {
-                Task { await viewModel.downloadButtonTapped() }
-            }
-            Text(message)
-                .foregroundStyle(.red)
-                .font(.caption)
         }
     }
 

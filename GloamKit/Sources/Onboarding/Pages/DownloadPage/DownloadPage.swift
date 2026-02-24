@@ -32,9 +32,11 @@ struct DownloadPage: View {
     private var header: some View {
         HStack {
             OnboardingHeader(
-                symbol: "arrow.down.circle",
-                title: "Download Model",
-                description: "This may take a few minutes depending on your connection.",
+                symbol: selectedModelRequiresDownload ? "arrow.down.circle" : "checkmark.circle",
+                title: selectedModelRequiresDownload ? "Download Model" : "Model Ready",
+                description: selectedModelRequiresDownload
+                    ? "This may take a few minutes depending on your connection."
+                    : "This model uses Apple's built-in Speech framework and is ready instantly.",
                 layout: .vertical
             )
 
@@ -114,6 +116,10 @@ struct DownloadPage: View {
 
     private var downloadModel: ModelDownloadModel {
         model.modelDownloadViewModel
+    }
+
+    private var selectedModelRequiresDownload: Bool {
+        downloadModel.selectedModelOption?.requiresDownload ?? true
     }
 }
 

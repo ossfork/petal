@@ -17,6 +17,10 @@ public extension SharedKey where Self == AppStorageKey<Bool>.Default {
     static var compressHistoryAudio: Self {
         Self[.appStorage("compress_history_audio"), default: false]
     }
+
+    static var appleIntelligenceEnabled: Self {
+        Self[.appStorage("apple_intelligence_enabled"), default: false]
+    }
 }
 
 public extension SharedKey where Self == AppStorageKey<String>.Default {

@@ -2,6 +2,7 @@ import AppKit
 import AudioClient
 import class SwiftUI.NSHostingView
 import FloatingCapsuleClient
+import FoundationModelClient
 import Foundation
 import HistoryClient
 import IssueReporting
@@ -27,6 +28,7 @@ final class AppModel {
         case trimming
         case speeding
         case transcribing
+        case refining
     }
 
     enum SessionState: Equatable {
@@ -39,6 +41,7 @@ final class AppModel {
     @ObservationIgnored @Shared(.hasCompletedSetup) var hasCompletedSetup = false
     @ObservationIgnored @Shared(.transcriptionMode) var transcriptionMode: TranscriptionMode = .verbatim
     @ObservationIgnored @Shared(.smartPrompt) var smartPrompt = "Clean up filler words and repeated phrases. Return a polished version of what was said."
+    @ObservationIgnored @Shared(.appleIntelligenceEnabled) var appleIntelligenceEnabled = false
     @ObservationIgnored @Shared(.compressHistoryAudio) var compressHistoryAudio = false
     @ObservationIgnored @Shared(.historyRetentionMode) var historyRetentionMode: HistoryRetentionMode = .both
     @ObservationIgnored @Shared(.transcriptHistoryDays) var transcriptHistoryDays: [TranscriptHistoryDay] = []
@@ -75,6 +78,7 @@ final class AppModel {
     @ObservationIgnored @Dependency(\.soundClient) private var soundClient
     @ObservationIgnored @Dependency(\.historyClient) private var historyClient
     @ObservationIgnored @Dependency(\.logClient) private var logClient
+    @ObservationIgnored @Dependency(\.foundationModelClient) private var foundationModelClient
     @ObservationIgnored @Dependency(\.windowClient) private var windowClient
     @ObservationIgnored private let logger = Logger(subsystem: "com.optimalapps.gloam", category: "AppModel")
 
@@ -146,6 +150,7 @@ final class AppModel {
             case .trimming: return "Trimming"
             case .speeding: return "Speeding"
             case .transcribing: return "Transcribing"
+            case .refining: return "Refining"
             }
         case .error:
             return "Error"
@@ -165,6 +170,7 @@ final class AppModel {
             case .trimming: return "scissors"
             case .speeding: return "figure.run"
             case .transcribing: return "hourglass"
+            case .refining: return "apple.intelligence"
             }
         case .error: return "exclamationmark.triangle.fill"
         }
@@ -443,7 +449,7 @@ final class AppModel {
                 $transcriptionMode.withLock { $0 = mode }
             }
 
-            let transcript = try await transcriptionClient.transcribe(
+            var transcript = try await transcriptionClient.transcribe(
                 audioURL,
                 selectedModelOption,
                 mode,
@@ -452,6 +458,26 @@ final class AppModel {
             let transcriptionElapsed = now.timeIntervalSince(transcriptionStart)
             updateTranscriptionSpeedEstimate(audioDuration: audioDuration, elapsed: transcriptionElapsed)
             stopTranscriptionProgressTracking(finalProgress: 1)
+
+            // Post-process with Apple Intelligence when smart mode is requested
+            // and the model doesn't natively support it.
+            if mode == .smart,
+               !selectedModelOption.supportsSmartTranscription,
+               appleIntelligenceEnabled,
+               foundationModelClient.isAvailable(),
+               !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            {
+                sessionState = .processing(.refining)
+                await floatingCapsuleClient.showRefining()
+                logger.info("Refining transcript with Apple Intelligence")
+                consoleLog("Refining transcript with Apple Intelligence")
+
+                if let refined = try? await foundationModelClient.refine(transcript, smartPrompt),
+                   !refined.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                {
+                    transcript = refined
+                }
+            }
 
             let isEmptyTranscript = transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 

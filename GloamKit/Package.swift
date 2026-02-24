@@ -15,6 +15,7 @@ extension Target.Dependency {
     static let downloadClient: Self = "DownloadClient"
     static let historyClient: Self = "HistoryClient"
     static let windowClient: Self = "WindowClient"
+    static let foundationModelClient: Self = "FoundationModelClient"
 
     static let dependencies: Self = .product(name: "Dependencies", package: "swift-dependencies")
     static let dependenciesMacros: Self = .product(name: "DependenciesMacros", package: "swift-dependencies")
@@ -57,6 +58,7 @@ let package = Package(
         .library(name: "SoundClient", targets: ["SoundClient"]),
         .library(name: "LogClient", targets: ["LogClient"]),
         .library(name: "WindowClient", targets: ["WindowClient"]),
+        .library(name: "FoundationModelClient", targets: ["FoundationModelClient"]),
     ],
     dependencies: [
         .package(name: "MLXAudio", path: "../mlx-audio-swift"),
@@ -115,6 +117,7 @@ let package = Package(
                 .ui,
                 .modelDownloadFeature,
                 .permissionsClient,
+                .foundationModelClient,
                 .keyboardShortcuts,
                 .sauce,
             ]
@@ -173,6 +176,12 @@ let package = Package(
         ),
         .target(
             name: "AudioSpeedClient",
+            dependencies: [
+                .shared,
+            ]
+        ),
+        .target(
+            name: "FoundationModelClient",
             dependencies: [
                 .shared,
             ]
@@ -238,6 +247,7 @@ let package = Package(
                 "AudioSpeedClient",
                 "MLXClient",
                 "TranscriptionClient",
+                "FoundationModelClient",
                 "DownloadClient",
                 "HistoryClient",
                 "SoundClient",

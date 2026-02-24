@@ -1,5 +1,6 @@
 import Dependencies
 import Foundation
+import FoundationModelClient
 import KeyboardShortcuts
 import ModelDownloadFeature
 import Observation
@@ -16,6 +17,7 @@ public final class OnboardingModel {
         case shortcut
         case microphone
         case accessibility
+        case appleIntelligence
         case historyRetention
         case download
     }
@@ -24,15 +26,23 @@ public final class OnboardingModel {
 
     public var currentPage: Page
 
-    public let pageOrder: [Page] = [
-        .welcome,
-        .shortcut,
-        .microphone,
-        .accessibility,
-        .historyRetention,
-        .model,
-        .download,
-    ]
+    public var pageOrder: [Page] {
+        var pages: [Page] = [
+            .welcome,
+            .shortcut,
+            .microphone,
+            .accessibility,
+        ]
+        if foundationModelClient.isAvailable() {
+            pages.append(.appleIntelligence)
+        }
+        pages.append(contentsOf: [
+            .historyRetention,
+            .model,
+            .download,
+        ])
+        return pages
+    }
 
     public var nextPage: Page? {
         guard let currentIndex = pageOrder.firstIndex(of: currentPage),
@@ -88,7 +98,7 @@ public final class OnboardingModel {
 
     public var primaryDisabled: Bool {
         switch currentPage {
-        case .welcome, .historyRetention: false
+        case .welcome, .historyRetention, .appleIntelligence: false
         case .model: selectedModelOption == nil
         case .shortcut: !hasConfiguredShortcut
         case .microphone: false
@@ -145,6 +155,7 @@ public final class OnboardingModel {
     public var microphoneAuthorized = false
     public var accessibilityAuthorized = false
     @ObservationIgnored @Shared(.historyRetentionMode) public var historyRetentionMode: HistoryRetentionMode = .both
+    @ObservationIgnored @Shared(.appleIntelligenceEnabled) public var appleIntelligenceEnabled = false
 
     public var lastError: String?
     public var transientMessage: String?
@@ -153,6 +164,7 @@ public final class OnboardingModel {
     public var onMinimize: (@MainActor () -> Void)?
 
     @ObservationIgnored @Dependency(\.permissionsClient) private var permissionsClient
+    @ObservationIgnored @Dependency(\.foundationModelClient) private var foundationModelClient
     @ObservationIgnored @Dependency(\.continuousClock) private var clock
 
     @ObservationIgnored @Shared(.hasCompletedSetup) private var hasCompletedSetup = false
@@ -310,7 +322,7 @@ public final class OnboardingModel {
 extension OnboardingModel.Page {
     public var primaryTitle: String {
         switch self {
-        case .welcome, .model, .shortcut, .microphone, .accessibility, .historyRetention: "Continue"
+        case .welcome, .model, .shortcut, .microphone, .accessibility, .appleIntelligence, .historyRetention: "Continue"
         case .download: "Download Model"
         }
     }

@@ -30,7 +30,7 @@ final class MenuBarContentViewModel {
             return .orange
         case .processing(.speeding):
             return .teal
-        case .processing(.transcribing), .idle, .error:
+        case .processing(.transcribing), .processing(.refining), .idle, .error:
             return .primary
         }
     }
