@@ -61,6 +61,9 @@ final class SettingsWindowController: NSWindowController {
             makePane(id: "Transcription", title: "Transcription", icon: "waveform") {
                 TranscriptionPane(viewModel: self.viewModel)
             },
+            makePane(id: "Transcripts", title: "Transcripts", icon: "doc.text") {
+                TranscriptsPane(viewModel: self.viewModel)
+            },
             makePane(id: "Model", title: "Model", icon: "cpu") {
                 ModelPane(viewModel: self.viewModel)
             },

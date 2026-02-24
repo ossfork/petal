@@ -73,7 +73,7 @@ public final class OnboardingModel {
             return microphoneAuthorized ? "Continue" : "Enable Microphone"
         case .download:
             if modelDownloadViewModel.isDownloadingModel { return "Downloading..." }
-            if modelDownloadViewModel.isSelectedModelDownloaded { return "Finish Setup" }
+            if modelDownloadViewModel.isSelectedModelDownloaded || modelDownloadViewModel.downloadProgress >= 1 { return "Finish Setup" }
             return currentPage.primaryTitle
         default:
             return currentPage.primaryTitle
@@ -100,7 +100,7 @@ public final class OnboardingModel {
             guard hasConfiguredShortcut else { return }
             moveForward()
         case .download:
-            if modelDownloadViewModel.isSelectedModelDownloaded {
+            if modelDownloadViewModel.isSelectedModelDownloaded || modelDownloadViewModel.downloadProgress >= 1 {
                 completeSetup()
             } else {
                 Task { await downloadModel() }

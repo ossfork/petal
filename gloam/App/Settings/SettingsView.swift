@@ -39,25 +39,6 @@ struct GeneralPane: View {
                 }
             }
 
-            SettingsSection("History") {
-                Picker("Retention", selection: historyRetentionMode) {
-                    ForEach(HistoryRetentionMode.allCases, id: \.self) { mode in
-                        Text(mode.displayName).tag(mode)
-                    }
-                }
-                .fixedSize()
-
-                Text(viewModel.appModel.historyDirectoryDisplayPath)
-                    .settingDescription()
-                    .textSelection(.enabled)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-
-                Button("Open in Finder") {
-                    viewModel.openHistoryFolder()
-                }
-                .controlSize(.small)
-            }
         }
     }
 
@@ -93,12 +74,6 @@ struct GeneralPane: View {
         }
     }
 
-    private var historyRetentionMode: Binding<HistoryRetentionMode> {
-        Binding(
-            get: { viewModel.appModel.historyRetentionMode },
-            set: { viewModel.appModel.historyRetentionMode = $0 }
-        )
-    }
 }
 
 // MARK: - Transcription
@@ -190,6 +165,59 @@ struct TranscriptionPane: View {
                     .settingDescription()
             }
         ]
+    }
+}
+
+// MARK: - Transcripts
+
+struct TranscriptsPane: View {
+    var viewModel: SettingsViewModel
+
+    var body: some View {
+        SettingsContainer {
+            SettingsSection("Retention", bottomDivider: true) {
+                Picker("Retention", selection: historyRetentionMode) {
+                    ForEach(HistoryRetentionMode.allCases, id: \.self) { mode in
+                        Text(mode.displayName).tag(mode)
+                    }
+                }
+                .fixedSize()
+            }
+
+            SettingsSection("Compression", bottomDivider: true) {
+                Toggle("Compress audio before saving", isOn: compressHistoryAudio)
+
+                Text("Re-encodes recorded audio as AAC before persisting. Reduces file size at the cost of a brief delay after transcription.")
+                    .settingDescription()
+            }
+
+            SettingsSection("Storage") {
+                Text(viewModel.appModel.historyDirectoryDisplayPath)
+                    .settingDescription()
+                    .textSelection(.enabled)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+
+                Button("Open in Finder") {
+                    viewModel.openHistoryFolder()
+                }
+                .controlSize(.small)
+            }
+        }
+    }
+
+    private var historyRetentionMode: Binding<HistoryRetentionMode> {
+        Binding(
+            get: { viewModel.appModel.historyRetentionMode },
+            set: { viewModel.appModel.historyRetentionMode = $0 }
+        )
+    }
+
+    private var compressHistoryAudio: Binding<Bool> {
+        Binding(
+            get: { viewModel.appModel.compressHistoryAudio },
+            set: { viewModel.appModel.compressHistoryAudio = $0 }
+        )
     }
 }
 
@@ -372,6 +400,10 @@ struct AboutPane: View {
         model.smartPrompt = "Rewrite this into a concise action summary with bullet points."
     }
     TranscriptionPane(viewModel: vm)
+}
+
+#Preview("Transcripts") {
+    TranscriptsPane(viewModel: .makePreview())
 }
 
 #Preview("Model") {

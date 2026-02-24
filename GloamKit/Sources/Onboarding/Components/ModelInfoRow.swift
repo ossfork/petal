@@ -7,7 +7,7 @@ struct ModelInfoRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            Image.appIcon
+            providerIcon
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 44, height: 44)
@@ -32,6 +32,13 @@ struct ModelInfoRow: View {
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
             }
+        }
+    }
+
+    private var providerIcon: Image {
+        switch option.provider {
+        case .mlxAudioSTT: .qwen
+        case .voxtralCore: .mistral
         }
     }
 }

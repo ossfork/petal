@@ -47,7 +47,7 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
 
     // Keep legacy Voxtral IDs readable while exposing current catalog options in UI.
     public static var allCases: [ModelOption] { [.qwen3ASR06B4bit, .mini3b] }
-    public static let defaultOption: Self = .mini3b
+    public static let defaultOption: Self = .qwen3ASR06B4bit
 
     public var id: String { rawValue }
 
@@ -58,24 +58,24 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 id: rawValue,
                 repoID: "mlx-community/Qwen3-ASR-0.6B-4bit",
                 name: "Qwen3 ASR 0.6B (4-bit)",
-                summary: "Faster, lightweight on-device transcription via MLX Audio STT.",
+                summary: "Recommended for fast, lightweight on-device transcription.",
                 size: "~1.2 GB",
                 quantization: "4-bit",
                 parameters: "0.6B",
                 provider: .mlxAudioSTT,
-                recommended: false
+                recommended: true
             )
         case .mini3b:
             return ModelDescriptor(
                 id: rawValue,
                 repoID: "mlx-community/Voxtral-Mini-3B-2507-bf16",
                 name: "Voxtral Mini 3B (bf16)",
-                summary: "Recommended for accurate, on-device transcription.",
+                summary: "Accurate on-device transcription with Smart mode support.",
                 size: "~8.7 GB",
                 quantization: "bf16",
                 parameters: "3B",
                 provider: .voxtralCore,
-                recommended: true
+                recommended: false
             )
         case .mini3b8bit:
             return ModelDescriptor(

@@ -1,4 +1,5 @@
 import AppKit
+import AVFoundation
 import Dependencies
 import DependenciesMacros
 import Foundation
@@ -66,6 +67,7 @@ public struct PersistArtifactsRequest: Sendable {
     public var mode: String
     public var modelID: String
     public var retentionMode: HistoryRetentionMode
+    public var compressAudio: Bool
 
     public init(
         audioURL: URL,
@@ -73,7 +75,8 @@ public struct PersistArtifactsRequest: Sendable {
         timestamp: Date,
         mode: String,
         modelID: String,
-        retentionMode: HistoryRetentionMode
+        retentionMode: HistoryRetentionMode,
+        compressAudio: Bool = false
     ) {
         self.audioURL = audioURL
         self.transcript = transcript
@@ -81,6 +84,7 @@ public struct PersistArtifactsRequest: Sendable {
         self.mode = mode
         self.modelID = modelID
         self.retentionMode = retentionMode
+        self.compressAudio = compressAudio
     }
 }
 
@@ -195,7 +199,7 @@ private final class HistoryRuntime: @unchecked Sendable {
         let safeModelID = request.modelID.replacingOccurrences(of: "/", with: "-")
         let baseName = "\(stamp)-\(safeModelID)-\(request.mode)"
 
-        let audioTarget = Self.historyMediaDirectoryURL.appending(path: "\(baseName).wav")
+        let audioTarget = Self.historyMediaDirectoryURL.appending(path: "\(baseName).m4a")
         let transcriptTarget = Self.historyTranscriptsDirectoryURL.appending(path: "\(baseName).txt")
 
         var artifacts = PersistedArtifacts()
@@ -204,7 +208,11 @@ private final class HistoryRuntime: @unchecked Sendable {
                 if fileManager.fileExists(atPath: audioTarget.path) {
                     try fileManager.removeItem(at: audioTarget)
                 }
-                try fileManager.copyItem(at: request.audioURL, to: audioTarget)
+                if request.compressAudio {
+                    try Self.compressAudio(from: request.audioURL, to: audioTarget)
+                } else {
+                    try fileManager.copyItem(at: request.audioURL, to: audioTarget)
+                }
                 Self.applyProtection(to: audioTarget)
                 artifacts.audioRelativePath = "media/\(audioTarget.lastPathComponent)"
             }
@@ -331,5 +339,25 @@ private final class HistoryRuntime: @unchecked Sendable {
 
     private static var historyTranscriptsDirectoryURL: URL {
         historyDirectoryURL.appending(path: "transcripts", directoryHint: .isDirectory)
+    }
+
+    private static func compressAudio(from source: URL, to destination: URL) throws {
+        let asset = AVAsset(url: source)
+        guard let session = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A) else {
+            throw NSError(domain: "HistoryClient", code: 2, userInfo: [NSLocalizedDescriptionKey: "Cannot create export session"])
+        }
+        session.outputURL = destination
+        session.outputFileType = .m4a
+
+        let semaphore = DispatchSemaphore(value: 0)
+        session.exportAsynchronously { semaphore.signal() }
+        semaphore.wait()
+
+        if let error = session.error {
+            throw error
+        }
+        guard session.status == .completed else {
+            throw NSError(domain: "HistoryClient", code: 3, userInfo: [NSLocalizedDescriptionKey: "Audio compression failed with status \(session.status.rawValue)"])
+        }
     }
 }

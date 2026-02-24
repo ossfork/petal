@@ -13,6 +13,10 @@ public extension SharedKey where Self == AppStorageKey<Bool>.Default {
     static var autoSpeedEnabled: Self {
         Self[.appStorage("auto_speed_enabled"), default: true]
     }
+
+    static var compressHistoryAudio: Self {
+        Self[.appStorage("compress_history_audio"), default: false]
+    }
 }
 
 public extension SharedKey where Self == AppStorageKey<String>.Default {

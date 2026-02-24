@@ -39,6 +39,7 @@ final class AppModel {
     @ObservationIgnored @Shared(.smartPrompt) private var smartPromptStorage = "Clean up filler words and repeated phrases. Return a polished version of what was said."
     @ObservationIgnored @Shared(.trimSilenceEnabled) private var trimSilenceEnabledStorage = true
     @ObservationIgnored @Shared(.autoSpeedEnabled) private var autoSpeedEnabledStorage = true
+    @ObservationIgnored @Shared(.compressHistoryAudio) private var compressHistoryAudioStorage = false
     @ObservationIgnored @Shared(.historyRetentionMode) private var historyRetentionModeStorage = HistoryRetentionMode.both.rawValue
     @ObservationIgnored @Shared(.transcriptHistoryDays) private var transcriptHistoryDaysStorage: [TranscriptHistoryDay] = []
 
@@ -84,6 +85,12 @@ final class AppModel {
     var autoSpeedEnabled = true {
         didSet {
             $autoSpeedEnabledStorage.withLock { $0 = autoSpeedEnabled }
+        }
+    }
+
+    var compressHistoryAudio = false {
+        didSet {
+            $compressHistoryAudioStorage.withLock { $0 = compressHistoryAudio }
         }
     }
 
@@ -160,6 +167,7 @@ final class AppModel {
         smartPrompt = smartPromptStorage
         trimSilenceEnabled = trimSilenceEnabledStorage
         autoSpeedEnabled = autoSpeedEnabledStorage
+        compressHistoryAudio = compressHistoryAudioStorage
         historyRetentionMode = HistoryRetentionMode(rawValue: historyRetentionModeStorage) ?? .both
         transcriptHistoryDays = transcriptHistoryDaysStorage
 
@@ -558,49 +566,80 @@ final class AppModel {
             let transcriptionElapsed = now.timeIntervalSince(transcriptionStart)
             updateTranscriptionSpeedEstimate(audioDuration: audioDuration, elapsed: transcriptionElapsed)
             stopTranscriptionProgressTracking(finalProgress: 1)
-            await soundClient.playTranscriptionCompleted()
 
-            let pasteResult = await pasteClient.paste(transcript)
-            logger.info("Transcription completed. characters=\(transcript.count, privacy: .public), pasteResult=\(String(describing: pasteResult), privacy: .public)")
-            consoleLog("Transcription completed. characters=\(transcript.count), pasteResult=\(String(describing: pasteResult))")
-            logClient.dumpDebug(
-                "AppModel",
-                "Transcription metrics",
-                appDumpString(
-                    [
-                        "characters": "\(transcript.count)",
-                        "audioDuration": audioDuration.formatted(.number.precision(.fractionLength(2))),
-                        "transcriptionElapsed": transcriptionElapsed.formatted(.number.precision(.fractionLength(2))),
-                        "pasteResult": pasteResult.rawValue
-                    ]
+            let isEmptyTranscript = transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
+            if isEmptyTranscript {
+                await soundClient.playTranscriptionNoResult()
+                transientMessage = "No speech detected."
+                logger.info("Empty transcription result — no speech detected")
+                consoleLog("Empty transcription result — no speech detected")
+
+                let persistedPaths = persistHistoryArtifacts(
+                    audioURL: audioURL,
+                    transcript: transcript,
+                    timestamp: transcriptionStart,
+                    mode: mode.rawValue,
+                    modelID: selectedModelOption.rawValue
                 )
-            )
 
-            let persistedPaths = persistHistoryArtifacts(
-                audioURL: audioURL,
-                transcript: transcript,
-                timestamp: transcriptionStart,
-                mode: mode.rawValue,
-                modelID: selectedModelOption.rawValue
-            )
+                appendTranscriptHistory(
+                    transcript: transcript,
+                    modelID: selectedModelOption.rawValue,
+                    mode: mode.rawValue,
+                    audioDuration: audioDuration,
+                    transcriptionElapsed: transcriptionElapsed,
+                    pasteResult: .skipped,
+                    audioRelativePath: persistedPaths?.audioRelativePath,
+                    transcriptRelativePath: persistedPaths?.transcriptRelativePath
+                )
+            } else {
+                await soundClient.playTranscriptionCompleted()
 
-            appendTranscriptHistory(
-                transcript: transcript,
-                modelID: selectedModelOption.rawValue,
-                mode: mode.rawValue,
-                audioDuration: audioDuration,
-                transcriptionElapsed: transcriptionElapsed,
-                pasteResult: pasteResult,
-                audioRelativePath: persistedPaths?.audioRelativePath,
-                transcriptRelativePath: persistedPaths?.transcriptRelativePath
-            )
+                let pasteResult = await pasteClient.paste(transcript)
+                logger.info("Transcription completed. characters=\(transcript.count, privacy: .public), pasteResult=\(String(describing: pasteResult), privacy: .public)")
+                consoleLog("Transcription completed. characters=\(transcript.count), pasteResult=\(String(describing: pasteResult))")
+                logClient.dumpDebug(
+                    "AppModel",
+                    "Transcription metrics",
+                    appDumpString(
+                        [
+                            "characters": "\(transcript.count)",
+                            "audioDuration": audioDuration.formatted(.number.precision(.fractionLength(2))),
+                            "transcriptionElapsed": transcriptionElapsed.formatted(.number.precision(.fractionLength(2))),
+                            "pasteResult": pasteResult.rawValue
+                        ]
+                    )
+                )
 
-            switch pasteResult {
-            case .pasted:
-                transientMessage = nil
-            case .copiedOnly:
-                transientMessage = "Accessibility access is needed to paste. Turn it on in System Settings, then try again."
-                await postPasteFallbackNotification()
+                let persistedPaths = persistHistoryArtifacts(
+                    audioURL: audioURL,
+                    transcript: transcript,
+                    timestamp: transcriptionStart,
+                    mode: mode.rawValue,
+                    modelID: selectedModelOption.rawValue
+                )
+
+                appendTranscriptHistory(
+                    transcript: transcript,
+                    modelID: selectedModelOption.rawValue,
+                    mode: mode.rawValue,
+                    audioDuration: audioDuration,
+                    transcriptionElapsed: transcriptionElapsed,
+                    pasteResult: pasteResult,
+                    audioRelativePath: persistedPaths?.audioRelativePath,
+                    transcriptRelativePath: persistedPaths?.transcriptRelativePath
+                )
+
+                switch pasteResult {
+                case .pasted:
+                    transientMessage = nil
+                case .copiedOnly:
+                    transientMessage = "Accessibility access is needed to paste. Turn it on in System Settings, then try again."
+                    await postPasteFallbackNotification()
+                case .skipped:
+                    break
+                }
             }
 
             lastError = nil
@@ -1053,7 +1092,8 @@ final class AppModel {
                 timestamp: timestamp,
                 mode: mode,
                 modelID: modelID,
-                retentionMode: historyRetentionMode
+                retentionMode: historyRetentionMode,
+                compressAudio: compressHistoryAudio
             )
         )
     }

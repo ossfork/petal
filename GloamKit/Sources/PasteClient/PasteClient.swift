@@ -7,11 +7,13 @@ import Sauce
 public enum PasteResult: Equatable, Sendable {
     case pasted
     case copiedOnly
+    case skipped
 
     public var rawValue: String {
         switch self {
         case .pasted: "pasted"
         case .copiedOnly: "copied_only"
+        case .skipped: "skipped"
         }
     }
 }

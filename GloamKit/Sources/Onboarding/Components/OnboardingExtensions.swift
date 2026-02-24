@@ -35,7 +35,7 @@ struct OnboardingPageContainer<Content: View>: View {
         VStack(spacing: 0) {
             content(isAnimating)
                 .padding()
-                .xSpacing(.center)
+                .xSpacing(.topLeading)
 
             VStack(spacing: 0) {
                 Divider()
@@ -55,50 +55,12 @@ struct OnboardingPageContainer<Content: View>: View {
                     .disabled(primaryDisabled)
                     .frame(width: 220)
                 }
-                .padding(12)
+                .padding([.horizontal, .bottom])
                 .background(.regularMaterial)
             }
             .slideIn(active: isAnimating, delay: primaryActionDelay)
         }
         .onAppear { isAnimating = true }
-    }
-}
-
-struct OnboardingPagePreview<Content: View>: View {
-    private let content: () -> Content
-
-    init(@ViewBuilder _ content: @escaping () -> Content) {
-        self.content = content
-    }
-
-    var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.09, green: 0.10, blue: 0.22),
-                    Color(red: 0.05, green: 0.04, blue: 0.14),
-                    .black
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .overlay {
-                LinearGradient(
-                    colors: [
-                        .black.opacity(0.25),
-                        .black.opacity(0.55)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            }
-            .ignoresSafeArea()
-
-            content()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-        .frame(width: 820, height: 512)
-        .preferredColorScheme(.dark)
     }
 }
 
