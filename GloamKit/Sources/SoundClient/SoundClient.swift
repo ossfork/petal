@@ -11,6 +11,8 @@ public struct SoundClient: Sendable {
     public var playTranscriptionStarted: @Sendable () async -> Void = {}
     public var playTranscriptionCompleted: @Sendable () async -> Void = {}
     public var playTranscriptionNoResult: @Sendable () async -> Void = {}
+    public var playWelcome: @Sendable () async -> Void = {}
+    public var playRefineStarted: @Sendable () async -> Void = {}
 }
 
 extension SoundClient: DependencyKey {
@@ -28,6 +30,12 @@ extension SoundClient: DependencyKey {
             },
             playTranscriptionNoResult: {
                 await runtime.play(.transcriptionNoResult)
+            },
+            playWelcome: {
+                await runtime.play(.welcome)
+            },
+            playRefineStarted: {
+                await runtime.play(.refineStarted)
             }
         )
     }
@@ -52,6 +60,8 @@ private actor SoundRuntime {
         case transcriptionStarted
         case transcriptionCompleted
         case transcriptionNoResult
+        case welcome
+        case refineStarted
 
         var variants: [SoundLibrary] {
             switch self {
@@ -59,6 +69,8 @@ private actor SoundRuntime {
             case .transcriptionStarted: [.prestop]
             case .transcriptionCompleted: [.stop1, .stop2, .stop3, .stop4]
             case .transcriptionNoResult: [.noresult1, .noresult2, .noresult3, .noresult4]
+            case .welcome: [.welcome]
+            case .refineStarted: [.refine]
             }
         }
 
@@ -68,6 +80,8 @@ private actor SoundRuntime {
             case .transcriptionStarted: 0.2
             case .transcriptionCompleted: 0.25
             case .transcriptionNoResult: 0.2
+            case .welcome: 0.3
+            case .refineStarted: 0.25
             }
         }
     }

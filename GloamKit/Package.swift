@@ -120,6 +120,7 @@ let package = Package(
                 .foundationModelClient,
                 .keyboardShortcuts,
                 .sauce,
+                "SoundClient",
             ]
         ),
 

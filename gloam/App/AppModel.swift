@@ -472,6 +472,7 @@ final class AppModel {
 
             if needsAIRefine {
                 sessionState = .processing(.refining)
+                await soundClient.playRefineStarted()
                 await floatingCapsuleClient.showRefining()
                 logger.info("Starting Apple Intelligence refinement: inputLength=\(transcript.count, privacy: .public)")
 

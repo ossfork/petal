@@ -5,6 +5,8 @@ public enum SoundLibrary: String, CaseIterable, Sendable {
     case prestop
     case stop1, stop2, stop3, stop4
     case noresult1, noresult2, noresult3, noresult4
+    case welcome
+    case refine
 
     public var url: URL? {
         Bundle.module.url(forResource: rawValue, withExtension: "m4a")

@@ -1,8 +1,11 @@
+import Dependencies
+import SoundClient
 import SwiftUI
 import UI
 
 struct WelcomePage: View {
     @State private var isAnimating = false
+    @Dependency(\.soundClient) private var soundClient
 
     var body: some View {
         VStack(spacing: 24) {
@@ -28,7 +31,10 @@ struct WelcomePage: View {
             }
             .slideIn(active: isAnimating, delay: 0.5)
         }
-        .onAppear { isAnimating = true }
+        .onAppear {
+            isAnimating = true
+            Task { await soundClient.playWelcome() }
+        }
     }
 }
 
