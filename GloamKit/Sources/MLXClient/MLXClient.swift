@@ -58,6 +58,26 @@ public enum MLXTranscriptionMode: Sendable {
     case smart(prompt: String)
 }
 
+public enum MLXDownloadError: LocalizedError, Sendable, Equatable {
+    case paused
+    case cancelled
+    case aria2BinaryMissing
+    case failed(String)
+
+    public var errorDescription: String? {
+        switch self {
+        case .paused:
+            return "Download paused"
+        case .cancelled:
+            return "Download cancelled"
+        case .aria2BinaryMissing:
+            return "aria2c binary is missing from the app bundle or system PATH."
+        case let .failed(message):
+            return message
+        }
+    }
+}
+
 @DependencyClient
 public struct MLXClient: Sendable {
     public var isModelDownloaded: @Sendable (MLXModelInfo) -> Bool = { _ in false }
@@ -83,11 +103,15 @@ extension MLXClient: DependencyKey {
                 }
             },
             downloadModel: { info, progress in
-                switch info.backend {
-                case .voxtral:
-                    _ = try await ModelDownloader.download(info.voxtralModelInfo, progress: progress)
-                case .mlxAudioSTT, .mlxWhisper:
-                    try await MLXAudioCache.downloadSnapshotIfNeeded(repoId: info.repoId, progress: progress)
+                do {
+                    switch info.backend {
+                    case .voxtral:
+                        _ = try await ModelDownloader.download(info.voxtralModelInfo, progress: progress)
+                    case .mlxAudioSTT, .mlxWhisper:
+                        try await MLXAudioCache.downloadSnapshotIfNeeded(repoId: info.repoId, progress: progress)
+                    }
+                } catch {
+                    throw normalizeDownloadError(error)
                 }
             },
             pauseDownload: {
@@ -271,6 +295,29 @@ private enum MLXError: LocalizedError {
             return "Whisper runtime is unavailable: \(message)"
         }
     }
+}
+
+private func normalizeDownloadError(_ error: any Error) -> MLXDownloadError {
+    if let downloadError = error as? MLXDownloadError {
+        return downloadError
+    }
+
+    if let downloaderError = error as? ModelDownloaderError {
+        switch downloaderError {
+        case .downloadPaused:
+            return .paused
+        case .downloadCancelled:
+            return .cancelled
+        case .aria2BinaryMissing:
+            return .aria2BinaryMissing
+        case let .downloadFailed(message):
+            return .failed(message)
+        case .modelNotFound:
+            return .failed(downloaderError.localizedDescription)
+        }
+    }
+
+    return .failed(error.localizedDescription)
 }
 
 private enum MLXAudioCache {

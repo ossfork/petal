@@ -1,6 +1,6 @@
 import Foundation
 
-public enum HistoryRetentionMode: String, CaseIterable, Identifiable, Sendable {
+public enum HistoryRetentionMode: String, CaseIterable, Identifiable, Sendable, Codable {
     case none
     case transcripts
     case audio

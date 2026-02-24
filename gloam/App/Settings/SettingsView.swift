@@ -1,7 +1,27 @@
 import KeyboardShortcuts
 import Shared
-import Sparkle
 import SwiftUI
+
+// MARK: - Settings Root
+
+struct SettingsView: View {
+    @State var selectedTab: SettingsTab = .general
+    @Bindable var viewModel: SettingsViewModel
+
+    var body: some View {
+        TabView(selection: $selectedTab) {
+            Tab("General", systemImage: "gearshape", value: .general) {
+                GeneralPane(viewModel: viewModel)
+            }
+            Tab("Transcription", systemImage: "waveform", value: .transcription) {
+                TranscriptionPane(viewModel: viewModel)
+            }
+            Tab("History", systemImage: "clock", value: .history) {
+                HistoryPane(viewModel: viewModel)
+            }
+        }
+    }
+}
 
 // MARK: - General Pane
 
@@ -25,7 +45,7 @@ struct GeneralPane: View {
                             .foregroundStyle(.green)
                     } else {
                         Button("Grant Access") {
-                            viewModel.grantMicrophonePermission()
+                            Task { await viewModel.grantMicrophonePermissionButtonTapped() }
                         }
                     }
                 }
@@ -36,7 +56,7 @@ struct GeneralPane: View {
                             .foregroundStyle(.green)
                     } else {
                         Button("Grant Access") {
-                            viewModel.grantAccessibilityPermission()
+                            Task { await viewModel.grantAccessibilityPermissionButtonTapped() }
                         }
                     }
                 }
@@ -93,18 +113,34 @@ struct TranscriptionPane: View {
                         Label("Downloaded", systemImage: "checkmark.circle.fill")
                             .foregroundStyle(.green)
                     }
-                } else if viewModel.isDownloadingModel {
+                } else if viewModel.isDownloadingModel || viewModel.isPaused {
                     VStack(alignment: .leading, spacing: 4) {
                         ProgressView(value: viewModel.downloadProgress)
+                        if !viewModel.downloadStatus.isEmpty {
+                            Text(viewModel.downloadStatus)
+                                .settingDescription()
+                        }
                         Text(viewModel.downloadSummaryText)
                             .settingDescription()
                     }
-                    Button("Cancel") {
-                        viewModel.cancelDownload()
+                    HStack {
+                        if viewModel.isPaused {
+                            Button("Resume") {
+                                Task { await viewModel.resumeButtonTapped() }
+                            }
+                        } else {
+                            Button("Pause") {
+                                viewModel.pauseButtonTapped()
+                            }
+                        }
+
+                        Button("Cancel") {
+                            viewModel.cancelButtonTapped()
+                        }
                     }
                 } else {
                     Button("Download Model") {
-                        viewModel.downloadModel()
+                        Task { await viewModel.downloadButtonTapped() }
                     }
                 }
 
@@ -199,53 +235,6 @@ struct HistoryPane: View {
             }
         }
         .formStyle(.grouped)
-    }
-}
-
-// MARK: - About Pane
-
-struct AboutPane: View {
-    var updatesModel: CheckForUpdatesModel?
-
-    private var appVersion: String {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "–"
-        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "–"
-        return "\(version) (\(build))"
-    }
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Spacer()
-
-            if let appIcon = NSImage(named: "AppIcon") {
-                Image(nsImage: appIcon)
-                    .resizable()
-                    .frame(width: 64, height: 64)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            }
-
-            Text("Gloam")
-                .font(.title2.bold())
-
-            Text("Version \(appVersion)")
-                .foregroundStyle(.secondary)
-
-            if let updatesModel {
-                Button("Check for Updates…") {
-                    updatesModel.checkForUpdates()
-                }
-                .disabled(!updatesModel.canCheckForUpdates)
-            }
-
-            HStack(spacing: 16) {
-                Link("aayush.art", destination: URL(string: "https://aayush.art")!)
-                Link("GitHub", destination: URL(string: "https://github.com/Aayush9029/gloam")!)
-            }
-            .foregroundStyle(.secondary)
-
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

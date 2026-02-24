@@ -159,11 +159,7 @@ public final class OnboardingModel {
     public var microphonePermissionState: MicrophonePermissionState = .notDetermined
     public var microphoneAuthorized = false
     public var accessibilityAuthorized = false
-    public var historyRetentionMode: HistoryRetentionMode = .both {
-        didSet {
-            $historyRetentionModeStorage.withLock { $0 = historyRetentionMode.rawValue }
-        }
-    }
+    @ObservationIgnored @Shared(.historyRetentionMode) public var historyRetentionMode: HistoryRetentionMode = .both
 
     public var lastError: String?
     public var transientMessage: String?
@@ -173,8 +169,7 @@ public final class OnboardingModel {
     @ObservationIgnored @Dependency(\.permissionsClient) private var permissionsClient
     @ObservationIgnored @Dependency(\.continuousClock) private var clock
 
-    @ObservationIgnored @Shared(.hasCompletedSetup) private var hasCompletedSetupStorage = false
-    @ObservationIgnored @Shared(.historyRetentionMode) private var historyRetentionModeStorage = HistoryRetentionMode.both.rawValue
+    @ObservationIgnored @Shared(.hasCompletedSetup) private var hasCompletedSetup = false
 
     @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
     @ObservationIgnored private let isPreviewMode: Bool
@@ -191,8 +186,6 @@ public final class OnboardingModel {
             accessibilityAuthorized = true
             return
         }
-
-        historyRetentionMode = HistoryRetentionMode(rawValue: historyRetentionModeStorage) ?? .both
 
         startPermissionMonitoring()
     }
@@ -275,7 +268,7 @@ public final class OnboardingModel {
     }
 
     public func completeSetup() {
-        $hasCompletedSetupStorage.withLock { $0 = true }
+        hasCompletedSetup = true
         permissionMonitorTask?.cancel()
         onCompleted?()
     }

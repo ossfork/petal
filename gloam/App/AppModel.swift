@@ -34,76 +34,22 @@ final class AppModel {
         case error(String)
     }
 
-    @ObservationIgnored @Shared(.hasCompletedSetup) private var hasCompletedSetupStorage = false
-    @ObservationIgnored @Shared(.transcriptionMode) private var transcriptionModeStorage = TranscriptionMode.verbatim.rawValue
-    @ObservationIgnored @Shared(.smartPrompt) private var smartPromptStorage = "Clean up filler words and repeated phrases. Return a polished version of what was said."
-    @ObservationIgnored @Shared(.trimSilenceEnabled) private var trimSilenceEnabledStorage = true
-    @ObservationIgnored @Shared(.autoSpeedEnabled) private var autoSpeedEnabledStorage = true
-    @ObservationIgnored @Shared(.compressHistoryAudio) private var compressHistoryAudioStorage = false
-    @ObservationIgnored @Shared(.historyRetentionMode) private var historyRetentionModeStorage = HistoryRetentionMode.both.rawValue
-    @ObservationIgnored @Shared(.transcriptHistoryDays) private var transcriptHistoryDaysStorage: [TranscriptHistoryDay] = []
+    @ObservationIgnored @Shared(.hasCompletedSetup) var hasCompletedSetup = false
+    @ObservationIgnored @Shared(.transcriptionMode) var transcriptionMode: TranscriptionMode = .verbatim
+    @ObservationIgnored @Shared(.smartPrompt) var smartPrompt = "Clean up filler words and repeated phrases. Return a polished version of what was said."
+    @ObservationIgnored @Shared(.trimSilenceEnabled) var trimSilenceEnabled = true
+    @ObservationIgnored @Shared(.autoSpeedEnabled) var autoSpeedEnabled = true
+    @ObservationIgnored @Shared(.compressHistoryAudio) var compressHistoryAudio = false
+    @ObservationIgnored @Shared(.historyRetentionMode) var historyRetentionMode: HistoryRetentionMode = .both
+    @ObservationIgnored @Shared(.transcriptHistoryDays) var transcriptHistoryDays: [TranscriptHistoryDay] = []
 
     let modelDownloadViewModel: ModelDownloadViewModel
-
-    var hasCompletedSetup = false {
-        didSet {
-            $hasCompletedSetupStorage.withLock { $0 = hasCompletedSetup }
-        }
-    }
 
     var selectedModelID: String {
         get { modelDownloadViewModel.selectedModelID }
         set {
             modelDownloadViewModel.selectedModelID = newValue
             selectedModelDidChange()
-        }
-    }
-
-    var transcriptionMode: TranscriptionMode = .verbatim {
-        didSet {
-            let normalizedMode = normalizedTranscriptionMode(transcriptionMode)
-            if transcriptionMode != normalizedMode {
-                transcriptionMode = normalizedMode
-                return
-            }
-            $transcriptionModeStorage.withLock { $0 = normalizedMode.rawValue }
-        }
-    }
-
-    var smartPrompt = "Clean up filler words and repeated phrases. Return a polished version of what was said." {
-        didSet {
-            $smartPromptStorage.withLock { $0 = smartPrompt }
-        }
-    }
-
-    var trimSilenceEnabled = true {
-        didSet {
-            $trimSilenceEnabledStorage.withLock { $0 = trimSilenceEnabled }
-        }
-    }
-
-    var autoSpeedEnabled = true {
-        didSet {
-            $autoSpeedEnabledStorage.withLock { $0 = autoSpeedEnabled }
-        }
-    }
-
-    var compressHistoryAudio = false {
-        didSet {
-            $compressHistoryAudioStorage.withLock { $0 = compressHistoryAudio }
-        }
-    }
-
-    var historyRetentionMode: HistoryRetentionMode = .both {
-        didSet {
-            $historyRetentionModeStorage.withLock { $0 = historyRetentionMode.rawValue }
-            transcriptHistoryDays = historyClient.applyRetention(historyRetentionMode, transcriptHistoryDays)
-        }
-    }
-
-    var transcriptHistoryDays: [TranscriptHistoryDay] = [] {
-        didSet {
-            $transcriptHistoryDaysStorage.withLock { $0 = transcriptHistoryDays }
         }
     }
 
@@ -115,7 +61,6 @@ final class AppModel {
     var accessibilityAuthorized = false
 
     var onboardingModel: OnboardingModel?
-    @ObservationIgnored var updatesModel: CheckForUpdatesModel?
 
     @ObservationIgnored @Dependency(\.continuousClock) private var clock
     @ObservationIgnored @Dependency(\.date.now) private var now
@@ -140,7 +85,6 @@ final class AppModel {
     @ObservationIgnored private var ignoreNextShortcutKeyUp = false
     @ObservationIgnored private var currentShortcutPressStart: Date?
     @ObservationIgnored private var onboardingWindowController: OnboardingWindowController?
-    @ObservationIgnored private var settingsWindowController: SettingsWindowController?
     @ObservationIgnored private var transcriptionProgressTask: Task<Void, Never>?
     @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
     @ObservationIgnored private var estimatedTranscriptionRTF = 2.2
@@ -162,15 +106,6 @@ final class AppModel {
             accessibilityAuthorized = true
             return
         }
-
-        hasCompletedSetup = hasCompletedSetupStorage
-        transcriptionMode = TranscriptionMode(rawValue: transcriptionModeStorage) ?? .verbatim
-        smartPrompt = smartPromptStorage
-        trimSilenceEnabled = trimSilenceEnabledStorage
-        autoSpeedEnabled = autoSpeedEnabledStorage
-        compressHistoryAudio = compressHistoryAudioStorage
-        historyRetentionMode = HistoryRetentionMode(rawValue: historyRetentionModeStorage) ?? .both
-        transcriptHistoryDays = transcriptHistoryDaysStorage
 
         transcriptHistoryDays = historyClient.bootstrap(historyRetentionMode, transcriptHistoryDays)
 
@@ -271,6 +206,11 @@ final class AppModel {
         if transcriptionMode != normalizedMode {
             transcriptionMode = normalizedMode
         }
+    }
+
+    func historyRetentionModeChanged(_ mode: HistoryRetentionMode) {
+        historyRetentionMode = mode
+        transcriptHistoryDays = historyClient.applyRetention(mode, transcriptHistoryDays)
     }
 
     func changeModelButtonTapped() {
@@ -710,21 +650,7 @@ final class AppModel {
 
     private func showSettingsWindow() {
         if isPreviewMode { return }
-
-        if let existing = settingsWindowController?.window, existing.isVisible {
-            existing.orderFrontRegardless()
-            existing.makeKeyAndOrderFront(nil)
-            NSApp.activate(ignoringOtherApps: true)
-            return
-        }
-
-        let viewModel = SettingsViewModel(appModel: self)
-        let controller = SettingsWindowController(viewModel: viewModel, updatesModel: updatesModel)
-        settingsWindowController = controller
-        controller.window?.center()
-        controller.window?.orderFrontRegardless()
-        controller.window?.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
     }
 
     // MARK: - Private: Shortcuts & Keyboard

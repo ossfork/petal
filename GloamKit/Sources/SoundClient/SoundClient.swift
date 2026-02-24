@@ -1,3 +1,4 @@
+import Assets
 import AVFoundation
 import Dependencies
 import DependenciesMacros
@@ -52,26 +53,26 @@ private actor SoundRuntime {
         case transcriptionCompleted
         case transcriptionNoResult
 
-        var variants: [String] {
+        var variants: [SoundLibrary] {
             switch self {
-            case .recordingStarted: return ["start1", "start2", "start3", "start4"]
-            case .transcriptionStarted: return ["prestop"]
-            case .transcriptionCompleted: return ["stop1", "stop2", "stop3", "stop4"]
-            case .transcriptionNoResult: return ["noresult1", "noresult2", "noresult3", "noresult4"]
+            case .recordingStarted: [.start1, .start2, .start3, .start4]
+            case .transcriptionStarted: [.prestop]
+            case .transcriptionCompleted: [.stop1, .stop2, .stop3, .stop4]
+            case .transcriptionNoResult: [.noresult1, .noresult2, .noresult3, .noresult4]
             }
         }
 
         var volume: Float {
             switch self {
-            case .recordingStarted: return 0.3
-            case .transcriptionStarted: return 0.2
-            case .transcriptionCompleted: return 0.25
-            case .transcriptionNoResult: return 0.2
+            case .recordingStarted: 0.3
+            case .transcriptionStarted: 0.2
+            case .transcriptionCompleted: 0.25
+            case .transcriptionNoResult: 0.2
             }
         }
     }
 
-    private var players: [String: AVAudioPlayer] = [:]
+    private var players: [SoundLibrary: AVAudioPlayer] = [:]
 
     func play(_ effect: Effect) {
         let variants = effect.variants
@@ -84,31 +85,20 @@ private actor SoundRuntime {
         } catch {}
     }
 
-    private func player(for variant: String) throws -> AVAudioPlayer {
-        if let existing = players[variant] {
+    private func player(for sound: SoundLibrary) throws -> AVAudioPlayer {
+        if let existing = players[sound] {
             return existing
         }
-        guard let url = resourceURL(for: variant) else {
+        guard let url = sound.url else {
             throw NSError(
                 domain: "SoundClient",
                 code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "Missing sound resource \(variant).m4a"]
+                userInfo: [NSLocalizedDescriptionKey: "Missing sound resource \(sound.rawValue).m4a"]
             )
         }
         let player = try AVAudioPlayer(contentsOf: url)
         player.prepareToPlay()
-        players[variant] = player
+        players[sound] = player
         return player
-    }
-
-    private func resourceURL(for variant: String) -> URL? {
-        if let subdirectoryURL = Bundle.main.url(
-            forResource: variant,
-            withExtension: "m4a",
-            subdirectory: "SoundEffects"
-        ) {
-            return subdirectoryURL
-        }
-        return Bundle.main.url(forResource: variant, withExtension: "m4a")
     }
 }

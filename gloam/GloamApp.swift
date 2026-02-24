@@ -37,12 +37,22 @@ struct GloamApp: App {
                     if updatesModel == nil {
                         updatesModel = CheckForUpdatesModel(updater: appDelegate.updaterController.updater)
                         menuBarViewModel.setUpdatesModel(updatesModel)
-                        model.updatesModel = updatesModel
+                        appDelegate.updatesModel = updatesModel
                     }
                 }
         }
         .menuBarExtraStyle(.window)
+        .commands {
+            CommandGroup(replacing: .appInfo) {
+                Button("About Gloam") {
+                    NSApp.sendAction(#selector(AppDelegate.showAboutPanel), to: nil, from: nil)
+                }
+            }
+        }
 
+        Settings {
+            SettingsView(viewModel: SettingsViewModel(appModel: model))
+        }
     }
 }
 
@@ -78,13 +88,15 @@ private final class SingleInstanceLock {
     }
 }
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     let updaterController = SPUStandardUpdaterController(
         startingUpdater: false,
         updaterDelegate: nil,
         userDriverDelegate: nil
     )
     weak var model: AppModel?
+    var updatesModel: CheckForUpdatesModel?
+    private var aboutBoxWindowController: NSWindowController?
     private let logger = Logger(subsystem: "com.optimalapps.gloam", category: "AppDelegate")
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -101,6 +113,44 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 await model.handleDeepLink(command)
             }
         }
+    }
+
+    nonisolated func windowWillClose(_ notification: Notification) {
+        Task { @MainActor in
+            let closingWindow = notification.object as? NSWindow
+            if closingWindow == self.aboutBoxWindowController?.window {
+                closingWindow?.delegate = nil
+                self.aboutBoxWindowController = nil
+                NSApp.setActivationPolicy(.accessory)
+            }
+        }
+    }
+
+    @objc
+    func showAboutPanel() {
+        guard aboutBoxWindowController == nil else {
+            aboutBoxWindowController?.window?.makeKeyAndOrderFront(nil)
+            return
+        }
+
+        NSApp.setActivationPolicy(.regular)
+
+        let styleMask: NSWindow.StyleMask = [.closable, .titled, .fullSizeContentView]
+        let window = NSWindow()
+        window.styleMask = styleMask
+        window.isMovableByWindowBackground = true
+        window.backgroundColor = .clear
+        window.level = .floating
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.delegate = self
+        window.contentView = NSHostingView(rootView: AboutView(updatesModel: updatesModel))
+        window.center()
+
+        aboutBoxWindowController = NSWindowController(window: window)
+        aboutBoxWindowController?.showWindow(aboutBoxWindowController?.window)
+
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func enforceSingleInstance() {

@@ -1,5 +1,4 @@
 import Dependencies
-import DownloadClient
 import HistoryClient
 import Observation
 import Onboarding
@@ -29,8 +28,16 @@ final class SettingsViewModel {
         modelDownloadViewModel.isDownloadingModel
     }
 
+    var isPaused: Bool {
+        modelDownloadViewModel.isPaused
+    }
+
     var downloadProgress: Double {
         modelDownloadViewModel.downloadProgress
+    }
+
+    var downloadStatus: String {
+        modelDownloadViewModel.downloadStatus
     }
 
     var downloadSummaryText: String {
@@ -63,7 +70,7 @@ final class SettingsViewModel {
 
     var historyRetentionMode: HistoryRetentionMode {
         get { appModel.historyRetentionMode }
-        set { appModel.historyRetentionMode = newValue }
+        set { appModel.historyRetentionModeChanged(newValue) }
     }
 
     var compressHistoryAudio: Bool {
@@ -94,34 +101,38 @@ final class SettingsViewModel {
         accessibilityAuthorized = await permissionsClient.hasAccessibilityPermission()
     }
 
-    func grantMicrophonePermission() {
-        Task {
-            let granted = await permissionsClient.requestMicrophonePermission()
-            microphoneAuthorized = granted
-            if !granted {
-                permissionMessage = "Open System Settings to grant microphone access."
-                await permissionsClient.openMicrophonePrivacySettings()
-            }
+    func grantMicrophonePermissionButtonTapped() async {
+        let granted = await permissionsClient.requestMicrophonePermission()
+        microphoneAuthorized = granted
+        if !granted {
+            permissionMessage = "Open System Settings to grant microphone access."
+            await permissionsClient.openMicrophonePrivacySettings()
         }
     }
 
-    func grantAccessibilityPermission() {
-        Task {
-            await permissionsClient.promptForAccessibilityPermission()
-            try? await Task.sleep(for: .milliseconds(500))
-            accessibilityAuthorized = await permissionsClient.hasAccessibilityPermission()
-            if !accessibilityAuthorized {
-                permissionMessage = "Open System Settings to grant accessibility access."
-            }
+    func grantAccessibilityPermissionButtonTapped() async {
+        await permissionsClient.promptForAccessibilityPermission()
+        try? await Task.sleep(for: .milliseconds(500))
+        accessibilityAuthorized = await permissionsClient.hasAccessibilityPermission()
+        if !accessibilityAuthorized {
+            permissionMessage = "Open System Settings to grant accessibility access."
         }
     }
 
-    func downloadModel() {
-        Task { await modelDownloadViewModel.downloadModel() }
+    func downloadButtonTapped() async {
+        await modelDownloadViewModel.downloadButtonTapped()
     }
 
-    func cancelDownload() {
-        modelDownloadViewModel.cancelDownload()
+    func pauseButtonTapped() {
+        modelDownloadViewModel.pauseButtonTapped()
+    }
+
+    func resumeButtonTapped() async {
+        await modelDownloadViewModel.resumeButtonTapped()
+    }
+
+    func cancelButtonTapped() {
+        modelDownloadViewModel.cancelButtonTapped()
     }
 
     func openHistoryInFinder() {

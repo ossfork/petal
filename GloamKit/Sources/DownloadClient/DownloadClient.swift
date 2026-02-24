@@ -16,6 +16,26 @@ public struct DownloadProgress: Sendable, Equatable {
     }
 }
 
+public enum DownloadClientFailure: LocalizedError, Sendable, Equatable {
+    case paused
+    case cancelled
+    case aria2BinaryMissing
+    case failed(String)
+
+    public var errorDescription: String? {
+        switch self {
+        case .paused:
+            return "Download paused"
+        case .cancelled:
+            return "Download cancelled"
+        case .aria2BinaryMissing:
+            return "aria2c binary is missing from the app bundle or system PATH."
+        case let .failed(message):
+            return message
+        }
+    }
+}
+
 @DependencyClient
 public struct DownloadClient: Sendable {
     public var isModelDownloaded: @Sendable (ModelOption) -> Bool = { _ in false }
@@ -34,15 +54,19 @@ extension DownloadClient: DependencyKey {
             },
             downloadModel: { option, progress in
                 @Dependency(\.mlxClient) var mlxClient
-                try await mlxClient.downloadModel(option.mlxModelInfo, { fractionCompleted, status in
-                    progress(
-                        DownloadProgress(
-                            fractionCompleted: fractionCompleted,
-                            status: status,
-                            speedText: speedText(from: status)
+                do {
+                    try await mlxClient.downloadModel(option.mlxModelInfo, { fractionCompleted, status in
+                        progress(
+                            DownloadProgress(
+                                fractionCompleted: min(max(fractionCompleted, 0), 1),
+                                status: status,
+                                speedText: speedText(from: status)
+                            )
                         )
-                    )
-                })
+                    })
+                } catch {
+                    throw DownloadClientFailure(error)
+                }
             },
             pauseDownload: {
                 @Dependency(\.mlxClient) var mlxClient
@@ -87,6 +111,31 @@ private func speedText(from status: String) -> String? {
     let candidate = status[status.index(after: openingParen)..<closingParen]
     let speed = String(candidate)
     return speed.hasSuffix("/s") ? speed : nil
+}
+
+private extension DownloadClientFailure {
+    init(_ error: any Error) {
+        if let failure = error as? DownloadClientFailure {
+            self = failure
+            return
+        }
+
+        if let mlxFailure = error as? MLXDownloadError {
+            switch mlxFailure {
+            case .paused:
+                self = .paused
+            case .cancelled:
+                self = .cancelled
+            case .aria2BinaryMissing:
+                self = .aria2BinaryMissing
+            case let .failed(message):
+                self = .failed(message)
+            }
+            return
+        }
+
+        self = .failed(error.localizedDescription)
+    }
 }
 
 private extension ModelOption {

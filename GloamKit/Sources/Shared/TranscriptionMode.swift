@@ -1,4 +1,4 @@
-public enum TranscriptionMode: String, CaseIterable, Identifiable, Sendable {
+public enum TranscriptionMode: String, CaseIterable, Identifiable, Sendable, Codable {
     case verbatim
     case smart
 

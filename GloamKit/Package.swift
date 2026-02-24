@@ -7,6 +7,7 @@ extension Target.Dependency {
     static let shared: Self = "Shared"
     static let models: Self = "GloamModels"
     static let ui: Self = "UI"
+    static let modelDownloadFeature: Self = "ModelDownloadFeature"
     static let mlxClient: Self = "MLXClient"
     static let audioTrimClient: Self = "AudioTrimClient"
     static let audioSpeedClient: Self = "AudioSpeedClient"
@@ -16,8 +17,10 @@ extension Target.Dependency {
 
     static let dependencies: Self = .product(name: "Dependencies", package: "swift-dependencies")
     static let dependenciesMacros: Self = .product(name: "DependenciesMacros", package: "swift-dependencies")
+    static let dependenciesTestSupport: Self = .product(name: "DependenciesTestSupport", package: "swift-dependencies")
     static let sharing: Self = .product(name: "Sharing", package: "swift-sharing")
     static let identifiedCollections: Self = .product(name: "IdentifiedCollections", package: "swift-identified-collections")
+    static let casePaths: Self = .product(name: "CasePaths", package: "swift-case-paths")
     static let keyboardShortcuts: Self = .product(name: "KeyboardShortcuts", package: "KeyboardShortcuts")
     static let sauce: Self = .product(name: "Sauce", package: "Sauce")
     static let mlxAudioCore: Self = .product(name: "MLXAudioCore", package: "MLXAudio")
@@ -36,6 +39,7 @@ let package = Package(
         .library(name: "Shared", targets: ["Shared"]),
         .library(name: "GloamModels", targets: ["GloamModels"]),
         .library(name: "UI", targets: ["UI"]),
+        .library(name: "ModelDownloadFeature", targets: ["ModelDownloadFeature"]),
         .library(name: "Onboarding", targets: ["Onboarding"]),
         .library(name: "AudioClient", targets: ["AudioClient"]),
         .library(name: "PermissionsClient", targets: ["PermissionsClient"]),
@@ -57,6 +61,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.11.0"),
         .package(url: "https://github.com/pointfreeco/swift-sharing.git", from: "2.7.4"),
         .package(url: "https://github.com/pointfreeco/swift-identified-collections", from: "1.1.1"),
+        .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "1.7.0"),
         .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.4.0"),
         .package(url: "https://github.com/Clipy/Sauce.git", from: "2.4.1"),
         .package(url: "https://github.com/huggingface/swift-huggingface.git", from: "0.6.0"),
@@ -74,6 +79,7 @@ let package = Package(
                 .sharing,
                 .identifiedCollections,
                 .keyboardShortcuts,
+                .casePaths,
             ]
         ),
         .target(
@@ -90,13 +96,20 @@ let package = Package(
             ]
         ),
         .target(
+            name: "ModelDownloadFeature",
+            dependencies: [
+                .shared,
+                .downloadClient,
+            ]
+        ),
+        .target(
             name: "Onboarding",
             dependencies: [
                 .assets,
                 .shared,
                 .models,
                 .ui,
-                .downloadClient,
+                .modelDownloadFeature,
                 .permissionsClient,
                 .keyboardShortcuts,
                 .sauce,
@@ -184,6 +197,7 @@ let package = Package(
         .target(
             name: "SoundClient",
             dependencies: [
+                .assets,
                 .shared,
             ]
         ),
@@ -196,10 +210,13 @@ let package = Package(
         .testTarget(
             name: "GloamKitTests",
             dependencies: [
+                .dependenciesTestSupport,
                 .shared,
                 .models,
                 .ui,
+                .modelDownloadFeature,
                 .permissionsClient,
+                "Onboarding",
                 "AudioClient",
                 "PasteClient",
                 "KeyboardClient",
