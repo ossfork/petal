@@ -8,9 +8,12 @@ public enum KeyPress: Equatable, Sendable {
     case other
 }
 
+/// Return `true` from the handler to swallow the event (prevent it from reaching text fields).
+public typealias KeyPressHandler = @Sendable (KeyPress) -> Bool
+
 @DependencyClient
 public struct KeyboardClient: Sendable {
-    public var start: @Sendable (@escaping @Sendable (KeyPress) -> Void) async -> Void = { _ in }
+    public var start: @Sendable (@escaping KeyPressHandler) async -> Void = { _ in }
     public var stop: @Sendable () async -> Void = {}
 }
 
@@ -31,7 +34,7 @@ extension KeyboardClient: TestDependencyKey {
     public static var testValue: Self {
         Self(
             start: { _ in },
-            stop: {}
+            stop: { }
         )
     }
 }
@@ -47,19 +50,19 @@ public extension DependencyValues {
 private final class LiveKeyboardRuntime {
     private var localMonitor: Any?
     private var globalMonitor: Any?
-    private var handler: (@Sendable (KeyPress) -> Void)?
+    private var handler: KeyPressHandler?
 
-    func start(handler: @escaping @Sendable (KeyPress) -> Void) {
+    func start(handler: @escaping KeyPressHandler) {
         stop()
         self.handler = handler
 
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            self?.handle(event)
-            return event
+            let consumed = self?.handle(event) ?? false
+            return consumed ? nil : event
         }
 
         globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            self?.handle(event)
+            _ = self?.handle(event)
         }
     }
 
@@ -77,9 +80,10 @@ private final class LiveKeyboardRuntime {
         handler = nil
     }
 
-    private func handle(_ event: NSEvent) {
-        guard let handler else { return }
-        handler(Self.keyPress(from: event))
+    @discardableResult
+    private func handle(_ event: NSEvent) -> Bool {
+        guard let handler else { return false }
+        return handler(Self.keyPress(from: event))
     }
 
     private static func keyPress(from event: NSEvent) -> KeyPress {

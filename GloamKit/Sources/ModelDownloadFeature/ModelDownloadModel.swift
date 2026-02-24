@@ -59,6 +59,16 @@ public final class ModelDownloadModel {
         resetToIdle()
     }
 
+    public func deleteModelButtonTapped() async {
+        guard let option = selectedModelOption else { return }
+        do {
+            try await downloadClient.deleteModel(option)
+            state = .notDownloaded
+        } catch {
+            lastError = "Failed to delete model: \(error.localizedDescription)"
+        }
+    }
+
     public func selectedModelChanged() {
         transientMessage = nil
         lastError = nil

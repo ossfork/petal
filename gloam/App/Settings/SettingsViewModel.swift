@@ -80,6 +80,10 @@ final class SettingsViewModel {
         downloadModel.cancelButtonTapped()
     }
 
+    func deleteModelButtonTapped() async {
+        await downloadModel.deleteModelButtonTapped()
+    }
+
     func historyRetentionModeChanged(_ mode: HistoryRetentionMode) {
         $historyRetentionMode.withLock { $0 = mode }
         let applied = historyClient.applyRetention(mode, transcriptHistoryDays)

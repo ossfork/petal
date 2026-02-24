@@ -664,29 +664,38 @@ final class AppModel {
         if isPreviewMode { return }
         Task {
             await keyboardClient.start { [weak self] keyPress in
-                guard let self else { return }
-                Task { @MainActor [weak self] in
-                    self?.handleMonitoredKeyPress(keyPress)
+                MainActor.assumeIsolated {
+                    guard let self else { return false }
+                    return self.shouldConsumeKeyPress(keyPress)
                 }
             }
         }
     }
 
-    private func handleMonitoredKeyPress(_ keyPress: KeyPress) {
-        guard case .recording = sessionState else { return }
+    /// Decides synchronously whether to swallow the event, then dispatches async handling.
+    private func shouldConsumeKeyPress(_ keyPress: KeyPress) -> Bool {
+        guard case .recording = sessionState else { return false }
 
-        Task {
-            let isCurrentlyRecording = await audioClient.isRecording()
-            guard isCurrentlyRecording else { return }
-
-            if isAwaitingCancelRecordingConfirmation {
-                resolveCancelRecordingConfirmation(with: keyPress)
-                return
-            }
-
-            guard keyPress == .escape else { return }
-            presentCancelRecordingConfirmation()
+        if isAwaitingCancelRecordingConfirmation {
+            Task { await handleConfirmationKeyPress(keyPress) }
+            return true
         }
+
+        guard keyPress == .escape else { return false }
+        Task { await handleEscapeDuringRecording() }
+        return true
+    }
+
+    private func handleConfirmationKeyPress(_ keyPress: KeyPress) async {
+        let isCurrentlyRecording = await audioClient.isRecording()
+        guard isCurrentlyRecording else { return }
+        resolveCancelRecordingConfirmation(with: keyPress)
+    }
+
+    private func handleEscapeDuringRecording() async {
+        let isCurrentlyRecording = await audioClient.isRecording()
+        guard isCurrentlyRecording else { return }
+        presentCancelRecordingConfirmation()
     }
 
     private func presentCancelRecordingConfirmation() {

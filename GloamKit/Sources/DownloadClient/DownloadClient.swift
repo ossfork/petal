@@ -43,6 +43,7 @@ public struct DownloadClient: Sendable {
     public var pauseDownload: @Sendable () -> Void = {}
     public var cancelDownload: @Sendable () -> Void = {}
     public var modelDirectoryURL: @Sendable (ModelOption) -> URL? = { _ in nil }
+    public var deleteModel: @Sendable (ModelOption) async throws -> Void
 }
 
 extension DownloadClient: DependencyKey {
@@ -79,6 +80,10 @@ extension DownloadClient: DependencyKey {
             modelDirectoryURL: { option in
                 @Dependency(\.mlxClient) var mlxClient
                 return mlxClient.modelDirectoryURL(option.mlxModelInfo)
+            },
+            deleteModel: { option in
+                @Dependency(\.mlxClient) var mlxClient
+                try await mlxClient.deleteModel(option.mlxModelInfo)
             }
         )
     }
@@ -91,7 +96,8 @@ extension DownloadClient: TestDependencyKey {
             downloadModel: { _, _ in },
             pauseDownload: {},
             cancelDownload: {},
-            modelDirectoryURL: { _ in nil }
+            modelDirectoryURL: { _ in nil },
+            deleteModel: { _ in }
         )
     }
 }

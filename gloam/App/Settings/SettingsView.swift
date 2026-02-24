@@ -80,78 +80,80 @@ struct GeneralPane: View {
 
 struct TranscriptionPane: View {
     @Bindable var viewModel: SettingsViewModel
+    @State private var showDeleteConfirmation = false
 
     var body: some View {
-        ScrollView {
-            Form {
-                Section("Model") {
-                    Picker("Model", selection: Binding(
-                        get: { viewModel.selectedModelID },
-                        set: { viewModel.selectedModelID = $0 }
-                    )) {
-                        ForEach(ModelOption.allCases) { option in
-                            HStack {
-                                providerIcon(for: option)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 16, height: 16)
-                                Text(option.displayName)
-                                if option.isRecommended {
-                                    Text("Recommended")
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            .tag(option.rawValue)
-                        }
-                    }
-
-                    if let model = viewModel.downloadModel.selectedModelOption {
-                        LabeledContent("Provider") {
-                            HStack(spacing: 6) {
-                                providerIcon(for: model)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 14, height: 14)
-                                Text(model.providerDisplayName)
+        Form {
+            Section("Model") {
+                Picker("Model", selection: Binding(
+                    get: { viewModel.selectedModelID },
+                    set: { viewModel.selectedModelID = $0 }
+                )) {
+                    ForEach(ModelOption.allCases) { option in
+                        HStack {
+                            providerIcon(for: option)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 16, height: 16)
+                                .scaleEffect(0.9)
+                                .clipShape(RoundedRectangle(cornerRadius: 3))
+                            Text(option.displayName)
+                            if option.isRecommended {
+                                Text("Recommended")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
                             }
                         }
-                        LabeledContent("Size") {
-                            Text(model.sizeLabel)
-                        }
+                        .tag(option.rawValue)
                     }
-
-                    modelDownloadStatus
                 }
 
-                Section("Audio Preprocessing") {
-                    Toggle("Trim silence", isOn: Binding(viewModel.$trimSilenceEnabled))
-                    Toggle("Auto speed-up", isOn: Binding(viewModel.$autoSpeedEnabled))
-                    Text("Remove leading/trailing silence and speed up quiet audio before transcription.")
+                if let model = viewModel.downloadModel.selectedModelOption {
+                    LabeledContent("Size") {
+                        Text(model.sizeLabel)
+                    }
+                }
+
+                modelDownloadStatus
+            }
+
+            Section("Audio Preprocessing") {
+                Toggle("Trim silence", isOn: Binding(viewModel.$trimSilenceEnabled))
+                Text("Removes silent segments from the start and end of your recording.")
+                    .settingDescription()
+                Toggle("Auto speed-up", isOn: Binding(viewModel.$autoSpeedEnabled))
+                Text("Speeds up quiet or low-energy audio to reduce transcription time.")
+                    .settingDescription()
+            }
+
+            if viewModel.downloadModel.selectedModelOption?.supportsSmartTranscription == true {
+                Section("Mode") {
+                    Picker("Transcription Mode", selection: Binding(viewModel.$transcriptionMode)) {
+                        ForEach(TranscriptionMode.allCases) { mode in
+                            Text(mode.displayName).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    Text(viewModel.transcriptionMode.description)
                         .settingDescription()
                 }
 
-                if viewModel.downloadModel.selectedModelOption?.supportsSmartTranscription == true {
-                    Section("Mode") {
-                        Picker("Transcription Mode", selection: Binding(viewModel.$transcriptionMode)) {
-                            ForEach(TranscriptionMode.allCases) { mode in
-                                Text(mode.displayName).tag(mode)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        Text(viewModel.transcriptionMode.description)
-                            .settingDescription()
-                    }
-
-                    if viewModel.transcriptionMode == .smart {
-                        Section("Smart Prompt") {
-                            TextField("Prompt", text: Binding(viewModel.$smartPrompt), axis: .vertical)
+                if viewModel.transcriptionMode == .smart {
+                    Section("Smart Prompt") {
+                        TextField("Prompt", text: Binding(viewModel.$smartPrompt), axis: .vertical)
                             .lineLimit(3...6)
-                        }
                     }
                 }
             }
-            .formStyle(.grouped)
+        }
+        .formStyle(.grouped)
+        .alert("Delete Model", isPresented: $showDeleteConfirmation) {
+            Button("Delete", role: .destructive) {
+                Task { await viewModel.deleteModelButtonTapped() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will remove the downloaded model from your device. You can re-download it later.")
         }
     }
 
@@ -170,6 +172,9 @@ struct TranscriptionPane: View {
             LabeledContent("Status") {
                 Label("Downloaded", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(.green)
+            }
+            Button("Delete Model", role: .destructive) {
+                showDeleteConfirmation = true
             }
         case let .downloading(progress):
             downloadProgressSection(progress: progress, isPaused: false)

@@ -86,6 +86,7 @@ public struct MLXClient: Sendable {
     public var pauseDownload: @Sendable () -> Void = {}
     public var cancelDownload: @Sendable () -> Void = {}
     public var modelDirectoryURL: @Sendable (MLXModelInfo) -> URL? = { _ in nil }
+    public var deleteModel: @Sendable (MLXModelInfo) async throws -> Void
     public var prepareModelIfNeeded: @Sendable (MLXPipelineModel) async throws -> Void
     public var transcribe: @Sendable (URL, MLXTranscriptionMode) async throws -> String
     public var unloadModel: @Sendable () async -> Void = {}
@@ -135,6 +136,18 @@ extension MLXClient: DependencyKey {
                     return WhisperKitCache.modelDirectoryURL(variant: info.id)
                 }
             },
+            deleteModel: { info in
+                switch info.backend {
+                case .voxtral:
+                    if let path = ModelDownloader.findModelPath(for: info.voxtralModelInfo) {
+                        try FileManager.default.removeItem(at: path)
+                    }
+                case .mlxAudioSTT:
+                    try MLXAudioCache.deleteModel(repoId: info.repoId)
+                case .whisperKit:
+                    try WhisperKitCache.deleteModel(variant: info.id)
+                }
+            },
             prepareModelIfNeeded: { model in
                 try await runtime.prepareModelIfNeeded(model: model)
             },
@@ -156,6 +169,7 @@ extension MLXClient: TestDependencyKey {
             pauseDownload: {},
             cancelDownload: {},
             modelDirectoryURL: { _ in nil },
+            deleteModel: { _ in },
             prepareModelIfNeeded: { _ in },
             transcribe: { _, _ in "Test transcription" },
             unloadModel: {}
@@ -377,6 +391,14 @@ private enum MLXAudioCache {
         progress(1, "Download complete")
     }
 
+    static func deleteModel(repoId: String) throws {
+        guard let repoID = Repo.ID(rawValue: repoId) else { return }
+        let directory = modelDirectory(for: repoID)
+        if FileManager.default.fileExists(atPath: directory.path) {
+            try FileManager.default.removeItem(at: directory)
+        }
+    }
+
     private static func modelDirectory(for repoID: Repo.ID) -> URL {
         let modelSubdirectory = repoID.description.replacingOccurrences(of: "/", with: "_")
         return HubCache.default.cacheDirectory
@@ -463,6 +485,13 @@ private enum WhisperKitCache {
         // We trigger it here so the download client can report progress.
         _ = try await WhisperKit(model: whisperKitModelName(for: variant))
         progress(1, "Download complete")
+    }
+
+    static func deleteModel(variant: String) throws {
+        guard let url = modelDirectoryURL(variant: variant) else { return }
+        if FileManager.default.fileExists(atPath: url.path) {
+            try FileManager.default.removeItem(at: url)
+        }
     }
 
     static func modelDirectoryURL(variant: String) -> URL? {
