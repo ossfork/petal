@@ -48,7 +48,6 @@ struct GeneralPane: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 540)
         .task {
             await viewModel.refreshPermissions()
         }
@@ -156,7 +155,6 @@ struct TranscriptionPane: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 540)
     }
 }
 
@@ -201,7 +199,6 @@ struct HistoryPane: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 540)
     }
 }
 
@@ -248,7 +245,7 @@ struct AboutPane: View {
 
             Spacer()
         }
-        .frame(width: 540, height: 300)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

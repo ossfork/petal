@@ -1,50 +1,66 @@
 import AppKit
 import SwiftUI
 
-struct SettingsPane: Identifiable {
-    let id: String
-    let title: String
-    let icon: String
-    let view: () -> AnyView
+@MainActor
+@Observable
+final class SettingsNavigation {
+    var selectedPaneID: String = "general"
 
-    init<V: View>(id: String, title: String, icon: String, @ViewBuilder view: @escaping () -> V) {
-        self.id = id
-        self.title = title
-        self.icon = icon
-        self.view = { AnyView(view()) }
+    struct PaneDescriptor {
+        let id: String
+        let title: String
+        let icon: String
+    }
+
+    static let panes: [PaneDescriptor] = [
+        PaneDescriptor(id: "general", title: "General", icon: "gearshape"),
+        PaneDescriptor(id: "transcription", title: "Transcription", icon: "waveform"),
+        PaneDescriptor(id: "history", title: "History", icon: "clock"),
+        PaneDescriptor(id: "about", title: "About", icon: "info.circle"),
+    ]
+}
+
+struct SettingsRootView: View {
+    @Bindable var navigation: SettingsNavigation
+    var viewModel: SettingsViewModel
+    var updatesModel: CheckForUpdatesModel?
+
+    var body: some View {
+        Group {
+            switch navigation.selectedPaneID {
+            case "general":
+                GeneralPane(viewModel: viewModel)
+            case "transcription":
+                TranscriptionPane(viewModel: viewModel)
+            case "history":
+                HistoryPane(viewModel: viewModel)
+            case "about":
+                AboutPane(updatesModel: updatesModel)
+            default:
+                GeneralPane(viewModel: viewModel)
+            }
+        }
+        .frame(minWidth: 540, maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
 @MainActor
 final class SettingsWindowController: NSWindowController, NSToolbarDelegate {
-    private let panes: [SettingsPane]
-    private var selectedPaneID: String
-    private var hostingController: NSHostingController<AnyView>?
+    private let navigation: SettingsNavigation
 
     init(viewModel: SettingsViewModel, updatesModel: CheckForUpdatesModel?) {
-        let panes = [
-            SettingsPane(id: "general", title: "General", icon: "gearshape") {
-                GeneralPane(viewModel: viewModel)
-            },
-            SettingsPane(id: "transcription", title: "Transcription", icon: "waveform") {
-                TranscriptionPane(viewModel: viewModel)
-            },
-            SettingsPane(id: "history", title: "History", icon: "clock") {
-                HistoryPane(viewModel: viewModel)
-            },
-            SettingsPane(id: "about", title: "About", icon: "info.circle") {
-                AboutPane(updatesModel: updatesModel)
-            },
-        ]
+        let navigation = SettingsNavigation()
+        self.navigation = navigation
 
-        self.panes = panes
-        self.selectedPaneID = panes[0].id
-
-        let hosting = NSHostingController(rootView: panes[0].view())
-        self.hostingController = hosting
+        let rootView = SettingsRootView(
+            navigation: navigation,
+            viewModel: viewModel,
+            updatesModel: updatesModel
+        )
+        let hosting = NSHostingController(rootView: rootView)
 
         let window = NSWindow(contentViewController: hosting)
-        window.title = panes[0].title
+        window.title = "General"
         window.styleMask = [.titled, .closable]
         window.identifier = NSUserInterfaceItemIdentifier("GloamSettingsWindow")
         window.isReleasedWhenClosed = false
@@ -60,31 +76,23 @@ final class SettingsWindowController: NSWindowController, NSToolbarDelegate {
         toolbar.allowsUserCustomization = false
         window.toolbar = toolbar
         window.toolbarStyle = .preference
-
-        selectPane(panes[0].id)
+        window.toolbar?.selectedItemIdentifier = NSToolbarItem.Identifier("general")
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
 
     private func selectPane(_ paneID: String) {
-        guard let pane = panes.first(where: { $0.id == paneID }) else { return }
-        selectedPaneID = pane.id
+        guard let pane = SettingsNavigation.panes.first(where: { $0.id == paneID }) else { return }
+        navigation.selectedPaneID = pane.id
         window?.title = pane.title
-
-        let newHosting = NSHostingController(rootView: pane.view())
-        hostingController = newHosting
-        window?.contentViewController = newHosting
-
         window?.toolbar?.selectedItemIdentifier = NSToolbarItem.Identifier(pane.id)
     }
 
     // MARK: - NSToolbarDelegate
 
     nonisolated func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        MainActor.assumeIsolated {
-            panes.map { NSToolbarItem.Identifier($0.id) }
-        }
+        SettingsNavigation.panes.map { NSToolbarItem.Identifier($0.id) }
     }
 
     nonisolated func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
@@ -101,7 +109,7 @@ final class SettingsWindowController: NSWindowController, NSToolbarDelegate {
         willBeInsertedIntoToolbar flag: Bool
     ) -> NSToolbarItem? {
         MainActor.assumeIsolated {
-            guard let pane = panes.first(where: { $0.id == itemIdentifier.rawValue }) else { return nil }
+            guard let pane = SettingsNavigation.panes.first(where: { $0.id == itemIdentifier.rawValue }) else { return nil }
 
             let item = NSToolbarItem(itemIdentifier: itemIdentifier)
             item.label = pane.title
