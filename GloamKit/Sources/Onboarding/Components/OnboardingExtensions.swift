@@ -35,7 +35,6 @@ struct OnboardingPageContainer<Content: View>: View {
         VStack(spacing: 0) {
             content(isAnimating)
                 .padding()
-                .xSpacing(.topLeading)
 
             VStack(spacing: 0) {
                 Divider()
