@@ -39,8 +39,10 @@ public final class OnboardingModel {
         pages.append(contentsOf: [
             .historyRetention,
             .model,
-            .download,
         ])
+        if selectedModelOption?.requiresDownload ?? true {
+            pages.append(.download)
+        }
         return pages
     }
 
@@ -83,6 +85,11 @@ public final class OnboardingModel {
 
     public var currentPrimaryTitle: String {
         switch currentPage {
+        case .model:
+            if selectedModelOption?.requiresDownload == false {
+                return "Finish Setup"
+            }
+            return currentPage.primaryTitle
         case .accessibility:
             return accessibilityAuthorized ? "Continue" : "Enable Accessibility"
         case .microphone:
@@ -114,8 +121,12 @@ public final class OnboardingModel {
 
         switch currentPage {
         case .model:
-            guard selectedModelOption != nil else { return }
-            moveForward()
+            guard let selectedModelOption else { return }
+            if selectedModelOption.requiresDownload {
+                moveForward()
+            } else {
+                completeSetup()
+            }
         case .shortcut:
             guard hasConfiguredShortcut else { return }
             moveForward()

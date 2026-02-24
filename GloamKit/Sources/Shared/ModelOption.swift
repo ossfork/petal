@@ -20,6 +20,10 @@ public struct ModelDescriptor: Sendable, Equatable {
     public let parameters: String
     public let provider: ModelProvider
     public let recommended: Bool
+    /// 1–5 rating for transcription speed.
+    public let speedScore: Int
+    /// 1–5 rating for transcription quality/intelligence.
+    public let smartScore: Int
 
     public init(
         id: String,
@@ -30,7 +34,9 @@ public struct ModelDescriptor: Sendable, Equatable {
         quantization: String,
         parameters: String,
         provider: ModelProvider,
-        recommended: Bool
+        recommended: Bool,
+        speedScore: Int = 3,
+        smartScore: Int = 3
     ) {
         self.id = id
         self.repoID = repoID
@@ -41,6 +47,8 @@ public struct ModelDescriptor: Sendable, Equatable {
         self.parameters = parameters
         self.provider = provider
         self.recommended = recommended
+        self.speedScore = speedScore
+        self.smartScore = smartScore
     }
 }
 
@@ -89,7 +97,9 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 quantization: "System",
                 parameters: "On-device",
                 provider: .appleSpeech,
-                recommended: false
+                recommended: false,
+                speedScore: 5,
+                smartScore: 1
             )
         case .qwen3ASR06B4bit:
             return ModelDescriptor(
@@ -101,7 +111,9 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 quantization: "4-bit",
                 parameters: "0.6B",
                 provider: .mlxAudioSTT,
-                recommended: true
+                recommended: true,
+                speedScore: 4,
+                smartScore: 4
             )
         case .whisperLargeV3Turbo:
             return ModelDescriptor(
@@ -113,7 +125,9 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 quantization: "CoreML",
                 parameters: "809M",
                 provider: .whisperKit,
-                recommended: false
+                recommended: false,
+                speedScore: 2,
+                smartScore: 5
             )
         case .whisperTiny:
             return ModelDescriptor(
@@ -125,7 +139,9 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 quantization: "CoreML",
                 parameters: "39M",
                 provider: .whisperKit,
-                recommended: false
+                recommended: false,
+                speedScore: 4,
+                smartScore: 2
             )
         case .mini3b:
             return ModelDescriptor(
@@ -137,7 +153,9 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 quantization: "bf16",
                 parameters: "3B",
                 provider: .voxtralCore,
-                recommended: false
+                recommended: false,
+                speedScore: 2,
+                smartScore: 5
             )
         case .mini3b8bit:
             return ModelDescriptor(
@@ -149,7 +167,9 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 quantization: "bf16",
                 parameters: "3B",
                 provider: .voxtralCore,
-                recommended: false
+                recommended: false,
+                speedScore: 2,
+                smartScore: 5
             )
         case .mini3b4bit:
             return ModelDescriptor(
@@ -161,7 +181,9 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 quantization: "bf16",
                 parameters: "3B",
                 provider: .voxtralCore,
-                recommended: false
+                recommended: false,
+                speedScore: 2,
+                smartScore: 5
             )
         }
     }

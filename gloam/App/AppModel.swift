@@ -445,6 +445,7 @@ final class AppModel {
             startTranscriptionProgressTracking(audioDuration: audioDuration)
             let transcriptionStart = now
             let mode = normalizedTranscriptionMode(transcriptionMode)
+            logger.info("Mode normalization: requested=\(self.transcriptionMode.rawValue, privacy: .public), resolved=\(mode.rawValue, privacy: .public), model=\(selectedModelOption.rawValue, privacy: .public)")
             if transcriptionMode != mode {
                 $transcriptionMode.withLock { $0 = mode }
             }
@@ -461,21 +462,26 @@ final class AppModel {
 
             // Post-process with Apple Intelligence when smart mode is requested
             // and the model doesn't natively support it.
-            if mode == .smart,
-               !selectedModelOption.supportsSmartTranscription,
-               appleIntelligenceEnabled,
-               foundationModelClient.isAvailable(),
-               !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            {
+            let needsAIRefine = mode == .smart
+                && !selectedModelOption.supportsSmartTranscription
+                && appleIntelligenceEnabled
+                && foundationModelClient.isAvailable()
+                && !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
+            logger.info("Refine decision: mode=\(mode.rawValue, privacy: .public), modelSupportsSmartNatively=\(selectedModelOption.supportsSmartTranscription, privacy: .public), aiEnabled=\(self.appleIntelligenceEnabled, privacy: .public), aiAvailable=\(self.foundationModelClient.isAvailable(), privacy: .public), willRefine=\(needsAIRefine, privacy: .public)")
+
+            if needsAIRefine {
                 sessionState = .processing(.refining)
                 await floatingCapsuleClient.showRefining()
-                logger.info("Refining transcript with Apple Intelligence")
-                consoleLog("Refining transcript with Apple Intelligence")
+                logger.info("Starting Apple Intelligence refinement: inputLength=\(transcript.count, privacy: .public)")
 
                 if let refined = try? await foundationModelClient.refine(transcript, smartPrompt),
                    !refined.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 {
+                    logger.info("Apple Intelligence refinement succeeded: outputLength=\(refined.count, privacy: .public)")
                     transcript = refined
+                } else {
+                    logger.warning("Apple Intelligence refinement returned empty or failed, keeping original transcript")
                 }
             }
 
@@ -980,7 +986,10 @@ final class AppModel {
 
     private func normalizedTranscriptionMode(_ mode: TranscriptionMode) -> TranscriptionMode {
         guard let selectedModelOption else { return mode }
-        return selectedModelOption.supportsTranscriptionMode(mode) ? mode : .verbatim
+        if selectedModelOption.supportsTranscriptionMode(mode) { return mode }
+        // Allow smart mode when Apple Intelligence can post-process
+        if mode == .smart, appleIntelligenceEnabled, foundationModelClient.isAvailable() { return mode }
+        return .verbatim
     }
 
     private func autoSpeedRate(for audioDuration: Double) -> Double? {

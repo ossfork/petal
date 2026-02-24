@@ -22,18 +22,34 @@ struct ModelInfoRow: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
 
-                Label(
-                    option.sizeLabel
-                        + " · "
-                        + option.descriptor.parameters
-                        + " · "
-                        + option.providerDisplayName,
-                    systemImage: "internaldrive"
-                )
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                HStack(spacing: 12) {
+                    ratingView(
+                        icon: "bolt.fill",
+                        score: option.descriptor.speedScore,
+                        color: .orange
+                    )
+                    ratingView(
+                        icon: "brain",
+                        score: option.descriptor.smartScore,
+                        color: .cyan
+                    )
+
+                    Text(option.sizeLabel)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
             }
         }
+    }
+
+    private func ratingView(icon: String, score: Int, color: Color) -> some View {
+        HStack(spacing: 2) {
+            ForEach(0..<5, id: \.self) { i in
+                Image(systemName: icon)
+                    .foregroundStyle(i < score ? AnyShapeStyle(color) : AnyShapeStyle(.quaternary))
+            }
+        }
+        .font(.system(size: 9))
     }
 
     private var providerIcon: Image {
