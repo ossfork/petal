@@ -196,14 +196,15 @@ struct TranscriptionPane: View {
 
     @ViewBuilder
     private func downloadProgressSection(progress: ModelDownloadState.Progress, isPaused: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        let modelName = viewModel.downloadModel.selectedModelOption?.displayName ?? "model"
+        HStack(spacing: 12) {
             ProgressView(value: progress.fraction)
-            if !progress.statusText.isEmpty {
-                Text(progress.statusText)
+                .progressViewStyle(.circular)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Downloading \(modelName)")
+                Text(progress.summaryText)
                     .settingDescription()
             }
-            Text(progress.summaryText)
-                .settingDescription()
         }
         HStack {
             if isPaused {

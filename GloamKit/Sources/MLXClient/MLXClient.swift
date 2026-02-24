@@ -7,6 +7,15 @@ import MLXAudioSTT
 import VoxtralCore
 import WhisperKit
 
+/// Root directory for all Gloam data: ~/Documents/Gloam/
+private let gloamDirectory: URL = {
+    FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        .appendingPathComponent("Gloam")
+}()
+
+/// HubCache rooted at ~/Documents/Gloam/models/ so mlx-audio-swift stores models there.
+private let gloamHubCache = HubCache(cacheDirectory: gloamDirectory.appendingPathComponent("models"))
+
 public enum MLXModelBackend: String, Sendable, Equatable {
     case voxtral
     case mlxAudioSTT
@@ -218,13 +227,13 @@ private actor LiveMLXRuntime {
             guard let repoID = model.qwenRepoID else {
                 throw MLXError.invalidModelIdentifier(model.rawValue)
             }
-            self.qwen3ASRModel = try await Qwen3ASRModel.fromPretrained(repoID)
+            self.qwen3ASRModel = try await Qwen3ASRModel.fromPretrained(repoID, cache: gloamHubCache)
 
         case .whisperLargeV3Turbo, .whisperTiny:
             guard let variant = model.whisperKitVariant else {
                 throw MLXError.invalidModelIdentifier(model.rawValue)
             }
-            self.whisperKitInstance = try await WhisperKit(model: variant)
+            self.whisperKitInstance = try await WhisperKit(model: variant, downloadBase: gloamDirectory)
         }
 
         self.loadedModel = model
@@ -401,7 +410,7 @@ private enum MLXAudioCache {
 
     private static func modelDirectory(for repoID: Repo.ID) -> URL {
         let modelSubdirectory = repoID.description.replacingOccurrences(of: "/", with: "_")
-        return HubCache.default.cacheDirectory
+        return gloamHubCache.cacheDirectory
             .appendingPathComponent("mlx-audio")
             .appendingPathComponent(modelSubdirectory)
     }
@@ -483,7 +492,7 @@ private enum WhisperKitCache {
         progress(0, "Downloading WhisperKit model...")
         // WhisperKit handles download internally during init.
         // We trigger it here so the download client can report progress.
-        _ = try await WhisperKit(model: whisperKitModelName(for: variant))
+        _ = try await WhisperKit(model: whisperKitModelName(for: variant), downloadBase: gloamDirectory)
         progress(1, "Download complete")
     }
 
@@ -495,12 +504,10 @@ private enum WhisperKitCache {
     }
 
     static func modelDirectoryURL(variant: String) -> URL? {
-        let baseDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
-            .appendingPathComponent("huggingface")
+        let baseDir = gloamDirectory
             .appendingPathComponent("models")
             .appendingPathComponent("argmaxinc")
             .appendingPathComponent("whisperkit-coreml")
-        guard let baseDir else { return nil }
 
         let modelName = whisperKitModelName(for: variant)
         let modelDir = baseDir.appendingPathComponent(modelName)
