@@ -10,7 +10,7 @@ import WhisperKit
 /// Root directory for all Gloam data: ~/Documents/Gloam/
 private let gloamDirectory: URL = {
     FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        .appendingPathComponent("Gloam")
+        .appendingPathComponent("gloam")
 }()
 
 /// HubCache rooted at ~/Documents/Gloam/models/ so mlx-audio-swift stores models there.
@@ -489,10 +489,22 @@ private enum WhisperKitCache {
         variant: String,
         progress: @escaping @Sendable (Double, String) -> Void
     ) async throws {
+        if isModelDownloaded(variant: variant) {
+            progress(1, "Model already downloaded")
+            return
+        }
+
         progress(0, "Downloading WhisperKit model...")
-        // WhisperKit handles download internally during init.
-        // We trigger it here so the download client can report progress.
-        _ = try await WhisperKit(model: whisperKitModelName(for: variant), downloadBase: gloamDirectory)
+        let modelName = whisperKitModelName(for: variant)
+
+        _ = try await WhisperKit.download(
+            variant: modelName,
+            downloadBase: gloamDirectory
+        ) { downloadProgress in
+            let fraction = downloadProgress.fractionCompleted
+            let percent = Int((fraction * 100).rounded())
+            progress(fraction, "Downloading WhisperKit model... \(percent)%")
+        }
         progress(1, "Download complete")
     }
 

@@ -30,12 +30,28 @@ struct DownloadPage: View {
     // MARK: - Subviews
 
     private var header: some View {
-        OnboardingHeader(
-            symbol: "arrow.down.circle",
-            title: "Download Model",
-            description: "This may take a few minutes depending on your connection.",
-            layout: .vertical
-        )
+        HStack {
+            OnboardingHeader(
+                symbol: "arrow.down.circle",
+                title: "Download Model",
+                description: "This may take a few minutes depending on your connection.",
+                layout: .vertical
+            )
+
+            Spacer()
+
+            if downloadModel.state.isActive || downloadModel.state.isPaused {
+                Button {
+                    model.minimizeToMiniWindow()
+                } label: {
+                    Image(systemName: "rectangle.inset.topright.filled")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Minimize to mini window")
+            }
+        }
     }
 
     private func modelInfo(_ option: ModelOption) -> some View {

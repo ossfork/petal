@@ -150,20 +150,28 @@ private struct RecordingBars: View {
     }
 }
 
-private struct CircularProgressRing: View {
+public struct CircularProgressRing: View {
     let progress: Double
+    var size: CGFloat
+    var lineWidth: CGFloat
 
-    var body: some View {
+    public init(progress: Double, size: CGFloat = 16, lineWidth: CGFloat = 2.5) {
+        self.progress = progress
+        self.size = size
+        self.lineWidth = lineWidth
+    }
+
+    public var body: some View {
         ZStack {
             Circle()
-                .stroke(.secondary.opacity(0.28), lineWidth: 2.5)
+                .stroke(.secondary.opacity(0.28), lineWidth: lineWidth)
 
             Circle()
                 .trim(from: 0, to: max(0.02, min(1, progress)))
-                .stroke(.primary, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                .stroke(.primary, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
         }
-        .frame(width: 16, height: 16)
+        .frame(width: size, height: size)
         .animation(.linear(duration: 0.15), value: progress)
     }
 }

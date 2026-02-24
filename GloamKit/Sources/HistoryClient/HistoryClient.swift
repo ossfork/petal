@@ -337,7 +337,7 @@ private final class HistoryRuntime: @unchecked Sendable {
 
     private static var appDocumentsDirectoryURL: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            .appending(path: "Gloam", directoryHint: .isDirectory)
+            .appending(path: "gloam", directoryHint: .isDirectory)
     }
 
     private static var modelsDirectoryURL: URL {

@@ -51,11 +51,13 @@ public final class OnboardingModel {
     public func moveForward() {
         guard let nextPage else { return }
         currentPage = nextPage
+        lastPageTransitionDate = Date()
     }
 
     public func moveBack() {
         guard let previousPage else { return }
         currentPage = previousPage
+        lastPageTransitionDate = Date()
     }
 
     // MARK: - Page Container
@@ -96,6 +98,10 @@ public final class OnboardingModel {
     }
 
     public func primaryActionTapped() {
+        if let last = lastPageTransitionDate, Date().timeIntervalSince(last) < 0.35 {
+            return
+        }
+
         switch currentPage {
         case .model:
             guard selectedModelOption != nil else { return }
@@ -144,6 +150,7 @@ public final class OnboardingModel {
     public var transientMessage: String?
 
     public var onCompleted: (@MainActor () -> Void)?
+    public var onMinimize: (@MainActor () -> Void)?
 
     @ObservationIgnored @Dependency(\.permissionsClient) private var permissionsClient
     @ObservationIgnored @Dependency(\.continuousClock) private var clock
@@ -151,6 +158,7 @@ public final class OnboardingModel {
     @ObservationIgnored @Shared(.hasCompletedSetup) private var hasCompletedSetup = false
 
     @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
+    @ObservationIgnored private var lastPageTransitionDate: Date?
     @ObservationIgnored private let isPreviewMode: Bool
 
     public init(initialPage: Page = .welcome, downloadViewModel: ModelDownloadModel? = nil, isPreviewMode: Bool = false) {
@@ -244,6 +252,10 @@ public final class OnboardingModel {
         await modelDownloadViewModel.downloadModel()
         transientMessage = modelDownloadViewModel.transientMessage
         lastError = modelDownloadViewModel.lastError
+    }
+
+    public func minimizeToMiniWindow() {
+        onMinimize?()
     }
 
     public func completeSetup() {

@@ -38,4 +38,19 @@ extension WindowConfig {
         size: CGSize(width: 820, height: 512),
         animationBehavior: .utilityWindow
     )
+
+    public static let miniDownload = WindowConfig(
+        id: "GloamMiniDownloadWindow",
+        title: "Downloading",
+        style: .chromeless(.init(
+            hidesCloseButton: true,
+            hidesMiniaturizeButton: true,
+            hidesZoomButton: true,
+            isFloating: true,
+            visualEffect: VisualEffectConfig(material: .hudWindow, blendingMode: .behindWindow)
+        )),
+        size: CGSize(width: 120, height: 120),
+        animationBehavior: .utilityWindow,
+        collectionBehavior: [.canJoinAllSpaces, .fullScreenAuxiliary]
+    )
 }

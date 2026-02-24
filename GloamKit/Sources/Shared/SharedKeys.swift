@@ -45,7 +45,7 @@ public extension SharedKey where Self == FileStorageKey<[TranscriptHistoryDay]>.
         Self[
             .fileStorage(
                 .documentsDirectory
-                    .appending(component: "Gloam")
+                    .appending(component: "gloam")
                     .appending(component: "history")
                     .appending(component: "history.json")
             ),

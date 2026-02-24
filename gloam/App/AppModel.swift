@@ -90,6 +90,11 @@ final class AppModel {
     @ObservationIgnored private var currentShortcutPressStart: Date?
     @ObservationIgnored private var transcriptionProgressTask: Task<Void, Never>?
     @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
+    @ObservationIgnored private var miniDownloadRestoreTask: Task<Void, Never>?
+    @ObservationIgnored private var menuBarFlashTask: Task<Void, Never>?
+    @ObservationIgnored private var downloadStateObserverTask: Task<Void, Never>?
+    @ObservationIgnored private var isShowingMiniDownload = false
+    var menuBarFlashOn = true
     @ObservationIgnored private var estimatedTranscriptionRTF = 2.2
     @ObservationIgnored private let toggleActivationThresholdSeconds = 2.0
 
@@ -158,6 +163,10 @@ final class AppModel {
     }
 
     var menuBarSymbolName: String {
+        if modelDownloadViewModel.state.isActive || modelDownloadViewModel.state.isPaused {
+            return menuBarFlashOn ? "arrow.down.circle.dotted" : "arrow.down.circle"
+        }
+
         switch sessionState {
         case .idle: return "waveform.badge.mic"
         case .recording: return "record.circle.fill"
@@ -605,14 +614,129 @@ final class AppModel {
         model.onCompleted = { [weak self] in
             self?.handleOnboardingCompleted()
         }
+        model.onMinimize = { [weak self] in
+            self?.minimizeToMiniDownload()
+        }
         onboardingModel = model
+        startDownloadStateObserver()
+    }
+
+    private func startDownloadStateObserver() {
+        downloadStateObserverTask?.cancel()
+        downloadStateObserverTask = Task { [weak self] in
+            guard let self else { return }
+            var wasDownloading = false
+            while !Task.isCancelled {
+                try? await self.clock.sleep(for: .milliseconds(300))
+                guard !Task.isCancelled else { return }
+                let isDownloading = self.modelDownloadViewModel.state.isActive || self.modelDownloadViewModel.state.isPaused
+                if isDownloading, !wasDownloading {
+                    self.startMenuBarFlash()
+                } else if !isDownloading, wasDownloading {
+                    self.stopMenuBarFlash()
+                }
+                wasDownloading = isDownloading
+            }
+        }
+    }
+
+    private func minimizeToMiniDownload() {
+        guard !isShowingMiniDownload else { return }
+        isShowingMiniDownload = true
+
+        Task {
+            await windowClient.close(WindowConfig.onboarding.id)
+            await windowClient.show(.miniDownload, {
+                SwiftUI.NSHostingView(rootView: MiniDownloadView(model: self.modelDownloadViewModel) { [weak self] in
+                    self?.expandFromMiniDownload()
+                })
+            }, { [weak self] in
+                self?.handleMiniDownloadClosed()
+            })
+        }
+
+        startMiniDownloadRestoreObserver()
+    }
+
+    private func expandFromMiniDownload() {
+        guard isShowingMiniDownload else { return }
+        isShowingMiniDownload = false
+        miniDownloadRestoreTask?.cancel()
+        miniDownloadRestoreTask = nil
+
+        Task {
+            await windowClient.close(WindowConfig.miniDownload.id)
+            showOnboardingWindow()
+        }
+    }
+
+    private func handleMiniDownloadClosed() {
+        isShowingMiniDownload = false
+        miniDownloadRestoreTask?.cancel()
+        miniDownloadRestoreTask = nil
+    }
+
+    private func startMiniDownloadRestoreObserver() {
+        miniDownloadRestoreTask?.cancel()
+        miniDownloadRestoreTask = Task { [weak self] in
+            guard let self else { return }
+            while !Task.isCancelled {
+                try? await self.clock.sleep(for: .milliseconds(300))
+                guard !Task.isCancelled else { return }
+                if self.modelDownloadViewModel.state.isDownloaded {
+                    self.restoreOnboardingFromMiniDownload()
+                    return
+                }
+            }
+        }
+    }
+
+    private func restoreOnboardingFromMiniDownload() {
+        guard isShowingMiniDownload else { return }
+        isShowingMiniDownload = false
+        miniDownloadRestoreTask?.cancel()
+        miniDownloadRestoreTask = nil
+        stopMenuBarFlash()
+
+        Task {
+            await windowClient.close(WindowConfig.miniDownload.id)
+            showOnboardingWindow()
+        }
+    }
+
+    private func startMenuBarFlash() {
+        menuBarFlashTask?.cancel()
+        menuBarFlashOn = true
+        menuBarFlashTask = Task { [weak self] in
+            guard let self else { return }
+            while !Task.isCancelled {
+                try? await self.clock.sleep(for: .milliseconds(800))
+                guard !Task.isCancelled else { return }
+                self.menuBarFlashOn.toggle()
+            }
+        }
+    }
+
+    private func stopMenuBarFlash() {
+        menuBarFlashTask?.cancel()
+        menuBarFlashTask = nil
+        menuBarFlashOn = true
     }
 
     private func handleOnboardingCompleted() {
+        stopMenuBarFlash()
+        downloadStateObserverTask?.cancel()
+        downloadStateObserverTask = nil
+        miniDownloadRestoreTask?.cancel()
+        miniDownloadRestoreTask = nil
+        isShowingMiniDownload = false
         selectedModelDidChange()
         $hasCompletedSetup.withLock { $0 = true }
         transientMessage = "You're all set. Tap your shortcut to start, or hold for push-to-talk."
-        Task { await windowClient.close(WindowConfig.onboarding.id) }
+        Task {
+            await windowClient.close(WindowConfig.miniDownload.id)
+            await windowClient.close(WindowConfig.onboarding.id)
+        }
         onboardingModel = nil
         logger.info("Onboarding completed")
         consoleLog("Onboarding completed")
@@ -1027,6 +1151,9 @@ final class AppModel {
     deinit {
         transcriptionProgressTask?.cancel()
         permissionMonitorTask?.cancel()
+        miniDownloadRestoreTask?.cancel()
+        menuBarFlashTask?.cancel()
+        downloadStateObserverTask?.cancel()
     }
 }
 

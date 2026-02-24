@@ -504,7 +504,7 @@ public class ModelDownloader {
 
     private static var appDirectory: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            .appendingPathComponent("Gloam")
+            .appendingPathComponent("gloam")
     }
 
     private static func ensureModelDirectories() throws {
