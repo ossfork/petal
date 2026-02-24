@@ -16,7 +16,7 @@ struct OnboardingPageContainer<Content: View>: View {
     var body: some View {
         VStack(spacing: 0) {
             content
-                .safeAreaPadding()
+                .safeAreaPadding([.horizontal, .bottom])
             bottomBar
         }
         .onAppear { isAnimating = true }
