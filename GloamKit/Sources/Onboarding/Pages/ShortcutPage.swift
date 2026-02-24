@@ -11,7 +11,7 @@ struct ShortcutPage: View {
             OnboardingHeader(
                 symbol: "keyboard",
                 title: "Record a Shortcut",
-                description: "Set a global key combo to instantly start and stop transcription from anywhere.",
+                description: "This shortcut works two ways — hold it down and release to finish, or quick-tap to start and tap again to stop.",
                 layout: .vertical
             )
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -19,24 +19,11 @@ struct ShortcutPage: View {
 
             Spacer()
 
-            GroupBackground {
-                HStack {
-                    Text("Push-to-talk")
-                    Spacer(minLength: 0)
-                    KeyboardShortcuts.Recorder(for: .pushToTalk)
-                }
-                .padding()
-            }
-            .frame(width: 360)
-            .scaleEffect(1.25)
-            .slideIn(active: isAnimating, delay: 0.5)
+            KeyboardShortcuts.Recorder(for: .pushToTalk)
+                .scaleEffect(2.0)
+                .slideIn(active: isAnimating, delay: 0.5)
 
             Spacer()
-
-            Text("⌥ Space is set as the default — click the recorder to change it.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .slideIn(active: isAnimating, delay: 0.75)
         }
         .onAppear { isAnimating = true }
     }

@@ -18,7 +18,7 @@ struct HistoryRetentionPage: View {
         OnboardingHeader(
             symbol: "clock.arrow.trianglehead.counterclockwise.rotate.90",
             title: "Choose What to Keep",
-            description: "Decide what Gloam stores after each transcription.",
+            description: "Everything stays on your device — nothing is ever sent to a server. Choose what Gloam keeps after each transcription.",
             layout: .vertical
         )
         .slideIn(active: isAnimating, delay: 0.25)

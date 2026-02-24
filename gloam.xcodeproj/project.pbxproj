@@ -187,8 +187,6 @@
 			packageReferences = (
 				A10000020000000000000001 /* XCLocalSwiftPackageReference "Vendor/mlx-voxtral-swift" */,
 				B10000020000000000000001 /* XCLocalSwiftPackageReference "GloamKit" */,
-				A10000030000000000000001 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
-				A10000030000000000000002 /* XCRemoteSwiftPackageReference "Sauce" */,
 				A10000030000000000000003 /* XCRemoteSwiftPackageReference "swift-dependencies" */,
 				A10000030000000000000004 /* XCRemoteSwiftPackageReference "swift-sharing" */,
 				A10000030000000000000005 /* XCRemoteSwiftPackageReference "xctest-dynamic-overlay" */,
@@ -498,22 +496,6 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		A10000030000000000000001 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.0;
-			};
-		};
-		A10000030000000000000002 /* XCRemoteSwiftPackageReference "Sauce" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Clipy/Sauce";
-			requirement = {
-				branch = master;
-				kind = branch;
-			};
-		};
 		A10000030000000000000003 /* XCRemoteSwiftPackageReference "swift-dependencies" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-dependencies";
@@ -563,12 +545,10 @@
 		};
 		A10000040000000000000002 /* KeyboardShortcuts */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A10000030000000000000001 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
 			productName = KeyboardShortcuts;
 		};
 		A10000040000000000000003 /* Sauce */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A10000030000000000000002 /* XCRemoteSwiftPackageReference "Sauce" */;
 			productName = Sauce;
 		};
 		A10000040000000000000004 /* Sharing */ = {
