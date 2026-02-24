@@ -31,7 +31,7 @@ public struct FloatingCapsuleView: View {
 
     public var body: some View {
         Group {
-            switch state.phase {
+            switch self.state.phase {
             case .hidden:
                 Color.clear
             case .recording:
@@ -44,7 +44,7 @@ public struct FloatingCapsuleView: View {
                         .font(.system(size: 12, weight: .semibold, design: .rounded))
                         .foregroundStyle(.primary)
 
-                    RecordingBars(level: state.level)
+                    RecordingBars(level: self.state.level)
                 }
                 .floatingCapsuleChrome()
             case .confirmCancel:
@@ -55,8 +55,8 @@ public struct FloatingCapsuleView: View {
 
                     (
                         Text("Cancel recording?  ")
-                        + Text("Y").foregroundColor(.red)
-                        + Text(" / N")
+                            + Text("Y").foregroundColor(.red)
+                            + Text(" / N")
                     )
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(.primary)
@@ -87,9 +87,9 @@ public struct FloatingCapsuleView: View {
                 .floatingCapsuleChrome()
             case .transcribing:
                 HStack(spacing: 8) {
-                    CircularProgressRing(progress: state.transcriptionProgress)
+                    CircularProgressRing(progress: self.state.transcriptionProgress)
 
-                    Text(transcribingLabel)
+                    Text(self.transcribingLabel)
                         .font(.system(size: 12, weight: .semibold, design: .rounded))
                         .monospacedDigit()
                         .foregroundStyle(.primary)
@@ -111,7 +111,7 @@ public struct FloatingCapsuleView: View {
             }
         }
         .frame(width: 220, height: 52)
-        .animation(.snappy(duration: 0.18), value: state.phase)
+        .animation(.snappy(duration: 0.18), value: self.state.phase)
     }
 
     private var transcribingLabel: String {
@@ -136,14 +136,14 @@ private struct RecordingBars: View {
 
     var body: some View {
         HStack(spacing: 2) {
-            ForEach(Array(pattern.enumerated()), id: \.offset) { _, value in
+            ForEach(Array(self.pattern.enumerated()), id: \.offset) { _, value in
                 RoundedRectangle(cornerRadius: 1)
                     .fill(.red.opacity(0.85))
-                    .frame(width: 2.8, height: barHeight(base: value))
+                    .frame(width: 2.8, height: self.barHeight(base: value))
             }
         }
         .frame(height: 16)
-        .animation(.linear(duration: 0.1), value: level)
+        .animation(.linear(duration: 0.1), value: self.level)
     }
 
     private func barHeight(base: CGFloat) -> CGFloat {
@@ -167,15 +167,15 @@ public struct CircularProgressRing: View {
     public var body: some View {
         ZStack {
             Circle()
-                .stroke(.secondary.opacity(0.28), lineWidth: lineWidth)
+                .stroke(.secondary.opacity(0.28), lineWidth: self.lineWidth)
 
             Circle()
-                .trim(from: 0, to: max(0.02, min(1, progress)))
-                .stroke(.primary, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .trim(from: 0, to: max(0.02, min(1, self.progress)))
+                .stroke(.primary, style: StrokeStyle(lineWidth: self.lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
         }
-        .frame(width: size, height: size)
-        .animation(.linear(duration: 0.15), value: progress)
+        .frame(width: self.size, height: self.size)
+        .animation(.linear(duration: 0.15), value: self.progress)
     }
 }
 
@@ -197,30 +197,31 @@ private struct RefiningCapsuleContent: View {
         HStack(spacing: 8) {
             Image(systemName: "apple.intelligence")
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.purple)
+                .foregroundStyle(.primary)
 
             Text("Refining")
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .foregroundStyle(.primary)
         }
-        .padding(.horizontal, 14)
+        .padding(.horizontal, 24)
         .padding(.vertical, 10)
         .background(.ultraThinMaterial, in: Capsule())
         .overlay {
-            Capsule()
-                .stroke(
-                    AngularGradient(
-                        colors: gradientColors,
-                        center: .center,
-                        startAngle: .degrees(rotation),
-                        endAngle: .degrees(rotation + 360)
-                    ),
-                    lineWidth: 2
-                )
+            ZStack {
+                Capsule()
+                    .fill(.clear)
+                    .runningBorder(radius: 128, lineWidth: 4, animated: true, duration: 1)
+                    .blur(radius: 12)
+
+                Capsule()
+                    .fill(.clear)
+                    .runningBorder(radius: 128, lineWidth: 2, animated: true, duration: 1)
+            }
         }
+        .clipShape(.capsule)
         .onAppear {
             withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
-                rotation = 360
+                self.rotation = 360
             }
         }
     }

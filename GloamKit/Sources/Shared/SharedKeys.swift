@@ -7,11 +7,11 @@ public extension SharedKey where Self == AppStorageKey<Bool>.Default {
     }
 
     static var trimSilenceEnabled: Self {
-        Self[.appStorage("trim_silence_enabled"), default: true]
+        Self[.appStorage("trim_silence_enabled"), default: false]
     }
 
     static var autoSpeedEnabled: Self {
-        Self[.appStorage("auto_speed_enabled"), default: true]
+        Self[.appStorage("auto_speed_enabled"), default: false]
     }
 
     static var compressHistoryAudio: Self {
