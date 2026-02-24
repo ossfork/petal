@@ -4,52 +4,14 @@ import Foundation
 import Observation
 import Shared
 
-public enum ModelDownloadPhase: Sendable, Equatable {
-    case idle
-    case preparing
-    case downloading
-    case paused
-    case completed
-    case failed(String)
-}
-
 @MainActor
 @Observable
 public final class ModelDownloadModel {
     @ObservationIgnored @Shared(.selectedModelID) public var selectedModelID = ModelOption.defaultOption.rawValue
 
-    public var phase: ModelDownloadPhase = .idle
-    public var downloadProgress = 0.0
-    public var downloadStatus = ""
-    public var downloadSpeedText: String?
+    public var state: ModelDownloadState = .notDownloaded
     public var lastError: String?
     public var transientMessage: String?
-
-    public var isDownloadingModel: Bool {
-        get { Self.isDownloading(phase) }
-        set {
-            guard newValue != Self.isDownloading(phase) else { return }
-            if newValue {
-                phase = .downloading
-            } else {
-                phase = downloadProgress >= 1 ? .completed : .idle
-            }
-        }
-    }
-
-    public var isPaused: Bool {
-        get {
-            guard case .paused = phase else { return false }
-            return true
-        }
-        set {
-            if newValue {
-                phase = .paused
-            } else if case .paused = phase {
-                phase = downloadProgress >= 1 ? .completed : .idle
-            }
-        }
-    }
 
     @ObservationIgnored @Dependency(\.downloadClient) private var downloadClient
 
@@ -72,16 +34,6 @@ public final class ModelDownloadModel {
         return downloadClient.isModelDownloaded(selectedModelOption)
     }
 
-    public var downloadSummaryText: String {
-        let percent = Int((downloadProgress * 100).rounded())
-
-        if let downloadSpeedText {
-            return "\(percent)% - \(downloadSpeedText)"
-        }
-
-        return "\(percent)%"
-    }
-
     public var modelDirectoryURL: URL? {
         guard let option = selectedModelOption else { return nil }
         return downloadClient.modelDirectoryURL(option)
@@ -92,15 +44,13 @@ public final class ModelDownloadModel {
     }
 
     public func pauseButtonTapped() {
-        guard isDownloadingModel else { return }
+        guard state.isActive else { return }
         downloadClient.pauseDownload()
-        phase = .paused
-        downloadStatus = "Download paused"
-        downloadSpeedText = nil
+        state = .paused(state.progress ?? .init(fraction: 0, statusText: "Download paused"))
     }
 
     public func resumeButtonTapped() async {
-        guard isPaused else { return }
+        guard state.isPaused else { return }
         await startDownload(resetProgress: false)
     }
 
@@ -113,7 +63,7 @@ public final class ModelDownloadModel {
         transientMessage = nil
         lastError = nil
 
-        if isDownloadingModel || isPaused { return }
+        if state.isActive || state.isPaused { return }
         refreshDownloadStateForSelectedModel()
     }
 
@@ -136,19 +86,14 @@ public final class ModelDownloadModel {
     private func startDownload(resetProgress: Bool) async {
         guard let option = selectedModelOption else {
             let message = "Select a model to continue."
-            phase = .failed(message)
+            state = .failed(message)
             lastError = message
             return
         }
 
-        guard !isDownloadingModel else { return }
+        guard !state.isActive else { return }
 
-        phase = .preparing
-        if resetProgress {
-            downloadProgress = 0
-        }
-        downloadStatus = "Preparing download..."
-        downloadSpeedText = nil
+        state = .preparing
         transientMessage = nil
         lastError = nil
 
@@ -160,10 +105,7 @@ public final class ModelDownloadModel {
                 }
             }
 
-            phase = .completed
-            downloadProgress = 1
-            downloadSpeedText = nil
-            downloadStatus = "Download complete"
+            state = .downloaded
             transientMessage = "Model ready. Click Finish Setup to continue."
             lastError = nil
         } catch is CancellationError {
@@ -175,62 +117,42 @@ public final class ModelDownloadModel {
     }
 
     private func applyProgressUpdate(_ update: DownloadProgress) {
-        if case .paused = phase { return }
+        if state.isPaused { return }
 
-        if phase == .preparing || phase == .idle {
-            phase = .downloading
-        }
-
-        downloadProgress = min(max(update.fractionCompleted, 0), 1)
-        downloadStatus = update.status
-        downloadSpeedText = update.speedText
+        let fraction = min(max(update.fractionCompleted, 0), 1)
+        let progress = ModelDownloadState.Progress(
+            fraction: fraction,
+            statusText: update.status,
+            speedText: update.speedText
+        )
+        state = .downloading(progress)
     }
 
     private func handleDownloadFailure(_ failure: DownloadClientFailure) {
         switch failure {
         case .paused:
-            phase = .paused
-            downloadStatus = "Download paused"
-            downloadSpeedText = nil
+            let progress = state.progress ?? .init(fraction: 0, statusText: "Download paused")
+            state = .paused(.init(fraction: progress.fraction, statusText: "Download paused"))
             lastError = nil
         case .cancelled:
             resetToIdle()
         case .aria2BinaryMissing, .failed:
             let message = failure.errorDescription ?? "Download failed."
-            phase = .failed(message)
-            downloadSpeedText = nil
+            state = .failed(message)
             lastError = message
         }
     }
 
     private func refreshDownloadStateForSelectedModel() {
         if isSelectedModelDownloaded {
-            phase = .completed
-            downloadProgress = 1
-            downloadStatus = "Model is ready."
-            downloadSpeedText = nil
+            state = .downloaded
         } else {
-            phase = .idle
-            downloadProgress = 0
-            downloadStatus = ""
-            downloadSpeedText = nil
+            state = .notDownloaded
         }
     }
 
     private func resetToIdle() {
-        phase = .idle
-        downloadProgress = 0
-        downloadStatus = ""
-        downloadSpeedText = nil
+        state = .notDownloaded
         lastError = nil
-    }
-
-    private static func isDownloading(_ phase: ModelDownloadPhase) -> Bool {
-        switch phase {
-        case .preparing, .downloading:
-            return true
-        case .idle, .paused, .completed, .failed:
-            return false
-        }
     }
 }

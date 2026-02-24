@@ -102,12 +102,20 @@ struct AboutView: View {
                 .foregroundStyle(.tertiary)
 
             ForEach(ModelCredit.allCases) { credit in
-                Button(credit.title) {
+                Button {
                     openURL(credit.url)
+                } label: {
+                    HStack(spacing: 4) {
+                        credit.icon
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 12, height: 12)
+                        Text(credit.title)
+                            .underline()
+                    }
                 }
             }
         }
-        .underline()
         .buttonStyle(.plain)
         .font(.subheadline)
         .foregroundStyle(.secondary)
@@ -173,6 +181,14 @@ private enum ModelCredit: String, CaseIterable, Identifiable {
         case .mlxCommunity: return "MLX Community"
         case .argmax: return "Argmax (WhisperKit)"
         case .mistral: return "Mistral (Voxtral)"
+        }
+    }
+
+    var icon: Image {
+        switch self {
+        case .mlxCommunity: return Image("huggingface")
+        case .argmax: return Image(systemName: "waveform")
+        case .mistral: return Image("mistral")
         }
     }
 

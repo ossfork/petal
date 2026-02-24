@@ -55,17 +55,29 @@ struct DownloadPage: View {
 
     @ViewBuilder
     private var downloadContent: some View {
-        if isComplete {
+        switch downloadModel.state {
+        case .downloaded:
             DownloadCompleteCard(modelDirectoryURL: downloadModel.modelDirectoryURL)
-        } else if downloadModel.isDownloadingModel || downloadModel.isPaused {
+        case let .downloading(progress):
             DownloadProgressCard(
-                progress: downloadModel.downloadProgress,
-                speedText: downloadModel.downloadSpeedText,
-                isPaused: downloadModel.isPaused,
+                progress: progress.fraction,
+                speedText: progress.speedText,
+                isPaused: false,
                 onPause: { downloadModel.pauseDownload() },
+                onResume: {},
+                onCancel: { downloadModel.cancelDownload() }
+            )
+        case let .paused(progress):
+            DownloadProgressCard(
+                progress: progress.fraction,
+                speedText: progress.speedText,
+                isPaused: true,
+                onPause: {},
                 onResume: { Task { await downloadModel.resumeDownload() } },
                 onCancel: { downloadModel.cancelDownload() }
             )
+        case .notDownloaded, .preparing, .failed:
+            EmptyView()
         }
     }
 
@@ -80,10 +92,6 @@ struct DownloadPage: View {
 
     // MARK: - Computed
 
-    private var isComplete: Bool {
-        downloadModel.downloadProgress >= 1 && !downloadModel.isDownloadingModel && !downloadModel.isPaused
-    }
-
     private var downloadModel: ModelDownloadModel {
         model.modelDownloadViewModel
     }
@@ -95,24 +103,25 @@ struct DownloadPage: View {
 
 #Preview("Download - In Progress") {
     OnboardingView(model: .makePreview(page: .download) { model in
-        model.isDownloadingModel = true
-        model.downloadProgress = 0.42
-        model.downloadStatus = "Downloading model..."
-        model.downloadSpeedText = "18.2 MB/s"
+        model.modelDownloadViewModel.state = .downloading(.init(
+            fraction: 0.42,
+            statusText: "Downloading model...",
+            speedText: "18.2 MB/s"
+        ))
     })
 }
 
 #Preview("Download - Paused") {
     OnboardingView(model: .makePreview(page: .download) { model in
-        model.isPaused = true
-        model.downloadProgress = 0.42
-        model.downloadStatus = "Download paused"
+        model.modelDownloadViewModel.state = .paused(.init(
+            fraction: 0.42,
+            statusText: "Download paused"
+        ))
     })
 }
 
 #Preview("Download - Complete") {
     OnboardingView(model: .makePreview(page: .download) { model in
-        model.downloadProgress = 1.0
-        model.downloadStatus = "Download complete"
+        model.modelDownloadViewModel.state = .downloaded
     })
 }

@@ -7,21 +7,18 @@ import Testing
 @testable import ModelDownloadFeature
 
 @Test
-func modelCompletesDownloadAndTransitionsToCompletedPhase() async throws {
+func modelCompletesDownloadAndTransitionsToDownloadedState() async throws {
     try await withDependencies {
         $0.downloadClient.isModelDownloaded = { _ in false }
         $0.downloadClient.downloadModel = { _, progress in
-            progress(0.4, "Downloading model files... 40% (12.0 MB/s)")
-            progress(0.9, "Downloading model files... 90% (11.0 MB/s)")
+            progress(DownloadProgress(fractionCompleted: 0.4, status: "Downloading model files... 40%", speedText: "12.0 MB/s"))
+            progress(DownloadProgress(fractionCompleted: 0.9, status: "Downloading model files... 90%", speedText: "11.0 MB/s"))
         }
     } operation: {
         let model = ModelDownloadModel(isPreviewMode: true)
         await model.downloadButtonTapped()
 
-        #expect(model.phase == .completed)
-        #expect(model.downloadProgress == 1)
-        #expect(model.downloadStatus == "Download complete")
-        #expect(model.downloadSpeedText == nil)
+        #expect(model.state == .downloaded)
         #expect(model.lastError == nil)
     }
 }
@@ -37,18 +34,16 @@ func modelHandlesPauseAndResumeAcrossRetries() async throws {
             if attempt == 1 {
                 throw DownloadClientFailure.paused
             }
-            progress(0.75, "Downloading model files... 75% (9.0 MB/s)")
+            progress(DownloadProgress(fractionCompleted: 0.75, status: "Downloading model files... 75%", speedText: "9.0 MB/s"))
         }
     } operation: {
         let model = ModelDownloadModel(isPreviewMode: true)
 
         await model.downloadButtonTapped()
-        #expect(model.phase == .paused)
-        #expect(model.downloadStatus == "Download paused")
+        #expect(model.state.isPaused)
 
         await model.resumeButtonTapped()
-        #expect(model.phase == .completed)
-        #expect(model.downloadProgress == 1)
+        #expect(model.state == .downloaded)
         #expect(await attempts.current() == 2)
     }
 }
@@ -59,24 +54,18 @@ func modelPauseAndCancelButtonsMutateStateDeterministically() async throws {
         $0.downloadClient.isModelDownloaded = { _ in false }
     } operation: {
         let model = ModelDownloadModel(isPreviewMode: true)
-        model.isDownloadingModel = true
-        model.downloadProgress = 0.58
-        model.downloadStatus = "Downloading model files..."
+        model.state = .downloading(.init(fraction: 0.58, statusText: "Downloading model files..."))
 
         model.pauseButtonTapped()
-        #expect(model.phase == .paused)
-        #expect(model.downloadStatus == "Download paused")
+        #expect(model.state.isPaused)
 
         model.cancelButtonTapped()
-        #expect(model.phase == .idle)
-        #expect(model.downloadProgress == 0)
-        #expect(model.downloadStatus.isEmpty)
-        #expect(model.downloadSpeedText == nil)
+        #expect(model.state == .notDownloaded)
     }
 }
 
 @Test
-func modelTransitionsToFailedPhaseForTypedFailures() async throws {
+func modelTransitionsToFailedStateForTypedFailures() async throws {
     try await withDependencies {
         $0.downloadClient.isModelDownloaded = { _ in false }
         $0.downloadClient.downloadModel = { _, _ in
@@ -86,9 +75,9 @@ func modelTransitionsToFailedPhaseForTypedFailures() async throws {
         let model = ModelDownloadModel(isPreviewMode: true)
         await model.downloadButtonTapped()
 
-        #expect(model.phase == .failed("network failure"))
+        #expect(model.state == .failed("network failure"))
         #expect(model.lastError == "network failure")
-        #expect(model.isDownloadingModel == false)
+        #expect(model.state.isActive == false)
     }
 }
 
@@ -100,9 +89,7 @@ func selectedModelChangedRefreshesDownloadedState() async throws {
         let model = ModelDownloadModel(isPreviewMode: true)
         model.selectedModelChanged()
 
-        #expect(model.phase == .completed)
-        #expect(model.downloadProgress == 1)
-        #expect(model.downloadStatus == "Model is ready.")
+        #expect(model.state == .downloaded)
     }
 }
 

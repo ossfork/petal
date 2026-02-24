@@ -22,55 +22,23 @@ final class SettingsViewModel {
     var permissionMessage: String?
 
     var selectedModelID: String {
-        get { modelDownloadViewModel.selectedModelID }
+        get { downloadModel.selectedModelID }
         set {
-            modelDownloadViewModel.selectedModelID = newValue
-            modelDownloadViewModel.selectedModelChanged()
+            downloadModel.selectedModelID = newValue
+            downloadModel.selectedModelChanged()
         }
-    }
-
-    var isSelectedModelDownloaded: Bool {
-        modelDownloadViewModel.isSelectedModelDownloaded
-    }
-
-    var isDownloadingModel: Bool {
-        modelDownloadViewModel.isDownloadingModel
-    }
-
-    var isPaused: Bool {
-        modelDownloadViewModel.isPaused
-    }
-
-    var downloadProgress: Double {
-        modelDownloadViewModel.downloadProgress
-    }
-
-    var downloadStatus: String {
-        modelDownloadViewModel.downloadStatus
-    }
-
-    var downloadSummaryText: String {
-        modelDownloadViewModel.downloadSummaryText
-    }
-
-    var downloadError: String? {
-        modelDownloadViewModel.lastError
-    }
-
-    var selectedModelOption: ModelOption? {
-        modelDownloadViewModel.selectedModelOption
     }
 
     var historyDirectoryPath: String {
         historyClient.historyDirectoryPath()
     }
 
-    private let modelDownloadViewModel: ModelDownloadModel
+    let downloadModel: ModelDownloadModel
     @ObservationIgnored @Dependency(\.permissionsClient) private var permissionsClient
     @ObservationIgnored @Dependency(\.historyClient) private var historyClient
 
     init(appModel: AppModel) {
-        self.modelDownloadViewModel = appModel.modelDownloadViewModel
+        self.downloadModel = appModel.modelDownloadViewModel
     }
 
     func refreshPermissions() async {
@@ -97,19 +65,19 @@ final class SettingsViewModel {
     }
 
     func downloadButtonTapped() async {
-        await modelDownloadViewModel.downloadButtonTapped()
+        await downloadModel.downloadButtonTapped()
     }
 
     func pauseButtonTapped() {
-        modelDownloadViewModel.pauseButtonTapped()
+        downloadModel.pauseButtonTapped()
     }
 
     func resumeButtonTapped() async {
-        await modelDownloadViewModel.resumeButtonTapped()
+        await downloadModel.resumeButtonTapped()
     }
 
     func cancelButtonTapped() {
-        modelDownloadViewModel.cancelButtonTapped()
+        downloadModel.cancelButtonTapped()
     }
 
     func historyRetentionModeChanged(_ mode: HistoryRetentionMode) {

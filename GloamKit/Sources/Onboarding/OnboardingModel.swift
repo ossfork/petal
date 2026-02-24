@@ -62,7 +62,10 @@ public final class OnboardingModel {
 
     public var showBack: Bool {
         guard previousPage != nil else { return false }
-        if currentPage == .download, modelDownloadViewModel.isDownloadingModel || modelDownloadViewModel.isPaused { return false }
+        if currentPage == .download {
+            let downloadState = modelDownloadViewModel.state
+            if downloadState.isActive || downloadState.isPaused { return false }
+        }
         return true
     }
 
@@ -73,8 +76,8 @@ public final class OnboardingModel {
         case .microphone:
             return microphoneAuthorized ? "Continue" : "Enable Microphone"
         case .download:
-            if modelDownloadViewModel.isDownloadingModel { return "Downloading..." }
-            if modelDownloadViewModel.isSelectedModelDownloaded || modelDownloadViewModel.downloadProgress >= 1 { return "Finish Setup" }
+            if modelDownloadViewModel.state.isActive { return "Downloading..." }
+            if modelDownloadViewModel.state.isDownloaded { return "Finish Setup" }
             return currentPage.primaryTitle
         default:
             return currentPage.primaryTitle
@@ -88,7 +91,7 @@ public final class OnboardingModel {
         case .shortcut: !hasConfiguredShortcut
         case .microphone: false
         case .accessibility: false
-        case .download: modelDownloadViewModel.isDownloadingModel
+        case .download: modelDownloadViewModel.state.isActive
         }
     }
 
@@ -101,7 +104,7 @@ public final class OnboardingModel {
             guard hasConfiguredShortcut else { return }
             moveForward()
         case .download:
-            if modelDownloadViewModel.isSelectedModelDownloaded || modelDownloadViewModel.downloadProgress >= 1 {
+            if modelDownloadViewModel.state.isDownloaded {
                 completeSetup()
             } else {
                 Task { await downloadModel() }
@@ -130,31 +133,6 @@ public final class OnboardingModel {
     public var selectedModelID: String {
         get { modelDownloadViewModel.selectedModelID }
         set { modelDownloadViewModel.$selectedModelID.withLock { $0 = newValue } }
-    }
-
-    public var isDownloadingModel: Bool {
-        get { modelDownloadViewModel.isDownloadingModel }
-        set { modelDownloadViewModel.isDownloadingModel = newValue }
-    }
-
-    public var downloadProgress: Double {
-        get { modelDownloadViewModel.downloadProgress }
-        set { modelDownloadViewModel.downloadProgress = newValue }
-    }
-
-    public var downloadStatus: String {
-        get { modelDownloadViewModel.downloadStatus }
-        set { modelDownloadViewModel.downloadStatus = newValue }
-    }
-
-    public var downloadSpeedText: String? {
-        get { modelDownloadViewModel.downloadSpeedText }
-        set { modelDownloadViewModel.downloadSpeedText = newValue }
-    }
-
-    public var isPaused: Bool {
-        get { modelDownloadViewModel.isPaused }
-        set { modelDownloadViewModel.isPaused = newValue }
     }
 
     public var microphonePermissionState: MicrophonePermissionState = .notDetermined

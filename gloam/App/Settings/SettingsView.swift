@@ -1,4 +1,5 @@
 import KeyboardShortcuts
+import ModelDownloadFeature
 import Shared
 import SwiftUI
 
@@ -99,7 +100,7 @@ struct TranscriptionPane: View {
                     }
                 }
 
-                if let model = viewModel.selectedModelOption {
+                if let model = viewModel.downloadModel.selectedModelOption {
                     LabeledContent("Provider") {
                         Text(model.providerDisplayName)
                     }
@@ -108,47 +109,7 @@ struct TranscriptionPane: View {
                     }
                 }
 
-                if viewModel.isSelectedModelDownloaded {
-                    LabeledContent("Status") {
-                        Label("Downloaded", systemImage: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                    }
-                } else if viewModel.isDownloadingModel || viewModel.isPaused {
-                    VStack(alignment: .leading, spacing: 4) {
-                        ProgressView(value: viewModel.downloadProgress)
-                        if !viewModel.downloadStatus.isEmpty {
-                            Text(viewModel.downloadStatus)
-                                .settingDescription()
-                        }
-                        Text(viewModel.downloadSummaryText)
-                            .settingDescription()
-                    }
-                    HStack {
-                        if viewModel.isPaused {
-                            Button("Resume") {
-                                Task { await viewModel.resumeButtonTapped() }
-                            }
-                        } else {
-                            Button("Pause") {
-                                viewModel.pauseButtonTapped()
-                            }
-                        }
-
-                        Button("Cancel") {
-                            viewModel.cancelButtonTapped()
-                        }
-                    }
-                } else {
-                    Button("Download Model") {
-                        Task { await viewModel.downloadButtonTapped() }
-                    }
-                }
-
-                if let error = viewModel.downloadError {
-                    Text(error)
-                        .foregroundStyle(.red)
-                        .font(.caption)
-                }
+                modelDownloadStatus
             }
 
             Section("Audio Preprocessing") {
@@ -158,7 +119,7 @@ struct TranscriptionPane: View {
                     .settingDescription()
             }
 
-            if viewModel.selectedModelOption?.supportsSmartTranscription == true {
+            if viewModel.downloadModel.selectedModelOption?.supportsSmartTranscription == true {
                 Section("Mode") {
                     Picker("Transcription Mode", selection: Binding(viewModel.$transcriptionMode)) {
                         ForEach(TranscriptionMode.allCases) { mode in
@@ -179,6 +140,60 @@ struct TranscriptionPane: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    @ViewBuilder
+    private var modelDownloadStatus: some View {
+        switch viewModel.downloadModel.state {
+        case .downloaded:
+            LabeledContent("Status") {
+                Label("Downloaded", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+            }
+        case let .downloading(progress):
+            downloadProgressSection(progress: progress, isPaused: false)
+        case let .paused(progress):
+            downloadProgressSection(progress: progress, isPaused: true)
+        case .notDownloaded, .preparing:
+            Button("Download Model") {
+                Task { await viewModel.downloadButtonTapped() }
+            }
+        case let .failed(message):
+            Button("Download Model") {
+                Task { await viewModel.downloadButtonTapped() }
+            }
+            Text(message)
+                .foregroundStyle(.red)
+                .font(.caption)
+        }
+    }
+
+    @ViewBuilder
+    private func downloadProgressSection(progress: ModelDownloadState.Progress, isPaused: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ProgressView(value: progress.fraction)
+            if !progress.statusText.isEmpty {
+                Text(progress.statusText)
+                    .settingDescription()
+            }
+            Text(progress.summaryText)
+                .settingDescription()
+        }
+        HStack {
+            if isPaused {
+                Button("Resume") {
+                    Task { await viewModel.resumeButtonTapped() }
+                }
+            } else {
+                Button("Pause") {
+                    viewModel.pauseButtonTapped()
+                }
+            }
+
+            Button("Cancel") {
+                viewModel.cancelButtonTapped()
+            }
+        }
     }
 }
 
