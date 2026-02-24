@@ -65,7 +65,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-sharing.git", from: "2.7.4"),
         .package(url: "https://github.com/pointfreeco/swift-identified-collections", from: "1.1.1"),
         .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "1.7.2"),
-        .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.4.0"),
+        .package(url: "https://github.com/rurza/KeyboardShortcuts.git", branch: "main"),
         .package(url: "https://github.com/Clipy/Sauce.git", from: "2.4.1"),
         .package(url: "https://github.com/huggingface/swift-huggingface", from: "0.7.1"),
         .package(url: "https://github.com/argmaxinc/WhisperKit", from: "0.15.0"),

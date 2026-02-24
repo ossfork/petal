@@ -180,7 +180,7 @@ final class AppModel {
         guard let shortcut = KeyboardShortcuts.getShortcut(for: .pushToTalk) else {
             return "No shortcut set"
         }
-        let modifiers = shortcut.modifiers.ks_symbolicRepresentation
+        let modifiers = shortcut.modifiers.description
         let key = Sauce.shared.key(for: shortcut.carbonKeyCode)?.rawValue.uppercased() ?? "?"
         return "Current: \(modifiers)\(key)"
     }
@@ -649,7 +649,7 @@ final class AppModel {
 
     private func registerShortcutHandlers() {
         if isPreviewMode { return }
-        KeyboardShortcuts.removeHandler(for: .pushToTalk)
+        KeyboardShortcuts.removeAllHandlers()
 
         KeyboardShortcuts.onKeyDown(for: .pushToTalk) { [weak self] in
             Task { await self?.pushToTalkKeyDown() }

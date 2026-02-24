@@ -28,6 +28,7 @@ struct ShortcutPage: View {
                 .padding()
             }
             .frame(width: 360)
+            .scaleEffect(1.25)
             .slideIn(active: isAnimating, delay: 0.5)
 
             Spacer()
