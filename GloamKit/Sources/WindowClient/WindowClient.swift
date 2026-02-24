@@ -4,7 +4,7 @@ import DependenciesMacros
 
 @DependencyClient
 public struct WindowClient: Sendable {
-    public var show: @Sendable (_ config: WindowConfig, _ content: @MainActor @Sendable () -> NSView, _ onClose: @MainActor @Sendable () -> Void) async -> Void
+    public var show: @Sendable (_ config: WindowConfig, _ content: @escaping @MainActor @Sendable () -> NSView, _ onClose: @escaping @MainActor @Sendable () -> Void) async -> Void
     public var bringToFront: @Sendable (_ id: String) async -> Void
     public var close: @Sendable (_ id: String) async -> Void
     public var closeAll: @Sendable (_ id: String) async -> Void

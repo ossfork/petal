@@ -174,18 +174,18 @@ final class WindowRuntimeImpl {
 // MARK: - Window Close Delegate
 
 @MainActor
-private final class WindowCloseDelegate: NSObject, NSWindowDelegate {
-    private let onClose: (NSWindow) -> Void
+private final class WindowCloseDelegate: NSObject {
+    let onClose: (NSWindow) -> Void
 
     init(onClose: @escaping (NSWindow) -> Void) {
         self.onClose = onClose
     }
+}
 
-    nonisolated func windowWillClose(_ notification: Notification) {
-        MainActor.assumeIsolated {
-            guard let window = notification.object as? NSWindow else { return }
-            window.delegate = nil
-            onClose(window)
-        }
+extension WindowCloseDelegate: NSWindowDelegate {
+    func windowWillClose(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else { return }
+        window.delegate = nil
+        onClose(window)
     }
 }

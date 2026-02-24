@@ -244,7 +244,15 @@ private actor LiveMLXRuntime {
             guard let whisperKitInstance else {
                 throw MLXError.pipelineUnavailable
             }
-            return try await transcribeWithWhisperKit(audioURL: audioURL, whisperKit: whisperKitInstance)
+            nonisolated(unsafe) let instance = whisperKitInstance
+            let audioPath = audioURL.path
+            let results = try await instance.transcribe(audioPath: audioPath)
+            let text = results.map(\.text).joined(separator: " ")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty else {
+                throw MLXError.pipelineUnavailable
+            }
+            return text
         }
     }
 
@@ -254,19 +262,6 @@ private actor LiveMLXRuntime {
         qwen3ASRModel = nil
         whisperKitInstance = nil
         loadedModel = nil
-    }
-
-    private func transcribeWithWhisperKit(
-        audioURL: URL,
-        whisperKit: WhisperKit
-    ) async throws -> String {
-        let results = try await whisperKit.transcribe(audioPath: audioURL.path)
-        let text = results.map(\.text).joined(separator: " ")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else {
-            throw MLXError.pipelineUnavailable
-        }
-        return text
     }
 
     // Qwen3 ASR currently supports direct ASR generation only, so smart mode falls back to verbatim output.

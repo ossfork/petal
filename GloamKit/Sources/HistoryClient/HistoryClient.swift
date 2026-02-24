@@ -10,7 +10,7 @@ public struct HistoryClient: Sendable {
     public var bootstrap: @Sendable (HistoryRetentionMode, [TranscriptHistoryDay]) -> [TranscriptHistoryDay] = { _, days in days }
     public var applyRetention: @Sendable (HistoryRetentionMode, [TranscriptHistoryDay]) -> [TranscriptHistoryDay] = { _, days in days }
     public var appendEntry: @Sendable (AppendEntryRequest) -> [TranscriptHistoryDay] = { _ in [] }
-    public var persistArtifacts: @Sendable (PersistArtifactsRequest) -> PersistedArtifacts? = { _ in nil }
+    public var persistArtifacts: @Sendable (PersistArtifactsRequest) async -> PersistedArtifacts? = { _ in nil }
     public var openHistoryFolder: @Sendable (HistoryRetentionMode) -> Bool = { _ in false }
     public var historyAudioURL: @Sendable (String?) -> URL? = { _ in nil }
     public var modelsDirectoryPath: @Sendable () -> String = { "" }
@@ -112,7 +112,7 @@ extension HistoryClient: DependencyKey {
                 runtime.appendEntry(request)
             },
             persistArtifacts: { request in
-                runtime.persistArtifacts(request)
+                await runtime.persistArtifacts(request)
             },
             openHistoryFolder: { retentionMode in
                 runtime.openHistoryFolder(retentionMode: retentionMode)
@@ -190,7 +190,7 @@ private final class HistoryRuntime: @unchecked Sendable {
         return updatedDays
     }
 
-    func persistArtifacts(_ request: PersistArtifactsRequest) -> PersistedArtifacts? {
+    func persistArtifacts(_ request: PersistArtifactsRequest) async -> PersistedArtifacts? {
         guard request.retentionMode.keepsHistory else { return nil }
         ensureDataDirectories(retentionMode: request.retentionMode)
 
@@ -209,7 +209,7 @@ private final class HistoryRuntime: @unchecked Sendable {
                     try fileManager.removeItem(at: audioTarget)
                 }
                 if request.compressAudio {
-                    try Self.compressAudio(from: request.audioURL, to: audioTarget)
+                    try await Self.compressAudio(from: request.audioURL, to: audioTarget)
                 } else {
                     try fileManager.copyItem(at: request.audioURL, to: audioTarget)
                 }
@@ -341,23 +341,11 @@ private final class HistoryRuntime: @unchecked Sendable {
         historyDirectoryURL.appending(path: "transcripts", directoryHint: .isDirectory)
     }
 
-    private static func compressAudio(from source: URL, to destination: URL) throws {
-        let asset = AVAsset(url: source)
+    private static func compressAudio(from source: URL, to destination: URL) async throws {
+        let asset = AVURLAsset(url: source)
         guard let session = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A) else {
             throw NSError(domain: "HistoryClient", code: 2, userInfo: [NSLocalizedDescriptionKey: "Cannot create export session"])
         }
-        session.outputURL = destination
-        session.outputFileType = .m4a
-
-        let semaphore = DispatchSemaphore(value: 0)
-        session.exportAsynchronously { semaphore.signal() }
-        semaphore.wait()
-
-        if let error = session.error {
-            throw error
-        }
-        guard session.status == .completed else {
-            throw NSError(domain: "HistoryClient", code: 3, userInfo: [NSLocalizedDescriptionKey: "Audio compression failed with status \(session.status.rawValue)"])
-        }
+        try await session.export(to: destination, as: .m4a)
     }
 }

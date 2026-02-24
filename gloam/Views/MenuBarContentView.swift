@@ -75,6 +75,10 @@ struct MenuBarContentView: View {
                     .disabled(!viewModel.canCheckForUpdates)
                 }
 
+                MenuCommand("About Gloam") {
+                    viewModel.showAbout()
+                }
+
                 MenuCommand("Settings…") {
                     viewModel.openSettings()
                 }
@@ -104,7 +108,7 @@ struct MenuBarContentView: View {
 
 #Preview("With History") {
     let model = AppModel.makePreview { model in
-        model.transcriptHistoryDays = [
+        model.$transcriptHistoryDays.withLock { $0 = [
             TranscriptHistoryDay(
                 day: "2026-02-20",
                 entries: [
@@ -123,7 +127,7 @@ struct MenuBarContentView: View {
                     )
                 ]
             )
-        ]
+        ] }
     }
 
     MenuBarContentView(viewModel: MenuBarContentViewModel(appModel: model))

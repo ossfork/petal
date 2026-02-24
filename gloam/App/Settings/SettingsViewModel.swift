@@ -24,7 +24,7 @@ final class SettingsViewModel {
     var selectedModelID: String {
         get { downloadModel.selectedModelID }
         set {
-            downloadModel.selectedModelID = newValue
+            downloadModel.$selectedModelID.withLock { $0 = newValue }
             downloadModel.selectedModelChanged()
         }
     }
@@ -81,8 +81,9 @@ final class SettingsViewModel {
     }
 
     func historyRetentionModeChanged(_ mode: HistoryRetentionMode) {
-        historyRetentionMode = mode
-        transcriptHistoryDays = historyClient.applyRetention(mode, transcriptHistoryDays)
+        $historyRetentionMode.withLock { $0 = mode }
+        let applied = historyClient.applyRetention(mode, transcriptHistoryDays)
+        $transcriptHistoryDays.withLock { $0 = applied }
     }
 
     func openHistoryInFinder() {

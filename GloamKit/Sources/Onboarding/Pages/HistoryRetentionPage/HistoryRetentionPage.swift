@@ -7,7 +7,7 @@ struct HistoryRetentionPage: View {
     @State private var isAnimating = false
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(alignment: .leading, spacing: 24) {
             header
             cards
         }

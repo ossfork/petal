@@ -54,26 +54,22 @@ final class MenuBarContentViewModel {
     }
 
     var historyMenuItems: [HistoryMenuItem] {
-        appModel.recentTranscriptHistoryEntries.map { entry in
-            let normalizedTranscript: String = {
-                entry.transcript
+        appModel.recentTranscriptHistoryEntries
+            .filter { !$0.transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            .map { entry in
+                let normalizedTranscript = entry.transcript
                     .replacingOccurrences(of: "\n", with: " ")
                     .trimmingCharacters(in: .whitespacesAndNewlines)
-            }()
 
-            let title: String = {
-                guard !normalizedTranscript.isEmpty else { return "Transcript not retained" }
-                return String(normalizedTranscript.prefix(56))
-            }()
+                let title = String(normalizedTranscript.prefix(56))
+                let subtitle = "\(entry.transcriptionMode.capitalized) • \(entry.characterCount) chars"
 
-            let subtitle = "\(entry.transcriptionMode.capitalized) • \(entry.characterCount) chars"
-
-            return HistoryMenuItem(
-                id: entry.id,
-                title: title,
-                subtitle: subtitle
-            )
-        }
+                return HistoryMenuItem(
+                    id: entry.id,
+                    title: title,
+                    subtitle: subtitle
+                )
+            }
     }
 
     var showsCheckForUpdates: Bool { updatesModel != nil }
@@ -97,6 +93,10 @@ final class MenuBarContentViewModel {
 
     func checkForUpdates() {
         updatesModel?.checkForUpdates()
+    }
+
+    func showAbout() {
+        NSApp.sendAction(#selector(AppDelegate.showAboutPanel), to: nil, from: nil)
     }
 
     func openSettings() {

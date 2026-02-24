@@ -1,3 +1,4 @@
+import Assets
 import KeyboardShortcuts
 import ModelDownloadFeature
 import Shared
@@ -81,65 +82,85 @@ struct TranscriptionPane: View {
     @Bindable var viewModel: SettingsViewModel
 
     var body: some View {
-        Form {
-            Section("Model") {
-                Picker("Model", selection: Binding(
-                    get: { viewModel.selectedModelID },
-                    set: { viewModel.selectedModelID = $0 }
-                )) {
-                    ForEach(ModelOption.allCases) { option in
-                        HStack {
-                            Text(option.displayName)
-                            if option.isRecommended {
-                                Text("Recommended")
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
+        ScrollView {
+            Form {
+                Section("Model") {
+                    Picker("Model", selection: Binding(
+                        get: { viewModel.selectedModelID },
+                        set: { viewModel.selectedModelID = $0 }
+                    )) {
+                        ForEach(ModelOption.allCases) { option in
+                            HStack {
+                                providerIcon(for: option)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 16, height: 16)
+                                Text(option.displayName)
+                                if option.isRecommended {
+                                    Text("Recommended")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .tag(option.rawValue)
+                        }
+                    }
+
+                    if let model = viewModel.downloadModel.selectedModelOption {
+                        LabeledContent("Provider") {
+                            HStack(spacing: 6) {
+                                providerIcon(for: model)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 14, height: 14)
+                                Text(model.providerDisplayName)
                             }
                         }
-                        .tag(option.rawValue)
-                    }
-                }
-
-                if let model = viewModel.downloadModel.selectedModelOption {
-                    LabeledContent("Provider") {
-                        Text(model.providerDisplayName)
-                    }
-                    LabeledContent("Size") {
-                        Text(model.sizeLabel)
-                    }
-                }
-
-                modelDownloadStatus
-            }
-
-            Section("Audio Preprocessing") {
-                Toggle("Trim silence", isOn: Binding(viewModel.$trimSilenceEnabled))
-                Toggle("Auto speed-up", isOn: Binding(viewModel.$autoSpeedEnabled))
-                Text("Remove leading/trailing silence and speed up quiet audio before transcription.")
-                    .settingDescription()
-            }
-
-            if viewModel.downloadModel.selectedModelOption?.supportsSmartTranscription == true {
-                Section("Mode") {
-                    Picker("Transcription Mode", selection: Binding(viewModel.$transcriptionMode)) {
-                        ForEach(TranscriptionMode.allCases) { mode in
-                            Text(mode.displayName).tag(mode)
+                        LabeledContent("Size") {
+                            Text(model.sizeLabel)
                         }
                     }
-                    .pickerStyle(.segmented)
-                    Text(viewModel.transcriptionMode.description)
+
+                    modelDownloadStatus
+                }
+
+                Section("Audio Preprocessing") {
+                    Toggle("Trim silence", isOn: Binding(viewModel.$trimSilenceEnabled))
+                    Toggle("Auto speed-up", isOn: Binding(viewModel.$autoSpeedEnabled))
+                    Text("Remove leading/trailing silence and speed up quiet audio before transcription.")
                         .settingDescription()
                 }
 
-                if viewModel.transcriptionMode == .smart {
-                    Section("Smart Prompt") {
-                        TextField("Prompt", text: Binding(viewModel.$smartPrompt), axis: .vertical)
-                        .lineLimit(3...6)
+                if viewModel.downloadModel.selectedModelOption?.supportsSmartTranscription == true {
+                    Section("Mode") {
+                        Picker("Transcription Mode", selection: Binding(viewModel.$transcriptionMode)) {
+                            ForEach(TranscriptionMode.allCases) { mode in
+                                Text(mode.displayName).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        Text(viewModel.transcriptionMode.description)
+                            .settingDescription()
+                    }
+
+                    if viewModel.transcriptionMode == .smart {
+                        Section("Smart Prompt") {
+                            TextField("Prompt", text: Binding(viewModel.$smartPrompt), axis: .vertical)
+                            .lineLimit(3...6)
+                        }
                     }
                 }
             }
+            .formStyle(.grouped)
         }
-        .formStyle(.grouped)
+    }
+
+    private func providerIcon(for option: ModelOption) -> Image {
+        switch option.provider {
+        case .mlxAudioSTT: .qwen
+        case .whisperKit: .openai
+        case .voxtralCore: .mistral
+        }
     }
 
     @ViewBuilder

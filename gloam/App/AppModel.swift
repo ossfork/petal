@@ -1,5 +1,6 @@
 import AppKit
 import AudioClient
+import class SwiftUI.NSHostingView
 import FloatingCapsuleClient
 import Foundation
 import HistoryClient
@@ -50,7 +51,7 @@ final class AppModel {
     var selectedModelID: String {
         get { modelDownloadViewModel.selectedModelID }
         set {
-            modelDownloadViewModel.selectedModelID = newValue
+            modelDownloadViewModel.$selectedModelID.withLock { $0 = newValue }
             selectedModelDidChange()
         }
     }
@@ -101,7 +102,7 @@ final class AppModel {
         modelDownloadViewModel = ModelDownloadModel(isPreviewMode: isPreviewMode)
 
         if isPreviewMode {
-            hasCompletedSetup = true
+            $hasCompletedSetup.withLock { $0 = true }
             selectedModelID = ModelOption.defaultOption.rawValue
             microphonePermissionState = .authorized
             microphoneAuthorized = true
@@ -109,7 +110,7 @@ final class AppModel {
             return
         }
 
-        transcriptHistoryDays = historyClient.bootstrap(historyRetentionMode, transcriptHistoryDays)
+        $transcriptHistoryDays.withLock { $0 = historyClient.bootstrap(historyRetentionMode, $0) }
 
         registerShortcutHandlers()
         registerKeyboardMonitor()
@@ -206,7 +207,7 @@ final class AppModel {
         modelDownloadViewModel.selectedModelChanged()
         let normalizedMode = normalizedTranscriptionMode(transcriptionMode)
         if transcriptionMode != normalizedMode {
-            transcriptionMode = normalizedMode
+            $transcriptionMode.withLock { $0 = normalizedMode }
         }
     }
 
@@ -235,7 +236,7 @@ final class AppModel {
             return
         }
 
-        hasCompletedSetup = false
+        $hasCompletedSetup.withLock { $0 = false }
         beginOnboardingFlow()
         try? await clock.sleep(for: .milliseconds(150))
         showOnboardingWindow()
@@ -492,7 +493,7 @@ final class AppModel {
             let transcriptionStart = now
             let mode = normalizedTranscriptionMode(transcriptionMode)
             if transcriptionMode != mode {
-                transcriptionMode = mode
+                $transcriptionMode.withLock { $0 = mode }
             }
 
             let transcript = try await transcriptionClient.transcribe(
@@ -513,7 +514,7 @@ final class AppModel {
                 logger.info("Empty transcription result — no speech detected")
                 consoleLog("Empty transcription result — no speech detected")
 
-                let persistedPaths = persistHistoryArtifacts(
+                let persistedPaths = await persistHistoryArtifacts(
                     audioURL: audioURL,
                     transcript: transcript,
                     timestamp: transcriptionStart,
@@ -550,7 +551,7 @@ final class AppModel {
                     )
                 )
 
-                let persistedPaths = persistHistoryArtifacts(
+                let persistedPaths = await persistHistoryArtifacts(
                     audioURL: audioURL,
                     transcript: transcript,
                     timestamp: transcriptionStart,
@@ -609,7 +610,7 @@ final class AppModel {
 
     private func handleOnboardingCompleted() {
         selectedModelDidChange()
-        hasCompletedSetup = true
+        $hasCompletedSetup.withLock { $0 = true }
         transientMessage = "You're all set. Tap your shortcut to start, or hold for push-to-talk."
         Task { await windowClient.close(WindowConfig.onboarding.id) }
         onboardingModel = nil
@@ -625,7 +626,7 @@ final class AppModel {
         Task {
             await windowClient.closeAll(WindowConfig.onboarding.id)
             await windowClient.show(.onboarding, {
-                NSHostingView(rootView: OnboardingView(model: onboardingModel))
+                SwiftUI.NSHostingView(rootView: OnboardingView(model: onboardingModel))
             }, {})
         }
     }
@@ -889,18 +890,10 @@ final class AppModel {
         if isPreviewMode { return }
         let center = UNUserNotificationCenter.current()
 
-        let settings = await withCheckedContinuation { continuation in
-            center.getNotificationSettings { settings in
-                continuation.resume(returning: settings)
-            }
-        }
+        let settings = await center.notificationSettings()
 
         if settings.authorizationStatus == .notDetermined {
-            _ = await withCheckedContinuation { continuation in
-                center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
-                    continuation.resume(returning: granted)
-                }
-            }
+            _ = try? await center.requestAuthorization(options: [.alert, .sound])
         }
 
         let content = UNMutableNotificationContent()
@@ -913,11 +906,7 @@ final class AppModel {
             trigger: nil
         )
 
-        await withCheckedContinuation { continuation in
-            center.add(request) { _ in
-                continuation.resume(returning: ())
-            }
-        }
+        try? await center.add(request)
     }
 
     private func consoleLog(_ message: String) {
@@ -974,7 +963,7 @@ final class AppModel {
         audioRelativePath: String?,
         transcriptRelativePath: String?
     ) {
-        transcriptHistoryDays = historyClient.appendEntry(
+        let entry = historyClient.appendEntry(
             AppendEntryRequest(
                 currentDays: transcriptHistoryDays,
                 transcript: transcript,
@@ -990,6 +979,7 @@ final class AppModel {
                 id: uuid()
             )
         )
+        $transcriptHistoryDays.withLock { $0 = entry }
     }
 
     private func persistHistoryArtifacts(
@@ -998,8 +988,8 @@ final class AppModel {
         timestamp: Date,
         mode: String,
         modelID: String
-    ) -> PersistedArtifacts? {
-        historyClient.persistArtifacts(
+    ) async -> PersistedArtifacts? {
+        await historyClient.persistArtifacts(
             PersistArtifactsRequest(
                 audioURL: audioURL,
                 transcript: transcript,
@@ -1013,24 +1003,7 @@ final class AppModel {
     }
 
     private func formattedHistoryEntry(_ entry: TranscriptHistoryEntry) -> String {
-        let timestamp = entry.timestamp.formatted(date: .abbreviated, time: .standard)
-        let elapsed = entry.transcriptionElapsedSeconds.formatted(.number.precision(.fractionLength(2)))
-        let audio = entry.audioDurationSeconds.formatted(.number.precision(.fractionLength(2)))
-        let audioPath = entry.audioRelativePath ?? "not saved"
-        let transcriptPath = entry.transcriptRelativePath ?? "not saved"
-
-        return """
-        Timestamp: \(timestamp)
-        Model: \(entry.modelID)
-        Mode: \(entry.transcriptionMode)
-        Paste: \(entry.pasteResult)
-        Duration: \(audio)s audio, \(elapsed)s transcription
-        Characters: \(entry.characterCount)
-        Audio file: \(audioPath)
-        Transcript file: \(transcriptPath)
-
-        \(entry.transcript.isEmpty ? "Transcript not retained." : entry.transcript)
-        """
+        entry.transcript
     }
 
     deinit {
@@ -1054,12 +1027,12 @@ private enum AppTranscriptionError: LocalizedError {
 extension AppModel {
     static func makePreview(_ configure: (AppModel) -> Void = { _ in }) -> AppModel {
         let model = AppModel(isPreviewMode: true)
-        model.hasCompletedSetup = true
+        model.$hasCompletedSetup.withLock { $0 = true }
         model.selectedModelID = ModelOption.defaultOption.rawValue
         model.sessionState = .idle
         model.lastError = nil
         model.transientMessage = nil
-        model.transcriptHistoryDays = []
+        model.$transcriptHistoryDays.withLock { $0 = [] }
         model.microphonePermissionState = .authorized
         model.microphoneAuthorized = true
         model.accessibilityAuthorized = true
