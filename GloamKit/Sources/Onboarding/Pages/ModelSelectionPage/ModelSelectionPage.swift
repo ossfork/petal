@@ -11,7 +11,7 @@ struct ModelSelectionPage: View {
             OnboardingHeader(
                 symbol: "externaldrive.fill",
                 title: "Choose a Model",
-                description: "Transcription runs entirely on-device. Choose between Voxtral Core and MLX Audio STT models.",
+                description: "Transcription runs entirely on-device. Choose between Qwen, Whisper, and Voxtral model families.",
                 layout: .vertical
             )
             .slideIn(active: isAnimating, delay: 0.25)

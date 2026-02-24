@@ -19,7 +19,6 @@ struct PermissionPage: View {
         .overlay(alignment: .topTrailing) {
             statusIndicator
                 .slideIn(active: isAnimating, delay: 1.0)
-                .padding(16)
         }
         .onAppear { isAnimating = true }
     }

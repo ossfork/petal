@@ -1,4 +1,5 @@
 import AppKit
+import Assets
 import KeyboardShortcuts
 import Onboarding
 import PermissionsClient
@@ -241,9 +242,16 @@ struct ModelPane: View {
                     Text(option.displayName)
                         .fontWeight(.medium)
 
-                    Text(option.providerDisplayName)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 6) {
+                        providerIcon(for: option)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 14, height: 14)
+                            .clipShape(RoundedRectangle(cornerRadius: 3))
+                        Text(option.providerDisplayName)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
 
                     Text(option.summary)
                         .settingDescription()
@@ -312,6 +320,17 @@ struct ModelPane: View {
             get: { viewModel.modelDownloadViewModel.selectedModelID },
             set: { viewModel.selectModel($0) }
         )
+    }
+
+    private func providerIcon(for option: ModelOption) -> Image {
+        switch option.provider {
+        case .mlxAudioSTT:
+            return .qwen
+        case .openAIWhisper:
+            return .openai
+        case .voxtralCore:
+            return .mistral
+        }
     }
 }
 

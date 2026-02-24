@@ -129,6 +129,10 @@ private extension ModelOption {
         switch self {
         case .qwen3ASR06B4bit:
             return .qwen3ASR06B4bit
+        case .whisperLargeV3TurboASRFP16:
+            return .whisperLargeV3TurboASRFP16
+        case .whisperTinyMLX:
+            return .whisperTinyMLX
         case .mini3b:
             return .mini3b
         case .mini3b8bit:

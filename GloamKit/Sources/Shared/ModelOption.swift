@@ -3,6 +3,7 @@ import Foundation
 public enum ModelProvider: String, Sendable, Equatable {
     case voxtralCore = "Voxtral Core"
     case mlxAudioSTT = "MLX Audio STT"
+    case openAIWhisper = "OpenAI Whisper"
 }
 
 public struct ModelDescriptor: Sendable, Equatable {
@@ -41,12 +42,14 @@ public struct ModelDescriptor: Sendable, Equatable {
 
 public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
     case qwen3ASR06B4bit = "qwen3-asr-0.6b-4bit"
+    case whisperLargeV3TurboASRFP16 = "whisper-large-v3-turbo-asr-fp16"
+    case whisperTinyMLX = "whisper-tiny-mlx"
     case mini3b = "mini-3b"
     case mini3b8bit = "mini-3b-8bit"
     case mini3b4bit = "mini-3b-4bit"
 
     // Keep legacy Voxtral IDs readable while exposing current catalog options in UI.
-    public static var allCases: [ModelOption] { [.qwen3ASR06B4bit, .mini3b] }
+    public static var allCases: [ModelOption] { [.qwen3ASR06B4bit, .whisperLargeV3TurboASRFP16, .whisperTinyMLX, .mini3b] }
     public static let defaultOption: Self = .qwen3ASR06B4bit
 
     public var id: String { rawValue }
@@ -64,6 +67,30 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 parameters: "0.6B",
                 provider: .mlxAudioSTT,
                 recommended: true
+            )
+        case .whisperLargeV3TurboASRFP16:
+            return ModelDescriptor(
+                id: rawValue,
+                repoID: "mlx-community/whisper-large-v3-turbo-asr-fp16",
+                name: "Whisper Large V3 Turbo (fp16)",
+                summary: "High-accuracy Whisper model for multilingual transcription (requires `mlx-whisper`).",
+                size: "~1.6 GB",
+                quantization: "fp16",
+                parameters: "809M",
+                provider: .openAIWhisper,
+                recommended: false
+            )
+        case .whisperTinyMLX:
+            return ModelDescriptor(
+                id: rawValue,
+                repoID: "mlx-community/whisper-tiny-mlx",
+                name: "Whisper Tiny (MLX)",
+                summary: "Smallest Whisper option for fast, lightweight transcription (requires `mlx-whisper`).",
+                size: "~150 MB",
+                quantization: "fp16",
+                parameters: "39M",
+                provider: .openAIWhisper,
+                recommended: false
             )
         case .mini3b:
             return ModelDescriptor(
@@ -130,7 +157,7 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
 
     public var supportedTranscriptionModes: [TranscriptionMode] {
         switch self {
-        case .qwen3ASR06B4bit:
+        case .qwen3ASR06B4bit, .whisperLargeV3TurboASRFP16, .whisperTinyMLX:
             return [.verbatim]
         case .mini3b, .mini3b8bit, .mini3b4bit:
             return TranscriptionMode.allCases
@@ -155,6 +182,15 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
              "qwen3-asr-0.6b",
              "mlx-community/qwen3-asr-0.6b-4bit":
             return .qwen3ASR06B4bit
+        case Self.whisperLargeV3TurboASRFP16.rawValue,
+             "whisper-large-v3-turbo",
+             "whisper-large-v3",
+             "mlx-community/whisper-large-v3-turbo-asr-fp16":
+            return .whisperLargeV3TurboASRFP16
+        case Self.whisperTinyMLX.rawValue,
+             "whisper-tiny",
+             "mlx-community/whisper-tiny-mlx":
+            return .whisperTinyMLX
         case Self.mini3b.rawValue,
              Self.mini3b8bit.rawValue,
              Self.mini3b4bit.rawValue,

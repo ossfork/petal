@@ -15,9 +15,9 @@ public struct OnboardingView: View {
             backAction: model.moveBack,
             primaryTitle: model.currentPrimaryTitle,
             primaryDisabled: model.primaryDisabled,
-            primaryActionDelay: model.currentPage.primaryActionDelay,
-            primaryAction: model.primaryActionTapped
-        ) { _ in
+            primaryAction: model.primaryActionTapped,
+            primaryActionDelay: model.currentPage.primaryActionDelay
+        ) {
             Group {
                 switch model.currentPage {
                 case .welcome:

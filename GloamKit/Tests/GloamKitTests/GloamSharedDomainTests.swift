@@ -19,6 +19,14 @@ func qwenModelIDsMapToQwenOption() {
 }
 
 @Test
+func whisperModelIDsMapToWhisperOptions() {
+    #expect(ModelOption.from(modelID: "whisper-large-v3") == .whisperLargeV3TurboASRFP16)
+    #expect(ModelOption.from(modelID: "mlx-community/whisper-large-v3-turbo-asr-fp16") == .whisperLargeV3TurboASRFP16)
+    #expect(ModelOption.from(modelID: "whisper-tiny") == .whisperTinyMLX)
+    #expect(ModelOption.from(modelID: "mlx-community/whisper-tiny-mlx") == .whisperTinyMLX)
+}
+
+@Test
 func modelOptionDescriptorMatchesRawValue() {
     for option in ModelOption.allCases {
         #expect(option.descriptor.id == option.rawValue)
@@ -29,6 +37,7 @@ func modelOptionDescriptorMatchesRawValue() {
 func modelCatalogIncludesBothBackends() {
     #expect(ModelOption.allCases.contains(.mini3b))
     #expect(ModelOption.allCases.contains(.qwen3ASR06B4bit))
+    #expect(ModelOption.allCases.contains(.whisperLargeV3TurboASRFP16))
 }
 
 @Test
@@ -46,6 +55,15 @@ func transcriptionModeDisplayTextStable() {
 func qwenSupportsVerbatimOnly() {
     #expect(ModelOption.qwen3ASR06B4bit.supportedTranscriptionModes == [.verbatim])
     #expect(!ModelOption.qwen3ASR06B4bit.supportsSmartTranscription)
+}
+
+@Test
+func whisperSupportsVerbatimOnly() {
+    #expect(ModelOption.whisperLargeV3TurboASRFP16.supportedTranscriptionModes == [.verbatim])
+    #expect(!ModelOption.whisperLargeV3TurboASRFP16.supportsSmartTranscription)
+    #expect(ModelOption.whisperTinyMLX.supportedTranscriptionModes == [.verbatim])
+    #expect(!ModelOption.whisperTinyMLX.supportsSmartTranscription)
+    #expect(ModelOption.whisperLargeV3TurboASRFP16.providerDisplayName == "OpenAI Whisper")
 }
 
 @Test
