@@ -82,7 +82,19 @@ private extension ModelOption {
             size: descriptor.size,
             quantization: descriptor.quantization,
             parameters: descriptor.parameters,
+            backend: descriptor.provider.mlxBackend,
             recommended: descriptor.recommended
         )
+    }
+}
+
+private extension ModelProvider {
+    var mlxBackend: MLXModelBackend {
+        switch self {
+        case .voxtralCore:
+            return .voxtral
+        case .mlxAudioSTT:
+            return .mlxAudioSTT
+        }
     }
 }

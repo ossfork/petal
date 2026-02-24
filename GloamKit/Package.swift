@@ -20,6 +20,9 @@ extension Target.Dependency {
     static let identifiedCollections: Self = .product(name: "IdentifiedCollections", package: "swift-identified-collections")
     static let keyboardShortcuts: Self = .product(name: "KeyboardShortcuts", package: "KeyboardShortcuts")
     static let sauce: Self = .product(name: "Sauce", package: "Sauce")
+    static let mlxAudioCore: Self = .product(name: "MLXAudioCore", package: "MLXAudio")
+    static let mlxAudioSTT: Self = .product(name: "MLXAudioSTT", package: "MLXAudio")
+    static let huggingFace: Self = .product(name: "HuggingFace", package: "swift-huggingface")
     static let voxtralCore: Self = .product(name: "VoxtralCore", package: "MLXVoxtralSwift")
 }
 
@@ -49,12 +52,14 @@ let package = Package(
         .library(name: "LogClient", targets: ["LogClient"]),
     ],
     dependencies: [
+        .package(name: "MLXAudio", path: "../mlx-audio-swift"),
         .package(name: "MLXVoxtralSwift", path: "../mlx-voxtral-swift"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.11.0"),
         .package(url: "https://github.com/pointfreeco/swift-sharing.git", from: "2.7.4"),
         .package(url: "https://github.com/pointfreeco/swift-identified-collections", from: "1.1.1"),
         .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.4.0"),
         .package(url: "https://github.com/Clipy/Sauce.git", from: "2.4.1"),
+        .package(url: "https://github.com/huggingface/swift-huggingface.git", from: "0.6.0"),
     ],
     targets: [
         .target(
@@ -137,6 +142,9 @@ let package = Package(
             dependencies: [
                 .shared,
                 .voxtralCore,
+                .mlxAudioCore,
+                .mlxAudioSTT,
+                .huggingFace,
             ]
         ),
         .target(

@@ -189,7 +189,7 @@ public class ModelDownloader {
         // Fallback: Hub API snapshot download
         let modelUrl = try await hubApi.snapshot(
             from: model.repoId,
-            matching: ["*.json", "*.safetensors"],
+            matching: ["*.json", "*.safetensors", "*.txt"],
             progressHandler: { snapshotProgress, speedBytesPerSecond in
                 let fractionCompleted = min(max(snapshotProgress.fractionCompleted, 0), 1)
                 let percent = Int((fractionCompleted * 100).rounded())
@@ -221,7 +221,7 @@ public class ModelDownloader {
 
         let modelUrl = try await hubApi.snapshot(
             from: repoId,
-            matching: ["*.json", "*.safetensors"],
+            matching: ["*.json", "*.safetensors", "*.txt"],
             progressHandler: { snapshotProgress, speedBytesPerSecond in
                 let fractionCompleted = min(max(snapshotProgress.fractionCompleted, 0), 1)
                 let percent = Int((fractionCompleted * 100).rounded())
@@ -348,7 +348,10 @@ public class ModelDownloader {
 
         let files = try await fetchModelFiles(repoId: model.repoId)
         let filteredFiles = files.filter {
-            $0.type == "file" && ($0.path.hasSuffix(".json") || $0.path.hasSuffix(".safetensors"))
+            guard $0.type == "file" else { return false }
+            return $0.path.hasSuffix(".json")
+                || $0.path.hasSuffix(".safetensors")
+                || $0.path.hasSuffix(".txt")
         }
 
         guard !filteredFiles.isEmpty else {

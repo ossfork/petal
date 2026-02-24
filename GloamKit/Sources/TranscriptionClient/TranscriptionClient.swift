@@ -127,6 +127,8 @@ private extension TranscriptionClient {
 private extension ModelOption {
     var pipelineModel: MLXPipelineModel {
         switch self {
+        case .qwen3ASR06B4bit:
+            return .qwen3ASR06B4bit
         case .mini3b:
             return .mini3b
         case .mini3b8bit:

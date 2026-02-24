@@ -108,21 +108,17 @@ struct TranscriptionPane: View {
 
     var body: some View {
         SettingsContainer {
-            SettingsSection("Mode", bottomDivider: viewModel.appModel.transcriptionMode == .smart) {
-                Picker("Mode", selection: transcriptionMode) {
-                    ForEach(TranscriptionMode.allCases, id: \.self) { mode in
-                        Text(mode.displayName).tag(mode)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .frame(width: 200)
+            SettingsSection("Audio Prep", bottomDivider: true) {
+                Toggle("Trim silence before transcription", isOn: trimSilenceEnabled)
+                Toggle("Auto speed up long recordings", isOn: autoSpeedEnabled)
 
-                Text(viewModel.appModel.transcriptionMode.description)
+                Text("These preprocessing steps are applied before model inference.")
                     .settingDescription()
             }
 
-            if viewModel.appModel.transcriptionMode == .smart {
+            modeSections
+
+            if viewModel.appModel.selectedModelSupportsSmartTranscription, viewModel.appModel.transcriptionMode == .smart {
                 SettingsSection("Smart Prompt") {
                     TextField("Custom instruction…", text: smartPrompt, axis: .vertical)
                         .textFieldStyle(.roundedBorder)
@@ -135,7 +131,10 @@ struct TranscriptionPane: View {
     private var transcriptionMode: Binding<TranscriptionMode> {
         Binding(
             get: { viewModel.appModel.transcriptionMode },
-            set: { viewModel.appModel.transcriptionMode = $0 }
+            set: { newMode in
+                guard viewModel.appModel.availableTranscriptionModes.contains(newMode) else { return }
+                viewModel.appModel.transcriptionMode = newMode
+            }
         )
     }
 
@@ -144,6 +143,53 @@ struct TranscriptionPane: View {
             get: { viewModel.appModel.smartPrompt },
             set: { viewModel.appModel.smartPrompt = $0 }
         )
+    }
+
+    private var trimSilenceEnabled: Binding<Bool> {
+        Binding(
+            get: { viewModel.appModel.trimSilenceEnabled },
+            set: { viewModel.appModel.trimSilenceEnabled = $0 }
+        )
+    }
+
+    private var autoSpeedEnabled: Binding<Bool> {
+        Binding(
+            get: { viewModel.appModel.autoSpeedEnabled },
+            set: { viewModel.appModel.autoSpeedEnabled = $0 }
+        )
+    }
+
+    private var selectedModelName: String {
+        viewModel.appModel.selectedModelOption?.displayName ?? "this model"
+    }
+
+    private var modeSections: [SettingsSection] {
+        if viewModel.appModel.selectedModelSupportsSmartTranscription {
+            return [
+                SettingsSection("Mode", bottomDivider: viewModel.appModel.transcriptionMode == .smart) {
+                    Picker("Mode", selection: transcriptionMode) {
+                        ForEach(viewModel.appModel.availableTranscriptionModes, id: \.self) { mode in
+                            Text(mode.displayName).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .frame(width: 200)
+
+                    Text(viewModel.appModel.transcriptionMode.description)
+                        .settingDescription()
+                }
+            ]
+        }
+
+        return [
+            SettingsSection("Mode") {
+                Text("Verbatim")
+                    .fontWeight(.medium)
+                Text("Smart mode is not available for \(selectedModelName).")
+                    .settingDescription()
+            }
+        ]
     }
 }
 
@@ -155,9 +201,21 @@ struct ModelPane: View {
     var body: some View {
         SettingsContainer {
             SettingsSection("Model") {
+                Picker("Selection", selection: selectedModelID) {
+                    ForEach(ModelOption.allCases) { option in
+                        Text(option.displayName).tag(option.rawValue)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(maxWidth: 320, alignment: .leading)
+
                 if let option = viewModel.modelDownloadViewModel.selectedModelOption {
                     Text(option.displayName)
                         .fontWeight(.medium)
+
+                    Text(option.providerDisplayName)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
 
                     Text(option.summary)
                         .settingDescription()
@@ -171,6 +229,15 @@ struct ModelPane: View {
                             .foregroundStyle(downloadStatusColor)
                     }
                     .font(.caption)
+                }
+
+                if !viewModel.modelDownloadViewModel.isDownloadingModel,
+                   !viewModel.modelDownloadViewModel.isSelectedModelDownloaded {
+                    Button("Download Selected Model") {
+                        viewModel.downloadModel()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
                 }
 
                 if viewModel.modelDownloadViewModel.isDownloadingModel {
@@ -210,6 +277,13 @@ struct ModelPane: View {
         if dm.lastError != nil { return .red }
         if dm.isSelectedModelDownloaded { return .green }
         return .orange
+    }
+
+    private var selectedModelID: Binding<String> {
+        Binding(
+            get: { viewModel.modelDownloadViewModel.selectedModelID },
+            set: { viewModel.selectModel($0) }
+        )
     }
 }
 

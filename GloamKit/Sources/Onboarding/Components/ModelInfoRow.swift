@@ -21,7 +21,14 @@ struct ModelInfoRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
-                Label(option.sizeLabel + " · " + option.descriptor.parameters, systemImage: "internaldrive")
+                Label(
+                    option.sizeLabel
+                        + " · "
+                        + option.descriptor.parameters
+                        + " · "
+                        + option.providerDisplayName,
+                    systemImage: "internaldrive"
+                )
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
             }

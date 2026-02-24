@@ -37,6 +37,8 @@ final class AppModel {
     @ObservationIgnored @Shared(.hasCompletedSetup) private var hasCompletedSetupStorage = false
     @ObservationIgnored @Shared(.transcriptionMode) private var transcriptionModeStorage = TranscriptionMode.verbatim.rawValue
     @ObservationIgnored @Shared(.smartPrompt) private var smartPromptStorage = "Clean up filler words and repeated phrases. Return a polished version of what was said."
+    @ObservationIgnored @Shared(.trimSilenceEnabled) private var trimSilenceEnabledStorage = true
+    @ObservationIgnored @Shared(.autoSpeedEnabled) private var autoSpeedEnabledStorage = true
     @ObservationIgnored @Shared(.historyRetentionMode) private var historyRetentionModeStorage = HistoryRetentionMode.both.rawValue
     @ObservationIgnored @Shared(.transcriptHistoryDays) private var transcriptHistoryDaysStorage: [TranscriptHistoryDay] = []
 
@@ -50,18 +52,38 @@ final class AppModel {
 
     var selectedModelID: String {
         get { modelDownloadViewModel.selectedModelID }
-        set { modelDownloadViewModel.selectedModelID = newValue }
+        set {
+            modelDownloadViewModel.selectedModelID = newValue
+            selectedModelDidChange()
+        }
     }
 
     var transcriptionMode: TranscriptionMode = .verbatim {
         didSet {
-            $transcriptionModeStorage.withLock { $0 = transcriptionMode.rawValue }
+            let normalizedMode = normalizedTranscriptionMode(transcriptionMode)
+            if transcriptionMode != normalizedMode {
+                transcriptionMode = normalizedMode
+                return
+            }
+            $transcriptionModeStorage.withLock { $0 = normalizedMode.rawValue }
         }
     }
 
     var smartPrompt = "Clean up filler words and repeated phrases. Return a polished version of what was said." {
         didSet {
             $smartPromptStorage.withLock { $0 = smartPrompt }
+        }
+    }
+
+    var trimSilenceEnabled = true {
+        didSet {
+            $trimSilenceEnabledStorage.withLock { $0 = trimSilenceEnabled }
+        }
+    }
+
+    var autoSpeedEnabled = true {
+        didSet {
+            $autoSpeedEnabledStorage.withLock { $0 = autoSpeedEnabled }
         }
     }
 
@@ -136,6 +158,8 @@ final class AppModel {
         hasCompletedSetup = hasCompletedSetupStorage
         transcriptionMode = TranscriptionMode(rawValue: transcriptionModeStorage) ?? .verbatim
         smartPrompt = smartPromptStorage
+        trimSilenceEnabled = trimSilenceEnabledStorage
+        autoSpeedEnabled = autoSpeedEnabledStorage
         historyRetentionMode = HistoryRetentionMode(rawValue: historyRetentionModeStorage) ?? .both
         transcriptHistoryDays = transcriptHistoryDaysStorage
 
@@ -155,6 +179,14 @@ final class AppModel {
 
     var selectedModelOption: ModelOption? {
         ModelOption(rawValue: selectedModelID)
+    }
+
+    var availableTranscriptionModes: [TranscriptionMode] {
+        selectedModelOption?.supportedTranscriptionModes ?? [.verbatim]
+    }
+
+    var selectedModelSupportsSmartTranscription: Bool {
+        selectedModelOption?.supportsSmartTranscription ?? false
     }
 
     var isSelectedModelDownloaded: Bool {
@@ -223,6 +255,14 @@ final class AppModel {
     }
 
     // MARK: - Setup
+
+    func selectedModelDidChange() {
+        modelDownloadViewModel.selectedModelChanged()
+        let normalizedMode = normalizedTranscriptionMode(transcriptionMode)
+        if transcriptionMode != normalizedMode {
+            transcriptionMode = normalizedMode
+        }
+    }
 
     func changeModelButtonTapped() {
         if isPreviewMode { return }
@@ -504,12 +544,16 @@ final class AppModel {
             await soundClient.playTranscriptionStarted()
             startTranscriptionProgressTracking(audioDuration: audioDuration)
             let transcriptionStart = now
+            let mode = normalizedTranscriptionMode(transcriptionMode)
+            if transcriptionMode != mode {
+                transcriptionMode = mode
+            }
 
             let transcript = try await transcriptionClient.transcribe(
                 audioURL,
                 selectedModelOption,
-                transcriptionMode,
-                transcriptionMode == .smart ? smartPrompt : nil
+                mode,
+                mode == .smart ? smartPrompt : nil
             )
             let transcriptionElapsed = now.timeIntervalSince(transcriptionStart)
             updateTranscriptionSpeedEstimate(audioDuration: audioDuration, elapsed: transcriptionElapsed)
@@ -536,14 +580,14 @@ final class AppModel {
                 audioURL: audioURL,
                 transcript: transcript,
                 timestamp: transcriptionStart,
-                mode: transcriptionMode.rawValue,
+                mode: mode.rawValue,
                 modelID: selectedModelOption.rawValue
             )
 
             appendTranscriptHistory(
                 transcript: transcript,
                 modelID: selectedModelOption.rawValue,
-                mode: transcriptionMode.rawValue,
+                mode: mode.rawValue,
                 audioDuration: audioDuration,
                 transcriptionElapsed: transcriptionElapsed,
                 pasteResult: pasteResult,
@@ -587,6 +631,7 @@ final class AppModel {
     }
 
     private func handleOnboardingCompleted() {
+        selectedModelDidChange()
         hasCompletedSetup = true
         transientMessage = "You're all set. Tap your shortcut to start, or hold for push-to-talk."
         onboardingWindowController?.close()
@@ -871,6 +916,11 @@ final class AppModel {
     private var isProcessing: Bool {
         if case .processing = sessionState { return true }
         return false
+    }
+
+    private func normalizedTranscriptionMode(_ mode: TranscriptionMode) -> TranscriptionMode {
+        guard let selectedModelOption else { return mode }
+        return selectedModelOption.supportsTranscriptionMode(mode) ? mode : .verbatim
     }
 
     private func autoSpeedRate(for audioDuration: Double) -> Double? {

@@ -1,7 +1,15 @@
 import Dependencies
 import DependenciesMacros
 import Foundation
+import HuggingFace
+import MLXAudioCore
+import MLXAudioSTT
 import VoxtralCore
+
+public enum MLXModelBackend: String, Sendable, Equatable {
+    case voxtral
+    case mlxAudioSTT
+}
 
 public struct MLXModelInfo: Sendable, Equatable {
     public var id: String
@@ -11,6 +19,7 @@ public struct MLXModelInfo: Sendable, Equatable {
     public var size: String
     public var quantization: String
     public var parameters: String
+    public var backend: MLXModelBackend
     public var recommended: Bool
 
     public init(
@@ -21,6 +30,7 @@ public struct MLXModelInfo: Sendable, Equatable {
         size: String,
         quantization: String,
         parameters: String,
+        backend: MLXModelBackend,
         recommended: Bool
     ) {
         self.id = id
@@ -30,14 +40,14 @@ public struct MLXModelInfo: Sendable, Equatable {
         self.size = size
         self.quantization = quantization
         self.parameters = parameters
+        self.backend = backend
         self.recommended = recommended
     }
 }
 
 public enum MLXPipelineModel: String, Sendable {
     case mini3b
-    case mini3b8bit
-    case mini3b4bit
+    case qwen3ASR06B4bit
 }
 
 public enum MLXTranscriptionMode: Sendable {
@@ -59,10 +69,20 @@ extension MLXClient: DependencyKey {
         let runtime = LiveMLXRuntime()
         return Self(
             isModelDownloaded: { info in
-                ModelDownloader.findModelPath(for: info.voxtralModelInfo) != nil
+                switch info.backend {
+                case .voxtral:
+                    return ModelDownloader.findModelPath(for: info.voxtralModelInfo) != nil
+                case .mlxAudioSTT:
+                    return MLXAudioCache.isModelDownloaded(repoId: info.repoId)
+                }
             },
             downloadModel: { info, progress in
-                _ = try await ModelDownloader.download(info.voxtralModelInfo, progress: progress)
+                switch info.backend {
+                case .voxtral:
+                    _ = try await ModelDownloader.download(info.voxtralModelInfo, progress: progress)
+                case .mlxAudioSTT:
+                    try await MLXAudioCache.downloadSnapshotIfNeeded(repoId: info.repoId, progress: progress)
+                }
             },
             prepareModelIfNeeded: { model in
                 try await runtime.prepareModelIfNeeded(model: model)
@@ -97,61 +117,193 @@ public extension DependencyValues {
 }
 
 private actor LiveMLXRuntime {
-    private var pipeline: VoxtralPipeline?
     private var loadedModel: MLXPipelineModel?
+    private var voxtralPipeline: VoxtralPipeline?
+    private var qwen3ASRModel: Qwen3ASRModel?
 
     func prepareModelIfNeeded(model: MLXPipelineModel) async throws {
-        if loadedModel == model, pipeline != nil {
+        if loadedModel == model {
             return
         }
 
         unloadModel()
 
-        var config = VoxtralPipeline.Configuration.default
-        config.maxTokens = 256
-        config.temperature = 0.0
-        config.topP = 0.95
-        config.repetitionPenalty = 1.15
+        switch model {
+        case .mini3b:
+            var config = VoxtralPipeline.Configuration.default
+            config.maxTokens = 256
+            config.temperature = 0.0
+            config.topP = 0.95
+            config.repetitionPenalty = 1.15
 
-        let pipeline = VoxtralPipeline(
-            model: model.voxtralPipelineModel,
-            backend: .hybrid,
-            configuration: config
-        )
+            let pipeline = VoxtralPipeline(
+                model: .mini3b,
+                backend: .hybrid,
+                configuration: config
+            )
 
-        try await pipeline.loadModel()
-        self.pipeline = pipeline
+            try await pipeline.loadModel()
+            self.voxtralPipeline = pipeline
+
+        case .qwen3ASR06B4bit:
+            guard let repoID = model.qwenRepoID else {
+                throw MLXError.invalidModelIdentifier(model.rawValue)
+            }
+            self.qwen3ASRModel = try await Qwen3ASRModel.fromPretrained(repoID)
+        }
+
         self.loadedModel = model
     }
 
     func transcribe(audioURL: URL, mode: MLXTranscriptionMode) async throws -> String {
-        guard let pipeline else {
+        guard let loadedModel else {
             throw MLXError.pipelineUnavailable
         }
 
-        switch mode {
-        case .verbatim:
-            return try await pipeline.transcribe(audio: audioURL, language: "en")
-        case let .smart(prompt):
-            return try await pipeline.chat(audio: audioURL, prompt: prompt, language: "en")
+        switch loadedModel {
+        case .mini3b:
+            guard let voxtralPipeline else {
+                throw MLXError.pipelineUnavailable
+            }
+
+            switch mode {
+            case .verbatim:
+                return try await voxtralPipeline.transcribe(audio: audioURL, language: "en")
+            case let .smart(prompt):
+                return try await voxtralPipeline.chat(audio: audioURL, prompt: prompt, language: "en")
+            }
+
+        case .qwen3ASR06B4bit:
+            guard let qwen3ASRModel else {
+                throw MLXError.pipelineUnavailable
+            }
+            return try transcribeWithQwen(audioURL: audioURL, mode: mode, model: qwen3ASRModel)
         }
     }
 
     func unloadModel() {
-        pipeline?.unload()
-        pipeline = nil
+        voxtralPipeline?.unload()
+        voxtralPipeline = nil
+        qwen3ASRModel = nil
         loadedModel = nil
+    }
+
+    // Qwen3 ASR currently supports direct ASR generation only, so smart mode falls back to verbatim output.
+    private func transcribeWithQwen(
+        audioURL: URL,
+        mode: MLXTranscriptionMode,
+        model: Qwen3ASRModel
+    ) throws -> String {
+        let (_, audio) = try loadAudioArray(from: audioURL, sampleRate: model.sampleRate)
+        let output = model.generate(
+            audio: audio,
+            generationParameters: STTGenerateParameters(language: "English")
+        )
+        let text = output.text.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        switch mode {
+        case .verbatim:
+            return text
+        case .smart:
+            return text
+        }
     }
 }
 
 private enum MLXError: LocalizedError {
+    case invalidModelIdentifier(String)
     case pipelineUnavailable
 
     var errorDescription: String? {
         switch self {
+        case let .invalidModelIdentifier(identifier):
+            return "Invalid model identifier: \(identifier)"
         case .pipelineUnavailable:
             return "Transcription pipeline is not available."
         }
+    }
+}
+
+private enum MLXAudioCache {
+    static func isModelDownloaded(repoId: String) -> Bool {
+        guard let repoID = Repo.ID(rawValue: repoId) else { return false }
+        let modelDirectory = modelDirectory(for: repoID)
+
+        guard FileManager.default.fileExists(atPath: modelDirectory.path) else {
+            return false
+        }
+
+        guard let files = try? FileManager.default.contentsOfDirectory(
+            at: modelDirectory,
+            includingPropertiesForKeys: [.fileSizeKey]
+        ) else {
+            return false
+        }
+
+        return files.contains { file in
+            guard file.pathExtension == "safetensors" else { return false }
+            let size = (try? file.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0
+            return size > 0
+        }
+    }
+
+    static func downloadSnapshotIfNeeded(
+        repoId: String,
+        progress: @escaping @Sendable (Double, String) -> Void
+    ) async throws {
+        guard let repoID = Repo.ID(rawValue: repoId) else {
+            throw MLXError.invalidModelIdentifier(repoId)
+        }
+
+        if isModelDownloaded(repoId: repoId) {
+            progress(1, "Model already downloaded")
+            return
+        }
+
+        // Reuse the existing aria2c downloader path for consistency with Voxtral downloads.
+        let downloadInfo = VoxtralModelInfo(
+            id: repoId.replacingOccurrences(of: "/", with: "--"),
+            repoId: repoId,
+            name: repoId,
+            description: "MLX Audio model",
+            size: "Unknown",
+            quantization: "Unknown",
+            parameters: "Unknown",
+            recommended: false
+        )
+
+        let downloadedPath = try await ModelDownloader.download(downloadInfo, progress: progress)
+        try linkIntoMLXAudioCache(source: downloadedPath, repoID: repoID)
+        progress(1, "Download complete")
+    }
+
+    private static func modelDirectory(for repoID: Repo.ID) -> URL {
+        let modelSubdirectory = repoID.description.replacingOccurrences(of: "/", with: "_")
+        return HubCache.default.cacheDirectory
+            .appendingPathComponent("mlx-audio")
+            .appendingPathComponent(modelSubdirectory)
+    }
+
+    private static func linkIntoMLXAudioCache(source: URL, repoID: Repo.ID) throws {
+        let destination = modelDirectory(for: repoID)
+        let sourcePath = source.resolvingSymlinksInPath().path
+        let destinationPath = destination.resolvingSymlinksInPath().path
+        let fileManager = FileManager.default
+
+        if sourcePath == destinationPath {
+            return
+        }
+
+        if fileManager.fileExists(atPath: destination.path) {
+            try fileManager.removeItem(at: destination)
+        }
+
+        try fileManager.createDirectory(
+            at: destination.deletingLastPathComponent(),
+            withIntermediateDirectories: true,
+            attributes: nil
+        )
+        try fileManager.createSymbolicLink(at: destination, withDestinationURL: source)
     }
 }
 
@@ -175,14 +327,12 @@ private extension MLXModelInfo {
 }
 
 private extension MLXPipelineModel {
-    var voxtralPipelineModel: VoxtralPipeline.Model {
+    var qwenRepoID: String? {
         switch self {
         case .mini3b:
-            return .mini3b
-        case .mini3b8bit:
-            return .mini3b
-        case .mini3b4bit:
-            return .mini3b
+            return nil
+        case .qwen3ASR06B4bit:
+            return "mlx-community/Qwen3-ASR-0.6B-4bit"
         }
     }
 }

@@ -42,8 +42,7 @@ final class SettingsViewModel {
     }
 
     func selectModel(_ modelID: String) {
-        modelDownloadViewModel.selectedModelID = modelID
-        modelDownloadViewModel.selectedModelChanged()
+        appModel.selectedModelID = modelID
     }
 
     func downloadModel() {

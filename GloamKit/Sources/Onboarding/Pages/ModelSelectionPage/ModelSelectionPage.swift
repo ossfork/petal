@@ -11,7 +11,7 @@ struct ModelSelectionPage: View {
             OnboardingHeader(
                 symbol: "externaldrive.fill",
                 title: "Choose a Model",
-                description: "Transcription runs entirely on-device. Select a model to get started.",
+                description: "Transcription runs entirely on-device. Choose between Voxtral Core and MLX Audio STT models.",
                 layout: .vertical
             )
             .slideIn(active: isAnimating, delay: 0.25)
