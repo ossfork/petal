@@ -227,9 +227,35 @@ struct TranscriptionPane: View {
 
 struct HistoryPane: View {
     @Bindable var viewModel: SettingsViewModel
+    @State private var showDeleteAllConfirmation = false
+    @State private var showDeleteMediaConfirmation = false
 
     var body: some View {
         Form {
+            if !viewModel.recentHistoryEntries.isEmpty {
+                Section("Recent") {
+                    ForEach(viewModel.recentHistoryEntries) { entry in
+                        HStack(alignment: .top) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(entry.transcript)
+                                    .lineLimit(2)
+                                    .truncationMode(.tail)
+                                Text(entry.timestamp, style: .relative)
+                                    .settingDescription()
+                            }
+                            Spacer()
+                            Button {
+                                viewModel.copyHistoryEntry(entry)
+                            } label: {
+                                Image(systemName: "doc.on.doc")
+                            }
+                            .buttonStyle(.borderless)
+                            .help("Copy transcript")
+                        }
+                    }
+                }
+            }
+
             Section("Retention") {
                 Picker("Keep", selection: Binding(
                     get: { viewModel.historyRetentionMode },
@@ -259,8 +285,33 @@ struct HistoryPane: View {
                     viewModel.openHistoryInFinder()
                 }
             }
+
+            Section("Clear Data") {
+                Button("Delete All History & Media", role: .destructive) {
+                    showDeleteAllConfirmation = true
+                }
+                Button("Delete Media Only", role: .destructive) {
+                    showDeleteMediaConfirmation = true
+                }
+            }
         }
         .formStyle(.grouped)
+        .alert("Delete All History & Media", isPresented: $showDeleteAllConfirmation) {
+            Button("Delete All", role: .destructive) {
+                viewModel.deleteAllHistory()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will permanently delete all transcription history, audio files, and transcript files.")
+        }
+        .alert("Delete Media Only", isPresented: $showDeleteMediaConfirmation) {
+            Button("Delete Media", role: .destructive) {
+                viewModel.deleteMediaOnly()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will delete all saved audio files but keep your transcription history intact.")
+        }
     }
 }
 

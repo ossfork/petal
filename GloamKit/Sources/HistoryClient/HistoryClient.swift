@@ -15,6 +15,7 @@ public struct HistoryClient: Sendable {
     public var historyAudioURL: @Sendable (String?) -> URL? = { _ in nil }
     public var modelsDirectoryPath: @Sendable () -> String = { "" }
     public var historyDirectoryPath: @Sendable () -> String = { "" }
+    public var deleteMediaOnly: @Sendable ([TranscriptHistoryDay]) -> [TranscriptHistoryDay] = { days in days }
 }
 
 public struct AppendEntryRequest: Sendable {
@@ -125,6 +126,9 @@ extension HistoryClient: DependencyKey {
             },
             historyDirectoryPath: {
                 runtime.historyDirectoryPath
+            },
+            deleteMediaOnly: { days in
+                runtime.deleteMediaOnly(days: days)
             }
         )
     }
@@ -244,6 +248,17 @@ private final class HistoryRuntime: @unchecked Sendable {
         let audioURL = Self.historyDirectoryURL.appending(path: relativePath)
         guard FileManager.default.fileExists(atPath: audioURL.path) else { return nil }
         return audioURL
+    }
+
+    func deleteMediaOnly(days: [TranscriptHistoryDay]) -> [TranscriptHistoryDay] {
+        try? FileManager.default.removeItem(at: Self.historyMediaDirectoryURL)
+        var updatedDays = days
+        for dayIndex in updatedDays.indices {
+            for entryIndex in updatedDays[dayIndex].entries.indices {
+                updatedDays[dayIndex].entries[entryIndex].audioRelativePath = nil
+            }
+        }
+        return updatedDays
     }
 
     private func ensureDataDirectories(retentionMode: HistoryRetentionMode) {

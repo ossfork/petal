@@ -1,3 +1,4 @@
+import AppKit
 import Dependencies
 import HistoryClient
 import ModelDownloadFeature
@@ -31,6 +32,13 @@ final class SettingsViewModel {
 
     var historyDirectoryPath: String {
         historyClient.historyDirectoryPath()
+    }
+
+    var recentHistoryEntries: [TranscriptHistoryEntry] {
+        transcriptHistoryDays.flatMap(\.entries)
+            .sorted { $0.timestamp > $1.timestamp }
+            .prefix(3)
+            .map { $0 }
     }
 
     let downloadModel: ModelDownloadModel
@@ -92,5 +100,20 @@ final class SettingsViewModel {
 
     func openHistoryInFinder() {
         _ = historyClient.openHistoryFolder(historyRetentionMode)
+    }
+
+    func copyHistoryEntry(_ entry: TranscriptHistoryEntry) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(entry.transcript, forType: .string)
+    }
+
+    func deleteAllHistory() {
+        let cleared = historyClient.applyRetention(.none, transcriptHistoryDays)
+        $transcriptHistoryDays.withLock { $0 = cleared }
+    }
+
+    func deleteMediaOnly() {
+        let updated = historyClient.deleteMediaOnly(transcriptHistoryDays)
+        $transcriptHistoryDays.withLock { $0 = updated }
     }
 }
