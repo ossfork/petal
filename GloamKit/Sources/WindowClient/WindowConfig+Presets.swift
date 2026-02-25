@@ -32,7 +32,7 @@ extension WindowConfig {
             hidesCloseButton: true,
             hidesMiniaturizeButton: true,
             hidesZoomButton: true,
-            isFloating: true,
+            isFloating: false,
             visualEffect: VisualEffectConfig(material: .hudWindow, blendingMode: .behindWindow)
         )),
         size: CGSize(width: 820, height: 512),
