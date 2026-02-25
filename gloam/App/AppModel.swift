@@ -567,6 +567,10 @@ final class AppModel {
                 case .copiedOnly:
                     transientMessage = "Accessibility access is needed to paste. Turn it on in System Settings, then try again."
                     await postPasteFallbackNotification()
+                    lastError = nil
+                    sessionState = .idle
+                    await showCopiedThenAccessibilityPrompt()
+                    return
                 case .skipped:
                     break
                 }
@@ -1151,6 +1155,30 @@ final class AppModel {
             logger.error("Model warmup failed: \(error.localizedDescription, privacy: .public)")
             consoleLog("Model warmup failed: \(error.localizedDescription)")
         }
+    }
+
+    private func showCopiedThenAccessibilityPrompt() async {
+        await floatingCapsuleClient.showCopiedToClipboard()
+        try? await clock.sleep(for: .seconds(3))
+        await floatingCapsuleClient.showAccessibilityPrompt { [permissionsClient] in
+            Task {
+                await permissionsClient.promptForAccessibilityPermission()
+                await permissionsClient.openAccessibilityPrivacySettings()
+            }
+        }
+        // Poll for up to 10s — show success immediately if granted
+        for _ in 0..<20 {
+            try? await clock.sleep(for: .milliseconds(500))
+            if await permissionsClient.hasAccessibilityPermission() {
+                await floatingCapsuleClient.showAccessibilityEnabled()
+                accessibilityAuthorized = true
+                try? await clock.sleep(for: .seconds(2))
+                break
+            }
+        }
+        isAwaitingCancelRecordingConfirmation = false
+        stopTranscriptionProgressTracking()
+        await floatingCapsuleClient.hide()
     }
 
     private func hideCapsuleAfterDelay() async {

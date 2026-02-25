@@ -15,6 +15,9 @@ public struct FloatingCapsuleClient: Sendable {
     public var updateTranscriptionProgress: @Sendable (Double) async -> Void = { _ in }
     public var showRefining: @Sendable () async -> Void = {}
     public var showCancelConfirmation: @Sendable () async -> Void = {}
+    public var showCopiedToClipboard: @Sendable () async -> Void = {}
+    public var showAccessibilityPrompt: @Sendable (@escaping @Sendable () -> Void) async -> Void = { _ in }
+    public var showAccessibilityEnabled: @Sendable () async -> Void = {}
     public var showError: @Sendable (String) async -> Void = { _ in }
     public var hide: @Sendable () async -> Void = {}
 }
@@ -46,6 +49,15 @@ extension FloatingCapsuleClient: DependencyKey {
             showCancelConfirmation: {
                 await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.showCancelConfirmation() }
             },
+            showCopiedToClipboard: {
+                await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.showCopiedToClipboard() }
+            },
+            showAccessibilityPrompt: { onTap in
+                await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.showAccessibilityPrompt(onTap: onTap) }
+            },
+            showAccessibilityEnabled: {
+                await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.showAccessibilityEnabled() }
+            },
             showError: { message in
                 await MainActor.run { LiveFloatingCapsuleRuntimeContainer.shared.showError(message) }
             },
@@ -67,6 +79,9 @@ extension FloatingCapsuleClient: TestDependencyKey {
             updateTranscriptionProgress: { _ in },
             showRefining: {},
             showCancelConfirmation: {},
+            showCopiedToClipboard: {},
+            showAccessibilityPrompt: { _ in },
+            showAccessibilityEnabled: {},
             showError: { _ in },
             hide: {}
         )
@@ -143,6 +158,22 @@ private final class LiveFloatingCapsuleRuntime {
 
     func showCancelConfirmation() {
         state.phase = .confirmCancel
+        showWindowIfNeeded()
+    }
+
+    func showCopiedToClipboard() {
+        state.phase = .copiedToClipboard
+        showWindowIfNeeded()
+    }
+
+    func showAccessibilityPrompt(onTap: @escaping @Sendable () -> Void) {
+        state.onAccessibilityTapped = onTap
+        state.phase = .accessibilityPrompt
+        showWindowIfNeeded()
+    }
+
+    func showAccessibilityEnabled() {
+        state.phase = .accessibilityEnabled
         showWindowIfNeeded()
     }
 

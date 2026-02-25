@@ -11,12 +11,16 @@ public final class FloatingCapsuleState {
         case speeding
         case transcribing
         case refining
+        case copiedToClipboard
+        case accessibilityPrompt
+        case accessibilityEnabled
         case error(String)
     }
 
     public var phase: Phase = .hidden
     public var level: Double = 0
     public var transcriptionProgress: Double = 0
+    public var onAccessibilityTapped: (() -> Void)?
 
     public init() {}
 }

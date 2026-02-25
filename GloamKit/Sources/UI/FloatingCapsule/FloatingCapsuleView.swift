@@ -24,6 +24,12 @@ public struct FloatingCapsuleView: View {
                 transcribing
             case .refining:
                 RefiningCapsuleContent()
+            case .copiedToClipboard:
+                copiedToClipboard
+            case .accessibilityPrompt:
+                accessibilityPrompt
+            case .accessibilityEnabled:
+                accessibilityEnabled
             case .error:
                 error
             }
@@ -119,6 +125,53 @@ public struct FloatingCapsuleView: View {
         .floatingCapsuleChrome()
     }
 
+    private var copiedToClipboard: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+                .font(.caption2.weight(.bold))
+
+            Text("Copied to clipboard")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.primary)
+        }
+        .frame(height: 20)
+        .floatingCapsuleChrome()
+    }
+
+    private var accessibilityPrompt: some View {
+        Button {
+            state.onAccessibilityTapped?()
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "accessibility")
+                    .foregroundStyle(.blue)
+                    .font(.caption2.weight(.bold))
+
+                Text("Enable Accessibility")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.primary)
+            }
+            .frame(height: 20)
+            .floatingCapsuleChrome()
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var accessibilityEnabled: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+                .font(.caption2.weight(.bold))
+
+            Text("Accessibility Enabled")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.primary)
+        }
+        .frame(height: 20)
+        .floatingCapsuleChrome()
+    }
+
     private var transcribingLabel: String {
         let percent = Int((state.transcriptionProgress * 100).rounded())
         return "Transcribing \(String(format: "%3d", percent))%"
@@ -143,6 +196,9 @@ private struct FloatingCapsulePreview: View {
         ("Speeding", .speeding),
         ("Transcribing", .transcribing),
         ("Refining", .refining),
+        ("Copied", .copiedToClipboard),
+        ("Accessibility", .accessibilityPrompt),
+        ("AX Enabled", .accessibilityEnabled),
         ("Error", .error("Preview")),
     ]
 
