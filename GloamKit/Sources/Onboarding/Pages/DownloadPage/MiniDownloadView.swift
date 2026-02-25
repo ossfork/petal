@@ -15,20 +15,35 @@ public struct MiniDownloadView: View {
     public var body: some View {
         VStack {
             ZStack {
-                // add image of the model thing here pls
-                CircularProgressRing(progress: progressFraction, size: 64, lineWidth: 6)
+                CircularProgressRing(
+                    progress: progressFraction,
+                    size: 64,
+                    lineWidth: 6
+                )
 
-                Text(percentText)
-                    .font(.headline)
-            }
+                VStack {
+                    Text(percentText)
+                        .font(.headline)
 
-            if let speedText {
-                Text(speedText)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    if let speedText {
+                        Text(speedText)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
         }
         .frame(width: 120, height: 144)
+        background {
+            ZStack {
+                if let icon = model.selectedModelOption?.provider.icon {
+                    icon
+                        .resizable()
+                        .scaledToFill()
+                        .blur(radius: 64)
+                }
+            }
+        }
         .overlay(alignment: .topTrailing) {
             Button(action: onExpand) {
                 Image(systemName: "arrow.up.left.and.arrow.down.right")

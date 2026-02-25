@@ -1,4 +1,3 @@
-import Assets
 import ModelDownloadFeature
 import Shared
 import SwiftUI
@@ -57,7 +56,7 @@ struct DownloadPage: View {
 
     @ViewBuilder
     private func downloadContent(_ option: ModelOption) -> some View {
-        let icon = providerIcon(for: option)
+        let icon = option.provider.icon
         let name = option.displayName
         let size = option.sizeLabel
 
@@ -121,14 +120,6 @@ struct DownloadPage: View {
         downloadModel.selectedModelOption?.requiresDownload ?? true
     }
 
-    private func providerIcon(for option: ModelOption) -> Image {
-        switch option.provider {
-        case .appleSpeech: .swiftLogo
-        case .mlxAudioSTT: .qwen
-        case .whisperKit: .openai
-        case .voxtralCore: .mistral
-        }
-    }
 }
 
 #Preview("Download - Idle") {

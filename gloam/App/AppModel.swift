@@ -1,4 +1,5 @@
 import AppKit
+import Assets
 import AudioClient
 import class SwiftUI.NSHostingView
 import FloatingCapsuleClient
