@@ -1,3 +1,4 @@
+import AppKit
 import ModelDownloadFeature
 import Shared
 import SwiftUI
@@ -13,7 +14,7 @@ struct DownloadPage: View {
                 .slideIn(active: isAnimating, delay: 0.25)
 
             if let option = downloadModel.selectedModelOption {
-                downloadContent(option)
+                downloadCard(option)
                     .slideIn(active: isAnimating, delay: 0.4)
             }
 
@@ -55,49 +56,154 @@ struct DownloadPage: View {
     }
 
     @ViewBuilder
-    private func downloadContent(_ option: ModelOption) -> some View {
+    private func downloadCard(_ option: ModelOption) -> some View {
         let icon = option.provider.icon
         let name = option.displayName
         let size = option.sizeLabel
 
+        VStack(alignment: .leading, spacing: 14) {
+            // Model identity row — always visible
+            HStack(spacing: 12) {
+                icon
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 32, height: 32)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                Text(name)
+                    .font(.headline)
+
+                Spacer()
+
+                trailingBadge(size: size)
+            }
+
+            // State-specific content
+            switch downloadModel.state {
+            case .notDownloaded:
+                Text("Tap **Download Model** below to get started.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+            case .failed:
+                Text("Download failed. Tap **Download Model** to retry.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+            case .preparing:
+                ProgressView()
+                    .controlSize(.small)
+
+            case let .downloading(progress):
+                downloadProgress(progress: progress.fraction, speedText: progress.speedText, isPaused: false)
+
+            case let .paused(progress):
+                downloadProgress(progress: progress.fraction, speedText: progress.speedText, isPaused: true)
+
+            case .downloaded:
+                if let url = downloadModel.modelDirectoryURL {
+                    Button {
+                        NSWorkspace.shared.activateFileViewerSelecting([url])
+                    } label: {
+                        Label("Show in Finder", systemImage: "folder")
+                            .font(.caption)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .foregroundStyle(.white)
+        .background(RoundedRectangle(cornerRadius: 16).fill(Color.black))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
+        }
+        .if(downloadModel.state.isActive) { view in
+            view.runningBorder(
+                radius: 16,
+                lineWidth: 1,
+                animated: true,
+                duration: 1.5,
+                colors: [.white.opacity(0.0), .white.opacity(0.7), .white.opacity(0.0)]
+            )
+        }
+    }
+
+    private func downloadProgress(progress: Double, speedText: String?, isPaused: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("\(Int((progress * 100).rounded()))%")
+                    .font(.title3.weight(.bold).monospacedDigit())
+                    .intelligenceGradient()
+
+                Spacer()
+
+                HStack(spacing: 8) {
+                    Button {
+                        if isPaused {
+                            Task { await downloadModel.resumeDownload() }
+                        } else {
+                            downloadModel.pauseDownload()
+                        }
+                    } label: {
+                        Image(systemName: isPaused ? "play.circle.fill" : "pause.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
+                            .contentTransition(.symbolEffect(.replace))
+                    }
+                    .buttonStyle(.plain)
+
+                    Button { downloadModel.cancelDownload() } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            ZStack(alignment: .top) {
+                AnimatedIntelligenceBar(progress: progress)
+                    .frame(height: 8)
+                    .blur(radius: 10)
+                    .opacity(isPaused ? 0.15 : 0.4)
+                    .offset(y: 4)
+
+                AnimatedIntelligenceBar(progress: progress)
+                    .frame(height: 8)
+            }
+
+            HStack {
+                if isPaused {
+                    Text("Paused")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else if let speedText {
+                    Text(speedText)
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func trailingBadge(size: String?) -> some View {
         switch downloadModel.state {
         case .downloaded:
-            DownloadCompleteCard(
-                modelIcon: icon,
-                modelName: name,
-                modelSize: size,
-                modelDirectoryURL: downloadModel.modelDirectoryURL
-            )
-        case let .downloading(progress):
-            DownloadProgressCard(
-                modelIcon: icon,
-                modelName: name,
-                modelSize: size,
-                progress: progress.fraction,
-                speedText: progress.speedText,
-                isPaused: false,
-                onPause: { downloadModel.pauseDownload() },
-                onResume: {},
-                onCancel: { downloadModel.cancelDownload() }
-            )
-        case let .paused(progress):
-            DownloadProgressCard(
-                modelIcon: icon,
-                modelName: name,
-                modelSize: size,
-                progress: progress.fraction,
-                speedText: progress.speedText,
-                isPaused: true,
-                onPause: {},
-                onResume: { Task { await downloadModel.resumeDownload() } },
-                onCancel: { downloadModel.cancelDownload() }
-            )
-        case .preparing:
-            ProgressView()
-                .controlSize(.small)
-                .frame(maxWidth: .infinity, alignment: .center)
-        case .notDownloaded, .failed:
-            EmptyView()
+            Image(systemName: "checkmark.circle.fill")
+                .font(.title2)
+                .foregroundStyle(.green)
+        default:
+            if let size {
+                Text(size)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
@@ -119,10 +225,22 @@ struct DownloadPage: View {
     private var selectedModelRequiresDownload: Bool {
         downloadModel.selectedModelOption?.requiresDownload ?? true
     }
-
 }
 
-#Preview("Download - Idle") {
+// MARK: - Conditional modifier
+
+private extension View {
+    @ViewBuilder
+    func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
+        if condition {
+            transform(self)
+        } else {
+            self
+        }
+    }
+}
+
+#Preview("Download - Not Downloaded") {
     OnboardingView(model: .makePreview(page: .download))
 }
 

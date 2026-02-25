@@ -62,12 +62,16 @@ public final class OnboardingModel {
         guard let nextPage else { return }
         currentPage = nextPage
         lastPageTransitionDate = Date()
+        lastError = nil
+        transientMessage = nil
     }
 
     public func moveBack() {
         guard let previousPage else { return }
         currentPage = previousPage
         lastPageTransitionDate = Date()
+        lastError = nil
+        transientMessage = nil
     }
 
     // MARK: - Page Container
