@@ -6,6 +6,7 @@ import UI
 public struct MiniDownloadView: View {
     @Bindable var model: ModelDownloadModel
     var onExpand: () -> Void
+    @State private var isHovered = false
 
     public init(model: ModelDownloadModel, onExpand: @escaping () -> Void) {
         self.model = model
@@ -13,48 +14,65 @@ public struct MiniDownloadView: View {
     }
 
     public var body: some View {
+        progressContent
+            .frame(width: 130, height: 120)
+            .overlay { expandButton }
+            .animation(.easeInOut(duration: 0.2), value: isHovered)
+            .onHover { isHovered = $0 }
+    }
+
+    // MARK: - Subviews
+
+    private var progressContent: some View {
         VStack {
             ZStack {
+                if let icon = model.selectedModelOption?.provider.icon {
+                    icon
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .opacity(0.5)
+                        .blur(radius: 24)
+                        .brightness(-0.3)
+                        .ignoresSafeArea()
+                }
+
                 CircularProgressRing(
                     progress: progressFraction,
-                    size: 64,
+                    size: 84,
                     lineWidth: 6
                 )
 
                 VStack {
                     Text(percentText)
-                        .font(.headline)
+                        .font(.title.bold())
+                        .contentTransition(.numericText(value: progressFraction))
 
                     if let speedText {
                         Text(speedText)
-                            .font(.footnote)
+                            .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
             }
         }
-        .frame(width: 120, height: 144)
-        background {
-            ZStack {
-                if let icon = model.selectedModelOption?.provider.icon {
-                    icon
-                        .resizable()
-                        .scaledToFill()
-                        .blur(radius: 64)
-                }
-            }
-        }
-        .overlay(alignment: .topTrailing) {
+    }
+
+    @ViewBuilder
+    private var expandButton: some View {
+        if isHovered {
             Button(action: onExpand) {
                 Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 22, height: 22)
-                    .contentShape(Rectangle())
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 42, height: 42)
+                    .padding()
             }
+
             .buttonStyle(.plain)
+            .background(.ultraThinMaterial, in: .circle)
+            .contentShape(Circle())
             .help("Expand to full window")
-            .padding(6)
+            .transition(.opacity)
         }
     }
 

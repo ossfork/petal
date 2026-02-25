@@ -1,7 +1,9 @@
 import AppKit
+import UniformTypeIdentifiers
 import Dependencies
 import FoundationModelClient
 import HistoryClient
+import LogClient
 import ModelDownloadFeature
 import Observation
 import PermissionsClient
@@ -58,6 +60,7 @@ final class SettingsViewModel {
     @ObservationIgnored @Dependency(\.permissionsClient) private var permissionsClient
     @ObservationIgnored @Dependency(\.historyClient) private var historyClient
     @ObservationIgnored @Dependency(\.foundationModelClient) private var foundationModelClient
+    @ObservationIgnored @Dependency(\.logClient) private var logClient
 
     init(appModel: AppModel) {
         self.downloadModel = appModel.modelDownloadViewModel
@@ -130,5 +133,14 @@ final class SettingsViewModel {
     func deleteMediaOnly() {
         let updated = historyClient.deleteMediaOnly(transcriptHistoryDays)
         $transcriptHistoryDays.withLock { $0 = updated }
+    }
+
+    func exportLogs() {
+        guard let logURL = logClient.logFileURL() else { return }
+        let savePanel = NSSavePanel()
+        savePanel.nameFieldStringValue = logURL.lastPathComponent
+        savePanel.allowedContentTypes = [.plainText]
+        guard savePanel.runModal() == .OK, let destination = savePanel.url else { return }
+        try? FileManager.default.copyItem(at: logURL, to: destination)
     }
 }

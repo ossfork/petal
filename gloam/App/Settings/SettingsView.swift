@@ -69,6 +69,14 @@ struct GeneralPane: View {
                         .settingDescription()
                 }
             }
+
+            Section("Diagnostics") {
+                Button("Export Logs…") {
+                    viewModel.exportLogs()
+                }
+                Text("Save today's log file for debugging.")
+                    .settingDescription()
+            }
         }
         .formStyle(.grouped)
         .task {
