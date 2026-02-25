@@ -1,6 +1,7 @@
 import Dependencies
 import Darwin
 import os
+import Carbon.HIToolbox
 import Sparkle
 import SwiftUI
 import WindowClient
@@ -17,6 +18,7 @@ struct GloamApp: App {
         let appModel = AppModel()
         _model = State(initialValue: appModel)
         _menuBarViewModel = State(initialValue: MenuBarContentViewModel(appModel: appModel))
+        AppDelegate.bootstrapModel = appModel
 
         guard SingleInstanceLock.shared.acquire() else {
             Logger(subsystem: "com.optimalapps.gloam", category: "App")
@@ -88,29 +90,37 @@ private final class SingleInstanceLock {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    static var bootstrapModel: AppModel?
+
     let updaterController = SPUStandardUpdaterController(
         startingUpdater: false,
         updaterDelegate: nil,
         userDriverDelegate: nil
     )
-    weak var model: AppModel?
+    weak var model: AppModel? {
+        didSet { flushPendingDeepLinksIfNeeded() }
+    }
     var updatesModel: CheckForUpdatesModel?
     @Dependency(\.windowClient) private var windowClient
     private let logger = Logger(subsystem: "com.optimalapps.gloam", category: "AppDelegate")
+    private var pendingDeepLinkCommands: [GloamDeepLinkCommand] = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        if model == nil, let bootstrapModel = Self.bootstrapModel {
+            model = bootstrapModel
+        }
+        registerDeepLinkAppleEventHandler()
+        logger.info("Registered deep link AppleEvent handler")
         enforceSingleInstance()
         updaterController.startUpdater()
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
-        guard let model else { return }
-
+        logger.info("Received application(open:) URLs count=\(urls.count, privacy: .public)")
         for url in urls {
             guard let command = GloamDeepLinkCommand.parse(url) else { continue }
-            Task { @MainActor in
-                await model.handleDeepLink(command)
-            }
+            logger.info("Parsed deep link from application(open:): \(command.rawValue, privacy: .public)")
+            handleOrQueueDeepLink(command)
         }
     }
 
@@ -134,5 +144,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         logger.error("Detected multiple running instances. terminating pid=\(ProcessInfo.processInfo.processIdentifier, privacy: .public)")
         NSApp.terminate(nil)
+    }
+
+    private func registerDeepLinkAppleEventHandler() {
+        NSAppleEventManager.shared().setEventHandler(
+            self,
+            andSelector: #selector(handleGetURLEvent(_:withReplyEvent:)),
+            forEventClass: AEEventClass(kInternetEventClass),
+            andEventID: AEEventID(kAEGetURL)
+        )
+    }
+
+    @objc
+    private func handleGetURLEvent(_ event: NSAppleEventDescriptor, withReplyEvent _: NSAppleEventDescriptor) {
+        guard let urlString = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.stringValue,
+              let url = URL(string: urlString),
+              let command = GloamDeepLinkCommand.parse(url)
+        else { return }
+        logger.info("Parsed deep link from kAEGetURL: \(command.rawValue, privacy: .public)")
+        handleOrQueueDeepLink(command)
+    }
+
+    private func handleOrQueueDeepLink(_ command: GloamDeepLinkCommand) {
+        guard let model else {
+            pendingDeepLinkCommands.append(command)
+            logger.debug("Queued deep link command because model is not ready: \(command.rawValue, privacy: .public)")
+            return
+        }
+        Task { @MainActor in
+            await model.handleDeepLink(command)
+        }
+    }
+
+    private func flushPendingDeepLinksIfNeeded() {
+        guard let model, !pendingDeepLinkCommands.isEmpty else { return }
+        let queued = pendingDeepLinkCommands
+        pendingDeepLinkCommands.removeAll()
+        for command in queued {
+            Task { @MainActor in
+                await model.handleDeepLink(command)
+            }
+        }
     }
 }

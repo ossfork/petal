@@ -64,31 +64,34 @@ public func appDumpString<T>(_ value: T) -> String {
 
 // MARK: - File Writer
 
-private final class LogFileWriter: Sendable {
+private final class LogFileWriter: @unchecked Sendable {
     private static let logsDirectory: URL = {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         return docs.appendingPathComponent("gloam/logs", isDirectory: true)
     }()
 
-    private let fileHandle: NIOLockedValueBox<FileHandle?>
+    private let queue = DispatchQueue(label: "com.optimalapps.gloam.log-file-writer", qos: .utility)
+    private var fileHandle: FileHandle?
     let currentFileURL: URL
 
     init() {
-        let fm = FileManager.default
-        try? fm.createDirectory(at: Self.logsDirectory, withIntermediateDirectories: true)
-
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         let fileName = "gloam-\(formatter.string(from: Date())).log"
         let url = Self.logsDirectory.appendingPathComponent(fileName)
 
-        if !fm.fileExists(atPath: url.path) {
-            fm.createFile(atPath: url.path, contents: nil)
-        }
-
         self.currentFileURL = url
-        self.fileHandle = NIOLockedValueBox(try? FileHandle(forWritingTo: url))
-        fileHandle.withLockedValue { _ = $0?.seekToEndOfFile() }
+
+        // Do all file-system setup off the caller thread so early app startup logging cannot block launch.
+        queue.async { [url] in
+            let fm = FileManager.default
+            try? fm.createDirectory(at: Self.logsDirectory, withIntermediateDirectories: true)
+            if !fm.fileExists(atPath: url.path) {
+                _ = fm.createFile(atPath: url.path, contents: nil)
+            }
+            self.fileHandle = try? FileHandle(forWritingTo: url)
+            _ = try? self.fileHandle?.seekToEnd()
+        }
     }
 
     func write(level: String, category: String, message: String) {
@@ -98,24 +101,12 @@ private final class LogFileWriter: Sendable {
         let line = "[\(timestamp)] [\(level)] [\(category)] \(message)\n"
 
         guard let data = line.data(using: .utf8) else { return }
-        fileHandle.withLockedValue { handle in
-            handle?.write(data)
+        queue.async {
+            if self.fileHandle == nil {
+                self.fileHandle = try? FileHandle(forWritingTo: self.currentFileURL)
+                _ = try? self.fileHandle?.seekToEnd()
+            }
+            self.fileHandle?.write(data)
         }
-    }
-}
-
-/// Minimal lock wrapper for Sendable conformance (no NIO dependency needed).
-private final class NIOLockedValueBox<T>: @unchecked Sendable {
-    private var _value: T
-    private let lock = NSLock()
-
-    init(_ value: T) {
-        self._value = value
-    }
-
-    func withLockedValue<R>(_ body: (inout T) -> R) -> R {
-        lock.lock()
-        defer { lock.unlock() }
-        return body(&_value)
     }
 }
