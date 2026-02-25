@@ -772,8 +772,13 @@ final class AppModel {
         guard case .recording = sessionState else { return false }
 
         if isAwaitingCancelRecordingConfirmation {
-            Task { await handleConfirmationKeyPress(keyPress) }
-            return true
+            switch keyPress {
+            case .escape, .return, .character("y"), .character("n"):
+                Task { await handleConfirmationKeyPress(keyPress) }
+                return true
+            default:
+                return false
+            }
         }
 
         guard keyPress == .escape else { return false }
@@ -823,10 +828,12 @@ final class AppModel {
 
     private func resolveCancelRecordingConfirmation(with keyPress: KeyPress) {
         switch keyPress {
-        case .character("y"):
+        case .character("y"), .return:
             cancelRecordingFromConfirmation()
-        default:
+        case .character("n"), .escape:
             dismissCancelRecordingConfirmation()
+        default:
+            break
         }
     }
 

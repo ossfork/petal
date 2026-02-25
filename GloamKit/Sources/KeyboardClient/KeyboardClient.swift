@@ -1,9 +1,11 @@
 import AppKit
 import Dependencies
 import DependenciesMacros
+import Sauce
 
 public enum KeyPress: Equatable, Sendable {
     case escape
+    case `return`
     case character(Character)
     case other
 }
@@ -49,7 +51,8 @@ public extension DependencyValues {
 @MainActor
 private final class LiveKeyboardRuntime {
     private var localMonitor: Any?
-    private var globalMonitor: Any?
+    private var eventTap: CFMachPort?
+    private var runLoopSource: CFRunLoopSource?
     private var handler: KeyPressHandler?
 
     func start(handler: @escaping KeyPressHandler) {
@@ -61,9 +64,7 @@ private final class LiveKeyboardRuntime {
             return consumed ? nil : event
         }
 
-        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            _ = self?.handle(event)
-        }
+        installEventTap()
     }
 
     func stop() {
@@ -72,12 +73,59 @@ private final class LiveKeyboardRuntime {
             self.localMonitor = nil
         }
 
-        if let globalMonitor {
-            NSEvent.removeMonitor(globalMonitor)
-            self.globalMonitor = nil
+        if let runLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
+            self.runLoopSource = nil
+        }
+
+        if let eventTap {
+            CGEvent.tapEnable(tap: eventTap, enable: false)
+            self.eventTap = nil
         }
 
         handler = nil
+    }
+
+    private func installEventTap() {
+        let userInfo = Unmanaged.passUnretained(self).toOpaque()
+
+        let callback: CGEventTapCallBack = { _, type, event, userInfo in
+            guard let userInfo else { return Unmanaged.passRetained(event) }
+            let runtime = Unmanaged<LiveKeyboardRuntime>.fromOpaque(userInfo)
+                .takeUnretainedValue()
+
+            if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+                if let tap = runtime.eventTap {
+                    CGEvent.tapEnable(tap: tap, enable: true)
+                }
+                return Unmanaged.passRetained(event)
+            }
+
+            guard let nsEvent = NSEvent(cgEvent: event) else {
+                return Unmanaged.passRetained(event)
+            }
+
+            let consumed = runtime.handle(nsEvent)
+            return consumed ? nil : Unmanaged.passRetained(event)
+        }
+
+        guard let tap = CGEvent.tapCreate(
+            tap: .cgSessionEventTap,
+            place: .headInsertEventTap,
+            options: .defaultTap,
+            eventsOfInterest: CGEventMask(1 << CGEventType.keyDown.rawValue),
+            callback: callback,
+            userInfo: userInfo
+        ) else {
+            return
+        }
+
+        eventTap = tap
+
+        let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
+        runLoopSource = source
+        CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
+        CGEvent.tapEnable(tap: tap, enable: true)
     }
 
     @discardableResult
@@ -87,9 +135,9 @@ private final class LiveKeyboardRuntime {
     }
 
     private static func keyPress(from event: NSEvent) -> KeyPress {
-        if event.keyCode == 53 {
-            return .escape
-        }
+        let sauceKey = Sauce.shared.key(for: Int(event.keyCode))
+        if sauceKey == .escape { return .escape }
+        if sauceKey == .return { return .return }
 
         guard let characters = event.charactersIgnoringModifiers, characters.count == 1 else {
             return .other

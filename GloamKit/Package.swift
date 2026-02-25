@@ -16,6 +16,7 @@ extension Target.Dependency {
     static let historyClient: Self = "HistoryClient"
     static let windowClient: Self = "WindowClient"
     static let foundationModelClient: Self = "FoundationModelClient"
+    static let soundClient: Self = "SoundClient"
 
     static let dependencies: Self = .product(name: "Dependencies", package: "swift-dependencies")
     static let dependenciesMacros: Self = .product(name: "DependenciesMacros", package: "swift-dependencies")
@@ -120,7 +121,7 @@ let package = Package(
                 .foundationModelClient,
                 .keyboardShortcuts,
                 .sauce,
-                "SoundClient",
+                .soundClient,
             ]
         ),
 
@@ -149,6 +150,7 @@ let package = Package(
             name: "KeyboardClient",
             dependencies: [
                 .shared,
+                .sauce,
             ]
         ),
         .target(
