@@ -15,7 +15,8 @@ public struct MiniDownloadView: View {
 
     public var body: some View {
         progressContent
-            .frame(width: 130, height: 120)
+            .frame(width: 130, height: 110)
+            .offset(y: -6)
             .overlay { expandButton }
             .animation(.easeInOut(duration: 0.2), value: isHovered)
             .onHover { isHovered = $0 }
