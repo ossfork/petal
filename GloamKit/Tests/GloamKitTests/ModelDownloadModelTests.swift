@@ -14,7 +14,7 @@ func modelCompletesDownloadAndTransitionsToDownloadedState() async throws {
             progress(DownloadProgress(fractionCompleted: 0.4, status: "Downloading model files... 40%", speedText: "12.0 MB/s"))
             progress(DownloadProgress(fractionCompleted: 0.9, status: "Downloading model files... 90%", speedText: "11.0 MB/s"))
         }
-    } operation: {
+    } operation: { @MainActor in
         let model = ModelDownloadModel(isPreviewMode: true)
         await model.downloadButtonTapped()
 
@@ -36,7 +36,7 @@ func modelHandlesPauseAndResumeAcrossRetries() async throws {
             }
             progress(DownloadProgress(fractionCompleted: 0.75, status: "Downloading model files... 75%", speedText: "9.0 MB/s"))
         }
-    } operation: {
+    } operation: { @MainActor in
         let model = ModelDownloadModel(isPreviewMode: true)
 
         await model.downloadButtonTapped()
@@ -53,14 +53,16 @@ func modelPauseAndCancelButtonsMutateStateDeterministically() async throws {
     try await withDependencies {
         $0.downloadClient.isModelDownloaded = { _ in false }
     } operation: {
-        let model = ModelDownloadModel(isPreviewMode: true)
-        model.state = .downloading(.init(fraction: 0.58, statusText: "Downloading model files..."))
+        await MainActor.run {
+            let model = ModelDownloadModel(isPreviewMode: true)
+            model.state = .downloading(.init(fraction: 0.58, statusText: "Downloading model files..."))
 
-        model.pauseButtonTapped()
-        #expect(model.state.isPaused)
+            model.pauseButtonTapped()
+            #expect(model.state.isPaused)
 
-        model.cancelButtonTapped()
-        #expect(model.state == .notDownloaded)
+            model.cancelButtonTapped()
+            #expect(model.state == .notDownloaded)
+        }
     }
 }
 
@@ -71,7 +73,7 @@ func modelTransitionsToFailedStateForTypedFailures() async throws {
         $0.downloadClient.downloadModel = { _, _ in
             throw DownloadClientFailure.failed("network failure")
         }
-    } operation: {
+    } operation: { @MainActor in
         let model = ModelDownloadModel(isPreviewMode: true)
         await model.downloadButtonTapped()
 
@@ -86,10 +88,12 @@ func selectedModelChangedRefreshesDownloadedState() async throws {
     try await withDependencies {
         $0.downloadClient.isModelDownloaded = { _ in true }
     } operation: {
-        let model = ModelDownloadModel(isPreviewMode: true)
-        model.selectedModelChanged()
+        await MainActor.run {
+            let model = ModelDownloadModel(isPreviewMode: true)
+            model.selectedModelChanged()
 
-        #expect(model.state == .downloaded)
+            #expect(model.state == .downloaded)
+        }
     }
 }
 

@@ -100,9 +100,17 @@ final class AppModel {
     var menuBarFlashOn = true
     @ObservationIgnored private var estimatedTranscriptionRTF = 2.2
     @ObservationIgnored private let toggleActivationThresholdSeconds = 2.0
+    nonisolated private static let deepLinkStartTimeoutSeconds = 12.0
 
     nonisolated private static var isRunningInSwiftUIPreview: Bool {
         ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+    }
+
+    nonisolated private static var isRunningUnattendedE2E: Bool {
+        if ProcessInfo.processInfo.environment["GLOAM_UNATTENDED_E2E"] == "1" {
+            return true
+        }
+        return UserDefaults.standard.bool(forKey: "unattended_e2e_mode")
     }
 
     init(isPreviewMode: Bool = AppModel.isRunningInSwiftUIPreview) {
@@ -891,6 +899,7 @@ final class AppModel {
     // MARK: - Private: Deep Links
 
     private func startRecordingFromDeepLink() async {
+        await refreshPermissionStatusAsync()
         logger.info(
             "Deep link start requested. setupCompleted=\(self.hasCompletedSetup, privacy: .public), microphoneAuthorized=\(self.microphoneAuthorized, privacy: .public), isProcessing=\(self.isProcessing, privacy: .public)"
         )
@@ -910,22 +919,28 @@ final class AppModel {
 
         guard await ensureSetupReadyForDeepLinkStart() else { return }
 
+        await refreshPermissionStatusAsync()
         if !microphoneAuthorized {
-            logger.info("Deep link start requesting microphone permission")
-            consoleLog("Deep link start requesting microphone permission")
-            await microphonePermissionButtonTapped()
-            await refreshPermissionStatusAsync()
-            guard microphoneAuthorized else {
-                logger.warning("Deep link start aborted: microphone permission denied")
-                consoleLog("Deep link start aborted: microphone permission denied")
-                return
+            if Self.isRunningUnattendedE2E {
+                logger.warning("Deep link start continuing without permission prompt (unattended e2e)")
+                consoleLog("Deep link start continuing without permission prompt (unattended e2e)")
+            } else {
+                logger.info("Deep link start requesting microphone permission")
+                consoleLog("Deep link start requesting microphone permission")
+                await microphonePermissionButtonTapped()
+                await refreshPermissionStatusAsync()
+                guard microphoneAuthorized else {
+                    logger.warning("Deep link start aborted: microphone permission denied")
+                    consoleLog("Deep link start aborted: microphone permission denied")
+                    return
+                }
             }
         }
 
         do {
             logger.info("Deep link start attempting to start recording")
             consoleLog("Deep link start attempting to start recording")
-            try await audioClient.startRecording { [weak self] level in
+            try await startRecordingWithTimeout { [weak self] level in
                 guard let self else { return }
                 Task { @MainActor [self, level] in
                     self.recordingLevelDidUpdate(level)
@@ -951,6 +966,51 @@ final class AppModel {
             logger.error("Deep link start failed: \(error.localizedDescription, privacy: .public)")
             consoleLog("Deep link start failed: \(error.localizedDescription)")
             await hideCapsuleAfterDelay()
+        }
+    }
+
+    private func startRecordingWithTimeout(
+        levelHandler: @escaping @Sendable (Double) -> Void
+    ) async throws {
+        let startRecording = audioClient.startRecording
+        let timeoutSeconds = Self.deepLinkStartTimeoutSeconds
+        let timeoutInterval = DispatchTimeInterval.milliseconds(Int(timeoutSeconds * 1000))
+        let timeoutLogger = Logger(subsystem: "com.optimalapps.gloam", category: "AppModel")
+        let continuationGate = ContinuationGate()
+
+        do {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                let startTask = Task {
+                    do {
+                        try await startRecording(levelHandler)
+                        timeoutLogger.debug("Deep link start task completed before timeout")
+                        continuationGate.resume(continuation, with: .success(()))
+                    } catch {
+                        timeoutLogger.error("Deep link start task failed before timeout: \(error.localizedDescription, privacy: .public)")
+                        continuationGate.resume(continuation, with: .failure(error))
+                    }
+                }
+
+                DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + timeoutInterval) {
+                    let didTimeout = continuationGate.resume(
+                        continuation,
+                        with: .failure(DeepLinkStartError.timedOut(seconds: timeoutSeconds))
+                    )
+                    guard didTimeout else { return }
+                    timeoutLogger.error("Deep link start timeout fired after \(timeoutSeconds, privacy: .public)s")
+                    startTask.cancel()
+                }
+            }
+            timeoutLogger.debug("Deep link start continuation completed without timeout")
+        } catch {
+            if let deepLinkError = error as? DeepLinkStartError, case .timedOut = deepLinkError {
+                timeoutLogger.error("Deep link start timed out; canceling any pending capture session")
+                let cancelRecording = audioClient.cancelRecording
+                Task.detached(priority: .utility) {
+                    await cancelRecording()
+                }
+            }
+            throw error
         }
     }
 
@@ -1262,6 +1322,36 @@ private enum AppTranscriptionError: LocalizedError {
         switch self {
         case .pipelineUnavailable:
             return "Transcription pipeline is not available."
+        }
+    }
+}
+
+private final class ContinuationGate: @unchecked Sendable {
+    private let lock = NSLock()
+    private var didResume = false
+
+    @discardableResult
+    func resume(
+        _ continuation: CheckedContinuation<Void, Error>,
+        with result: Result<Void, Error>
+    ) -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !didResume else { return false }
+        didResume = true
+        continuation.resume(with: result)
+        return true
+    }
+}
+
+private enum DeepLinkStartError: LocalizedError {
+    case timedOut(seconds: Double)
+
+    var errorDescription: String? {
+        switch self {
+        case let .timedOut(seconds):
+            let wholeSeconds = Int(seconds.rounded())
+            return "Timed out after \(wholeSeconds)s waiting for audio capture to start."
         }
     }
 }

@@ -20,6 +20,7 @@ TOGGLE_TIMEOUT_SECONDS="${TOGGLE_TIMEOUT_SECONDS:-300}"
 START_WAIT_TIMEOUT_SECONDS="${START_WAIT_TIMEOUT_SECONDS:-90}"
 STOP_WAIT_TIMEOUT_SECONDS="${STOP_WAIT_TIMEOUT_SECONDS:-30}"
 MODEL_PREP_TIMEOUT_SECONDS="${MODEL_PREP_TIMEOUT_SECONDS:-1800}"
+E2E_AUDIO_FIXTURE_PATH="${E2E_AUDIO_FIXTURE_PATH:-$ROOT_DIR/mlx-audio-swift/Tests/media/conversational_a.wav}"
 MODELS_CSV=""
 LOCK_DIR="/tmp/gloam-e2e-full-matrix.lock"
 
@@ -212,6 +213,36 @@ wait_for_zero_instances() {
   done
 }
 
+enable_unattended_e2e_env() {
+  local enabled=true
+  if ! launchctl setenv GLOAM_UNATTENDED_E2E 1 >/dev/null 2>&1; then
+    enabled=false
+  fi
+  if ! launchctl setenv GLOAM_E2E_AUDIO_FILE "$E2E_AUDIO_FIXTURE_PATH" >/dev/null 2>&1; then
+    enabled=false
+  fi
+
+  if [[ "$enabled" == "true" ]]; then
+    echo "Enabled unattended E2E app mode" | tee -a "$SESSION_LOG"
+    echo "Using unattended E2E audio fixture: $E2E_AUDIO_FIXTURE_PATH" | tee -a "$SESSION_LOG"
+  else
+    echo "Warning: failed to enable unattended E2E app mode via launchctl" | tee -a "$SESSION_LOG"
+  fi
+}
+
+disable_unattended_e2e_env() {
+  launchctl unsetenv GLOAM_UNATTENDED_E2E >/dev/null 2>&1 || true
+  launchctl unsetenv GLOAM_E2E_AUDIO_FILE >/dev/null 2>&1 || true
+}
+
+ensure_e2e_audio_fixture() {
+  if [[ ! -f "$E2E_AUDIO_FIXTURE_PATH" ]]; then
+    echo "Missing E2E audio fixture file: $E2E_AUDIO_FIXTURE_PATH" >&2
+    echo "Set E2E_AUDIO_FIXTURE_PATH to a valid WAV fixture path and rerun." >&2
+    exit 1
+  fi
+}
+
 log_contains_pattern_any() {
   local pattern="$1"
   shift
@@ -323,6 +354,13 @@ setup_defaults_for_model() {
   defaults write "$APP_DEFAULTS_DOMAIN" trim_silence_enabled -bool false
   defaults write "$APP_DEFAULTS_DOMAIN" auto_speed_enabled -bool false
   defaults write "$APP_DEFAULTS_DOMAIN" compress_history_audio -bool false
+  defaults write "$APP_DEFAULTS_DOMAIN" unattended_e2e_mode -bool true
+  defaults write "$APP_DEFAULTS_DOMAIN" e2e_audio_file "$E2E_AUDIO_FIXTURE_PATH"
+}
+
+clear_unattended_e2e_default() {
+  defaults delete "$APP_DEFAULTS_DOMAIN" unattended_e2e_mode >/dev/null 2>&1 || true
+  defaults delete "$APP_DEFAULTS_DOMAIN" e2e_audio_file >/dev/null 2>&1 || true
 }
 
 history_entries_count() {
@@ -791,6 +829,8 @@ generate_reports() {
 
 # Prevent orphaned app instances if the runner is interrupted.
 cleanup_global() {
+  disable_unattended_e2e_env
+  clear_unattended_e2e_default
   kill_all_gloam
   rm -rf "$LOCK_DIR"
 }
@@ -799,6 +839,8 @@ trap cleanup_global EXIT INT TERM
 build_app_if_needed
 ensure_url_scheme_routing
 ensure_clean_start
+ensure_e2e_audio_fixture
+enable_unattended_e2e_env
 
 failures=0
 for model_id in "${MODELS[@]}"; do

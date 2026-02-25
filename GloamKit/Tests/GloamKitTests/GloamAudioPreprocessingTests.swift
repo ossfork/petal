@@ -51,15 +51,21 @@ func speedUpReducesDurationAtExpectedRate() async throws {
 @Test
 func transcriptionClientUsesTrimAndSpeedDependenciesBeforeMLX() async throws {
     let recorder = CallRecorder()
+    let appStorage = UserDefaults.inMemory
     let sampleRate = 16_000.0
     let samples = makeSineWave(count: 800_000, sampleRate: sampleRate, amplitude: 0.4, frequency: 440)
     let audioURL = try writeAudio(samples: samples, sampleRate: sampleRate, prefix: "transcribe-input")
     defer { try? FileManager.default.removeItem(at: audioURL) }
 
     let output = try await withDependencies {
+        $0.defaultAppStorage = appStorage
         $0.mlxClient = MLXClient(
             isModelDownloaded: { _ in true },
             downloadModel: { _, _ in },
+            pauseDownload: {},
+            cancelDownload: {},
+            modelDirectoryURL: { _ in nil },
+            deleteModel: { _ in },
             prepareModelIfNeeded: { _ in
                 await recorder.append("prepare")
             },
@@ -78,7 +84,11 @@ func transcriptionClientUsesTrimAndSpeedDependenciesBeforeMLX() async throws {
             return url
         }
     } operation: {
-        try await TranscriptionClient.liveValue.transcribe(audioURL, .mini3b, .verbatim, nil)
+        @Shared(.trimSilenceEnabled) var trimEnabled = false
+        @Shared(.autoSpeedEnabled) var speedEnabled = false
+        $trimEnabled.withLock { $0 = true }
+        $speedEnabled.withLock { $0 = true }
+        return try await TranscriptionClient.liveValue.transcribe(audioURL, .mini3b, .verbatim, nil)
     }
 
     #expect(output == "ok")
