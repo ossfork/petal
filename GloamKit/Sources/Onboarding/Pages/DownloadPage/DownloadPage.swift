@@ -41,7 +41,8 @@ struct DownloadPage: View {
             )
 
             Spacer()
-
+        }
+        .overlay(alignment: .topTrailing) {
             if downloadModel.state.isActive || downloadModel.state.isPaused {
                 Button {
                     model.minimizeToMiniWindow()

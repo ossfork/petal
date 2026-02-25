@@ -56,3 +56,61 @@ public struct MiniDownloadView: View {
         model.state.progress?.speedText
     }
 }
+
+// MARK: - Previews
+
+@MainActor private func previewModel(state: ModelDownloadState) -> ModelDownloadModel {
+    let model = ModelDownloadModel(isPreviewMode: true)
+    model.state = state
+    return model
+}
+
+#Preview("Downloading") {
+    MiniDownloadView(
+        model: previewModel(state: .downloading(.init(
+            fraction: 0.42,
+            statusText: "Downloading model...",
+            speedText: "18.2 MB/s"
+        ))),
+        onExpand: {}
+    )
+}
+
+#Preview("Downloading - Almost Done") {
+    MiniDownloadView(
+        model: previewModel(state: .downloading(.init(
+            fraction: 0.93,
+            statusText: "Downloading model...",
+            speedText: "24.7 MB/s"
+        ))),
+        onExpand: {}
+    )
+}
+
+#Preview("Paused") {
+    MiniDownloadView(
+        model: previewModel(state: .paused(.init(
+            fraction: 0.42,
+            statusText: "Download paused"
+        ))),
+        onExpand: {}
+    )
+}
+
+#Preview("Just Started") {
+    MiniDownloadView(
+        model: previewModel(state: .downloading(.init(
+            fraction: 0.02,
+            statusText: "Downloading model...",
+            speedText: "3.1 MB/s"
+        ))),
+        onExpand: {}
+    )
+}
+
+#Preview("Not Downloaded") {
+    MiniDownloadView(
+        model: previewModel(state: .notDownloaded),
+        onExpand: {}
+    )
+}
