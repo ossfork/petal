@@ -28,17 +28,15 @@ public struct FloatingCapsuleView: View {
                 error
             }
         }
-        .frame(
-            minWidth: CapsuleStyle.minWidth, maxWidth: CapsuleStyle.maxWidth,
-            minHeight: CapsuleStyle.height, maxHeight: CapsuleStyle.height
-        )
+        .fixedSize()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .animation(.snappy(duration: 0.18), value: self.state.phase)
     }
 
     // MARK: - Phase content
 
     private var recording: some View {
-        HStack(spacing: CapsuleStyle.hStackSpacing) {
+        HStack(spacing: 8) {
             Circle()
                 .fill(.red)
                 .frame(width: 8, height: 8)
@@ -71,7 +69,7 @@ public struct FloatingCapsuleView: View {
     }
 
     private var trimming: some View {
-        HStack(spacing: CapsuleStyle.hStackSpacing) {
+        HStack(spacing: 8) {
             Image(systemName: "scissors")
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(.orange)
@@ -84,7 +82,7 @@ public struct FloatingCapsuleView: View {
     }
 
     private var speeding: some View {
-        HStack(spacing: CapsuleStyle.hStackSpacing) {
+        HStack(spacing: 8) {
             Image(systemName: "figure.run")
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(.teal)
@@ -97,7 +95,7 @@ public struct FloatingCapsuleView: View {
     }
 
     private var transcribing: some View {
-        HStack(spacing: CapsuleStyle.hStackSpacing) {
+        HStack(spacing: 8) {
             CircularProgressRing(progress: self.state.transcriptionProgress)
 
             Text(self.transcribingLabel)
@@ -109,7 +107,7 @@ public struct FloatingCapsuleView: View {
     }
 
     private var error: some View {
-        HStack(spacing: CapsuleStyle.hStackSpacing) {
+        HStack(spacing: 8) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundStyle(.orange)
                 .font(.caption2.weight(.bold))
@@ -127,49 +125,66 @@ public struct FloatingCapsuleView: View {
     }
 }
 
-// MARK: - Previews
+// MARK: - Preview
 
-@MainActor
-private func makePreviewState(
-    phase: FloatingCapsuleState.Phase,
-    level: Double = 0.58,
-    progress: Double = 0.47
-) -> FloatingCapsuleState {
-    let state = FloatingCapsuleState()
-    state.phase = phase
-    state.level = level
-    state.transcriptionProgress = progress
-    return state
+#Preview("Floating Capsule") {
+    FloatingCapsulePreview()
 }
 
-@MainActor
-private func capsulePreview(_ state: FloatingCapsuleState) -> some View {
-    FloatingCapsuleView(state: state)
+private struct FloatingCapsulePreview: View {
+    @State private var state = FloatingCapsuleState()
+    @State private var phaseIndex = 1
+
+    private let phases: [(String, FloatingCapsuleState.Phase)] = [
+        ("Hidden", .hidden),
+        ("Recording", .recording),
+        ("Confirm Cancel", .confirmCancel),
+        ("Trimming", .trimming),
+        ("Speeding", .speeding),
+        ("Transcribing", .transcribing),
+        ("Refining", .refining),
+        ("Error", .error("Preview")),
+    ]
+
+    var body: some View {
+        VStack(spacing: 20) {
+            FloatingCapsuleView(state: state)
+                .frame(width: 400, height: 60)
+                .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: 16))
+
+            HStack(spacing: 16) {
+                Button(action: prev) {
+                    Image(systemName: "chevron.left")
+                }
+                .buttonStyle(.borderless)
+
+                Text(phases[phaseIndex].0)
+                    .font(.footnote.weight(.medium))
+                    .frame(width: 120)
+
+                Button(action: next) {
+                    Image(systemName: "chevron.right")
+                }
+                .buttonStyle(.borderless)
+            }
+        }
         .padding(24)
-        .frame(width: 340, height: 110)
-        .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: 16))
-}
+        .onAppear { applyPhase() }
+    }
 
-#Preview("Recording") {
-    capsulePreview(makePreviewState(phase: .recording, level: 0.72))
-}
+    private func prev() {
+        phaseIndex = (phaseIndex - 1 + phases.count) % phases.count
+        applyPhase()
+    }
 
-#Preview("Confirm Cancel") {
-    capsulePreview(makePreviewState(phase: .confirmCancel))
-}
+    private func next() {
+        phaseIndex = (phaseIndex + 1) % phases.count
+        applyPhase()
+    }
 
-#Preview("Trimming") {
-    capsulePreview(makePreviewState(phase: .trimming))
-}
-
-#Preview("Transcribing") {
-    capsulePreview(makePreviewState(phase: .transcribing, progress: 0.64))
-}
-
-#Preview("Refining") {
-    capsulePreview(makePreviewState(phase: .refining))
-}
-
-#Preview("Error") {
-    capsulePreview(makePreviewState(phase: .error("Preview")))
+    private func applyPhase() {
+        state.phase = phases[phaseIndex].1
+        state.level = 0.72
+        state.transcriptionProgress = 0.64
+    }
 }

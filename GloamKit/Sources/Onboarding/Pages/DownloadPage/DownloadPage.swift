@@ -1,3 +1,4 @@
+import Assets
 import ModelDownloadFeature
 import Shared
 import SwiftUI
@@ -13,11 +14,8 @@ struct DownloadPage: View {
                 .slideIn(active: isAnimating, delay: 0.25)
 
             if let option = downloadModel.selectedModelOption {
-                modelInfo(option)
+                downloadContent(option)
                     .slideIn(active: isAnimating, delay: 0.4)
-
-                downloadContent
-                    .slideIn(active: isAnimating, delay: 0.5)
             }
 
             errorText
@@ -57,28 +55,25 @@ struct DownloadPage: View {
         }
     }
 
-    private func modelInfo(_ option: ModelOption) -> some View {
-        HStack(spacing: 14) {
-            ModelInfoRow(option: option)
-            Spacer(minLength: 8)
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .foregroundStyle(.white)
-        .background(RoundedRectangle(cornerRadius: 16).fill(Color.black))
-        .overlay {
-            RoundedRectangle(cornerRadius: 16)
-                .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
-        }
-    }
-
     @ViewBuilder
-    private var downloadContent: some View {
+    private func downloadContent(_ option: ModelOption) -> some View {
+        let icon = providerIcon(for: option)
+        let name = option.displayName
+        let size = option.sizeLabel
+
         switch downloadModel.state {
         case .downloaded:
-            DownloadCompleteCard(modelDirectoryURL: downloadModel.modelDirectoryURL)
+            DownloadCompleteCard(
+                modelIcon: icon,
+                modelName: name,
+                modelSize: size,
+                modelDirectoryURL: downloadModel.modelDirectoryURL
+            )
         case let .downloading(progress):
             DownloadProgressCard(
+                modelIcon: icon,
+                modelName: name,
+                modelSize: size,
                 progress: progress.fraction,
                 speedText: progress.speedText,
                 isPaused: false,
@@ -88,6 +83,9 @@ struct DownloadPage: View {
             )
         case let .paused(progress):
             DownloadProgressCard(
+                modelIcon: icon,
+                modelName: name,
+                modelSize: size,
                 progress: progress.fraction,
                 speedText: progress.speedText,
                 isPaused: true,
@@ -121,6 +119,15 @@ struct DownloadPage: View {
 
     private var selectedModelRequiresDownload: Bool {
         downloadModel.selectedModelOption?.requiresDownload ?? true
+    }
+
+    private func providerIcon(for option: ModelOption) -> Image {
+        switch option.provider {
+        case .appleSpeech: .swiftLogo
+        case .mlxAudioSTT: .qwen
+        case .whisperKit: .openai
+        case .voxtralCore: .mistral
+        }
     }
 }
 

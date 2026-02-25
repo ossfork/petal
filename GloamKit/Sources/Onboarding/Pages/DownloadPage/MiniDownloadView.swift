@@ -13,20 +13,22 @@ public struct MiniDownloadView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 8) {
-            CircularProgressRing(progress: progressFraction, size: 56, lineWidth: 4)
+        VStack {
+            ZStack {
+                // add image of the model thing here pls
+                CircularProgressRing(progress: progressFraction, size: 64, lineWidth: 6)
 
-            Text(percentText)
-                .font(.system(size: 13, weight: .semibold, design: .rounded).monospacedDigit())
-                .foregroundStyle(.primary)
+                Text(percentText)
+                    .font(.headline)
+            }
 
             if let speedText {
                 Text(speedText)
-                    .font(.system(size: 10, weight: .medium, design: .rounded).monospacedDigit())
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
             }
         }
-        .frame(width: 120, height: 120)
+        .frame(width: 120, height: 144)
         .overlay(alignment: .topTrailing) {
             Button(action: onExpand) {
                 Image(systemName: "arrow.up.left.and.arrow.down.right")

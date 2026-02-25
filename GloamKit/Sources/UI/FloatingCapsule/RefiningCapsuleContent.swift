@@ -2,7 +2,7 @@ import SwiftUI
 
 struct RefiningCapsuleContent: View {
     var body: some View {
-        HStack(spacing: CapsuleStyle.hStackSpacing) {
+        HStack(spacing: 8) {
             Image(systemName: "apple.intelligence")
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(.primary)

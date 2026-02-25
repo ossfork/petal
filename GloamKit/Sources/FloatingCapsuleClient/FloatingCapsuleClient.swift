@@ -90,7 +90,7 @@ private final class LiveFloatingCapsuleRuntime {
         let hostingController = NSHostingController(rootView: contentView)
 
         let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 280, height: 52),
+            contentRect: NSRect(x: 0, y: 0, width: 400, height: 52),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: true

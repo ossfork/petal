@@ -1,20 +1,30 @@
 import AppKit
+import Assets
 import SwiftUI
 
 struct DownloadCompleteCard: View {
+    let modelIcon: Image
+    let modelName: String
+    let modelSize: String?
     let modelDirectoryURL: URL?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 10) {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(.green)
+            HStack(spacing: 12) {
+                modelIcon
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 32, height: 32)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
 
-                Text("Model ready")
+                Text(modelName)
                     .font(.headline)
 
                 Spacer()
+
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(.green)
             }
 
             if modelDirectoryURL != nil {
@@ -44,6 +54,9 @@ struct DownloadCompleteCard: View {
 
 #Preview {
     DownloadCompleteCard(
+        modelIcon: .qwen,
+        modelName: "Qwen3 ASR 0.6B (4-bit)",
+        modelSize: "~1.2 GB",
         modelDirectoryURL: URL(fileURLWithPath: "/tmp")
     )
     .padding()

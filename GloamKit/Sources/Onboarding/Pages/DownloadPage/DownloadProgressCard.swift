@@ -1,7 +1,11 @@
+import Assets
 import SwiftUI
 import UI
 
 struct DownloadProgressCard: View {
+    let modelIcon: Image
+    let modelName: String
+    let modelSize: String?
     let progress: Double
     let speedText: String?
     let isPaused: Bool
@@ -11,6 +15,25 @@ struct DownloadProgressCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 12) {
+                modelIcon
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 32, height: 32)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                Text(modelName)
+                    .font(.headline)
+
+                Spacer()
+
+                if let modelSize {
+                    Text(modelSize)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
             HStack(alignment: .firstTextBaseline) {
                 Text(percentText)
                     .font(.title3.weight(.bold).monospacedDigit())
@@ -94,6 +117,9 @@ struct DownloadProgressCard: View {
 
 #Preview("In Progress") {
     DownloadProgressCard(
+        modelIcon: .qwen,
+        modelName: "Qwen3 ASR 0.6B (4-bit)",
+        modelSize: "~1.2 GB",
         progress: 0.42,
         speedText: "18.2 MB/s",
         isPaused: false,
@@ -107,6 +133,9 @@ struct DownloadProgressCard: View {
 
 #Preview("Paused") {
     DownloadProgressCard(
+        modelIcon: .qwen,
+        modelName: "Qwen3 ASR 0.6B (4-bit)",
+        modelSize: "~1.2 GB",
         progress: 0.42,
         speedText: nil,
         isPaused: true,
