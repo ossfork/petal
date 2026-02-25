@@ -39,6 +39,17 @@ struct GeneralPane: View {
                 }
                 Text("Tap to toggle recording, or hold and release to stop.")
                     .settingDescription()
+
+                LabeledContent("Hold Duration") {
+                    Picker("Hold Duration", selection: Binding(viewModel.$pushToTalkThreshold)) {
+                        ForEach(PushToTalkThreshold.allCases) { threshold in
+                            Text(threshold.displayName).tag(threshold)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 180)
+                    .labelsHidden()
+                }
             }
 
             Section("Permissions") {
@@ -74,8 +85,6 @@ struct GeneralPane: View {
                 Button("Export Logs…") {
                     viewModel.exportLogs()
                 }
-                Text("Save today's log file for debugging.")
-                    .settingDescription()
             }
         }
         .formStyle(.grouped)

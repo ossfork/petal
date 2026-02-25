@@ -45,6 +45,7 @@ final class AppModel {
     @ObservationIgnored @Shared(.appleIntelligenceEnabled) var appleIntelligenceEnabled = false
     @ObservationIgnored @Shared(.compressHistoryAudio) var compressHistoryAudio = false
     @ObservationIgnored @Shared(.historyRetentionMode) var historyRetentionMode: HistoryRetentionMode = .both
+    @ObservationIgnored @Shared(.pushToTalkThreshold) var pushToTalkThreshold: PushToTalkThreshold = .long
     @ObservationIgnored @Shared(.transcriptHistoryDays) var transcriptHistoryDays: [TranscriptHistoryDay] = []
 
     let modelDownloadViewModel: ModelDownloadModel
@@ -99,7 +100,7 @@ final class AppModel {
     @ObservationIgnored private var isShowingMiniDownload = false
     var menuBarFlashOn = true
     @ObservationIgnored private var estimatedTranscriptionRTF = 2.2
-    @ObservationIgnored private let toggleActivationThresholdSeconds = 2.0
+    private var toggleActivationThresholdSeconds: Double { pushToTalkThreshold.seconds }
     nonisolated private static let deepLinkStartTimeoutSeconds = 12.0
 
     nonisolated private static var isRunningInSwiftUIPreview: Bool {

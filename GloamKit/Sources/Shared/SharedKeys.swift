@@ -38,6 +38,12 @@ public extension SharedKey where Self == AppStorageKey<TranscriptionMode>.Defaul
     }
 }
 
+public extension SharedKey where Self == AppStorageKey<PushToTalkThreshold>.Default {
+    static var pushToTalkThreshold: Self {
+        Self[.appStorage("push_to_talk_threshold"), default: .long]
+    }
+}
+
 public extension SharedKey where Self == AppStorageKey<HistoryRetentionMode>.Default {
     static var historyRetentionMode: Self {
         Self[.appStorage("history_retention_mode"), default: .both]
