@@ -348,25 +348,7 @@ private func normalizeDownloadError(_ error: any Error) -> MLXDownloadError {
 
 private enum MLXAudioCache {
     static func isModelDownloaded(repoId: String) -> Bool {
-        guard let repoID = Repo.ID(rawValue: repoId) else { return false }
-        let modelDirectory = modelDirectory(for: repoID)
-
-        guard FileManager.default.fileExists(atPath: modelDirectory.path) else {
-            return false
-        }
-
-        guard let files = try? FileManager.default.contentsOfDirectory(
-            at: modelDirectory,
-            includingPropertiesForKeys: [.fileSizeKey]
-        ) else {
-            return false
-        }
-
-        return files.contains { file in
-            guard file.pathExtension == "safetensors" else { return false }
-            let size = (try? file.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0
-            return size > 0
-        }
+        candidateModelDirectories(repoId: repoId).contains { hasDownloadedWeights(at: $0) }
     }
 
     static func downloadSnapshotIfNeeded(
@@ -396,14 +378,85 @@ private enum MLXAudioCache {
 
         let downloadedPath = try await ModelDownloader.download(downloadInfo, progress: progress)
         try linkIntoMLXAudioCache(source: downloadedPath, repoID: repoID)
+
+        guard isModelDownloaded(repoId: repoId) else {
+            throw ModelDownloaderError.downloadFailed("Downloaded model files were not detected in cache.")
+        }
         progress(1, "Download complete")
     }
 
     static func deleteModel(repoId: String) throws {
-        guard let repoID = Repo.ID(rawValue: repoId) else { return }
-        let directory = modelDirectory(for: repoID)
-        if FileManager.default.fileExists(atPath: directory.path) {
-            try FileManager.default.removeItem(at: directory)
+        let fileManager = FileManager.default
+        var firstError: (any Error)?
+        let paths = candidateModelDirectories(repoId: repoId).sorted { $0.path.count > $1.path.count }
+
+        for path in paths where fileManager.fileExists(atPath: path.path) {
+            do {
+                try fileManager.removeItem(at: path)
+            } catch {
+                if firstError == nil {
+                    firstError = error
+                }
+            }
+        }
+
+        if let firstError {
+            throw firstError
+        }
+    }
+
+    private static func candidateModelDirectories(repoId: String) -> [URL] {
+        var paths: [URL] = []
+        var seen = Set<String>()
+
+        func appendUnique(_ url: URL) {
+            let normalizedPath = url.standardizedFileURL.path
+            guard seen.insert(normalizedPath).inserted else { return }
+            paths.append(url)
+        }
+
+        if let repoID = Repo.ID(rawValue: repoId) {
+            appendUnique(modelDirectory(for: repoID))
+        } else {
+            let fallbackSubdirectory = repoId.replacingOccurrences(of: "/", with: "_")
+            appendUnique(
+                gloamHubCache.cacheDirectory
+                    .appendingPathComponent("mlx-audio")
+                    .appendingPathComponent(fallbackSubdirectory)
+            )
+        }
+
+        // Support direct model folders created by the downloader (`org--repo`) in addition
+        // to linked MLX Audio cache folders (`org_repo`).
+        appendUnique(
+            gloamHubCache.cacheDirectory
+                .appendingPathComponent(repoId.replacingOccurrences(of: "/", with: "--"))
+        )
+
+        return paths
+    }
+
+    private static func hasDownloadedWeights(at modelDirectory: URL) -> Bool {
+        let resolvedDirectory = modelDirectory.resolvingSymlinksInPath()
+        let fileManager = FileManager.default
+
+        guard fileManager.fileExists(atPath: resolvedDirectory.path) else {
+            return false
+        }
+
+        guard let files = try? fileManager.contentsOfDirectory(
+            at: resolvedDirectory,
+            includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return false
+        }
+
+        return files.contains { file in
+            guard file.pathExtension.lowercased() == "safetensors" else { return false }
+            let values = try? file.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey])
+            let size = values?.fileSize ?? 0
+            return (values?.isRegularFile ?? true) && size > 0
         }
     }
 

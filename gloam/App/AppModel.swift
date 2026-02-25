@@ -297,6 +297,8 @@ final class AppModel {
     // MARK: - Deep Links
 
     func handleDeepLink(_ command: GloamDeepLinkCommand) async {
+        logger.info("Handling deep link command: \(command.rawValue, privacy: .public)")
+        consoleLog("Handling deep link command: \(command.rawValue)")
         switch command {
         case .start:
             await startRecordingFromDeepLink()
@@ -889,23 +891,40 @@ final class AppModel {
     // MARK: - Private: Deep Links
 
     private func startRecordingFromDeepLink() async {
-        guard hasCompletedSetup else {
-            transientMessage = "Complete setup to start recording."
-            beginOnboardingFlow()
-            showOnboardingWindow()
+        logger.info(
+            "Deep link start requested. setupCompleted=\(self.hasCompletedSetup, privacy: .public), microphoneAuthorized=\(self.microphoneAuthorized, privacy: .public), isProcessing=\(self.isProcessing, privacy: .public)"
+        )
+        consoleLog(
+            "Deep link start requested. setupCompleted=\(self.hasCompletedSetup), microphoneAuthorized=\(self.microphoneAuthorized), isProcessing=\(self.isProcessing)"
+        )
+        let isCurrentlyRecording = await audioClient.isRecording()
+        if isCurrentlyRecording || isProcessing {
+            logger.info(
+                "Deep link start ignored: isCurrentlyRecording=\(isCurrentlyRecording, privacy: .public), isProcessing=\(self.isProcessing, privacy: .public)"
+            )
+            consoleLog(
+                "Deep link start ignored: isCurrentlyRecording=\(isCurrentlyRecording), isProcessing=\(self.isProcessing)"
+            )
             return
         }
 
-        let isCurrentlyRecording = await audioClient.isRecording()
-        if isCurrentlyRecording || isProcessing { return }
+        guard await ensureSetupReadyForDeepLinkStart() else { return }
 
         if !microphoneAuthorized {
+            logger.info("Deep link start requesting microphone permission")
+            consoleLog("Deep link start requesting microphone permission")
             await microphonePermissionButtonTapped()
             await refreshPermissionStatusAsync()
-            guard microphoneAuthorized else { return }
+            guard microphoneAuthorized else {
+                logger.warning("Deep link start aborted: microphone permission denied")
+                consoleLog("Deep link start aborted: microphone permission denied")
+                return
+            }
         }
 
         do {
+            logger.info("Deep link start attempting to start recording")
+            consoleLog("Deep link start attempting to start recording")
             try await audioClient.startRecording { [weak self] level in
                 guard let self else { return }
                 Task { @MainActor [self, level] in
@@ -935,9 +954,104 @@ final class AppModel {
         }
     }
 
+    private func ensureSetupReadyForDeepLinkStart() async -> Bool {
+        modelDownloadViewModel.selectedModelChanged()
+
+        guard let selectedModelOption else {
+            logger.error("Deep link start failed: selected model is unavailable")
+            consoleLog("Deep link start failed: selected model is unavailable")
+            return false
+        }
+
+        logger.info(
+            "Deep link setup bootstrap begin. model=\(selectedModelOption.rawValue, privacy: .public), requiresDownload=\(selectedModelOption.requiresDownload, privacy: .public), isDownloaded=\(self.isSelectedModelDownloaded, privacy: .public), hasCompletedSetup=\(self.hasCompletedSetup, privacy: .public)"
+        )
+        consoleLog(
+            "Deep link setup bootstrap begin. model=\(selectedModelOption.rawValue), requiresDownload=\(selectedModelOption.requiresDownload), isDownloaded=\(self.isSelectedModelDownloaded), hasCompletedSetup=\(self.hasCompletedSetup)"
+        )
+
+        if selectedModelOption.requiresDownload, !isSelectedModelDownloaded {
+            transientMessage = "Preparing \(selectedModelOption.displayName)…"
+            let maxAttempts = 3
+            var didDownload = false
+
+            for attempt in 1...maxAttempts {
+                logger.info(
+                    "Deep link setup downloading model: \(selectedModelOption.rawValue, privacy: .public), attempt=\(attempt, privacy: .public)"
+                )
+                consoleLog("Deep link setup downloading model: \(selectedModelOption.rawValue), attempt=\(attempt)")
+
+                await modelDownloadViewModel.downloadModel()
+
+                transientMessage = modelDownloadViewModel.transientMessage
+                lastError = modelDownloadViewModel.lastError
+
+                let stateDownloaded = modelDownloadViewModel.state.isDownloaded
+                let cacheCheckDownloaded = isSelectedModelDownloaded
+                let directoryFound = modelDownloadViewModel.modelDirectoryURL != nil
+                let modelReady = cacheCheckDownloaded || (stateDownloaded && directoryFound)
+
+                if modelReady {
+                    didDownload = true
+                    logger.info(
+                        "Deep link setup model download complete: \(selectedModelOption.rawValue, privacy: .public), stateDownloaded=\(stateDownloaded, privacy: .public), cacheCheckDownloaded=\(cacheCheckDownloaded, privacy: .public), directoryFound=\(directoryFound, privacy: .public)"
+                    )
+                    consoleLog(
+                        "Deep link setup model download complete: \(selectedModelOption.rawValue), stateDownloaded=\(stateDownloaded), cacheCheckDownloaded=\(cacheCheckDownloaded), directoryFound=\(directoryFound)"
+                    )
+                    break
+                }
+
+                let reason = modelDownloadViewModel.lastError ?? "Model download did not complete."
+                logger.error(
+                    "Deep link setup download attempt failed. model=\(selectedModelOption.rawValue, privacy: .public), attempt=\(attempt, privacy: .public), state=\(String(describing: self.modelDownloadViewModel.state), privacy: .public), cacheCheckDownloaded=\(cacheCheckDownloaded, privacy: .public), directoryFound=\(directoryFound, privacy: .public), reason=\(reason, privacy: .public)"
+                )
+                consoleLog(
+                    "Deep link setup download attempt failed. model=\(selectedModelOption.rawValue), attempt=\(attempt), state=\(String(describing: self.modelDownloadViewModel.state)), cacheCheckDownloaded=\(cacheCheckDownloaded), directoryFound=\(directoryFound), reason=\(reason)"
+                )
+
+                if attempt < maxAttempts {
+                    try? await clock.sleep(for: .seconds(2))
+                }
+            }
+
+            guard didDownload else {
+                let reason = modelDownloadViewModel.lastError ?? "Model download did not complete."
+                logger.error("Deep link setup download failed: \(reason, privacy: .public)")
+                consoleLog("Deep link setup download failed: \(reason)")
+                return false
+            }
+        }
+
+        if !hasCompletedSetup || onboardingModel != nil {
+            stopMenuBarFlash()
+            downloadStateObserverTask?.cancel()
+            downloadStateObserverTask = nil
+            miniDownloadRestoreTask?.cancel()
+            miniDownloadRestoreTask = nil
+            isShowingMiniDownload = false
+            onboardingModel = nil
+            $hasCompletedSetup.withLock { $0 = true }
+            await windowClient.close(WindowConfig.miniDownload.id)
+            await windowClient.close(WindowConfig.onboarding.id)
+            logger.info("Deep link setup marked complete")
+            consoleLog("Deep link setup marked complete")
+        }
+
+        await warmModelTask()
+        transientMessage = nil
+        return true
+    }
+
     private func stopRecordingFromDeepLink() async {
         let isCurrentlyRecording = await audioClient.isRecording()
-        guard isCurrentlyRecording else { return }
+        logger.info("Deep link stop requested. isCurrentlyRecording=\(isCurrentlyRecording, privacy: .public)")
+        consoleLog("Deep link stop requested. isCurrentlyRecording=\(isCurrentlyRecording)")
+        guard isCurrentlyRecording else {
+            logger.info("Deep link stop ignored: no active recording")
+            consoleLog("Deep link stop ignored: no active recording")
+            return
+        }
         logger.info("Stopping recording from deep link")
         consoleLog("Stopping recording from deep link")
         await stopRecordingAndTranscribe()
@@ -945,6 +1059,8 @@ final class AppModel {
 
     private func toggleRecordingFromDeepLink() async {
         let isCurrentlyRecording = await audioClient.isRecording()
+        logger.info("Deep link toggle requested. isCurrentlyRecording=\(isCurrentlyRecording, privacy: .public)")
+        consoleLog("Deep link toggle requested. isCurrentlyRecording=\(isCurrentlyRecording)")
         if isCurrentlyRecording {
             await stopRecordingFromDeepLink()
         } else {
