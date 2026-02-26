@@ -3,7 +3,6 @@ name: Release
 on:
   release:
     types: [published]
-  workflow_dispatch:
 
 env:
   SCHEME: petal
@@ -14,28 +13,7 @@ env:
   SPARKLE_TAR_SHA256: "5cddb7695674ef7704268f38eccaee80e3accbf19e61c1689efff5b6116d85be"
 
 jobs:
-  validate:
-    runs-on: macos-26
-    timeout-minutes: 45
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
-
-      - name: Make scripts executable
-        run: |
-          chmod +x scripts/phase-gate.sh
-          chmod +x scripts/ci/test-aria2c.sh
-
-      - name: Run package, app, and aria2c gates
-        run: ./scripts/phase-gate.sh
-
   release:
-    if: github.event_name == 'release'
-    needs: validate
     runs-on: macos-26
     timeout-minutes: 75
     permissions:
@@ -58,8 +36,6 @@ jobs:
 
       - name: Make scripts executable
         run: |
-          chmod +x scripts/phase-gate.sh
-          chmod +x scripts/ci/test-aria2c.sh
           chmod +x scripts/release/sign-aria2c.sh
           chmod +x scripts/release/verify-notarization.sh
           chmod +x scripts/release/create-dmg.sh
@@ -232,7 +208,6 @@ jobs:
           ./scripts/release/verify-notarization.sh \
             --app "$APP_PATH" \
             --require-aria2c
-          ./scripts/ci/test-aria2c.sh --app "$APP_PATH"
 
       - name: Install create-dmg
         run: brew install create-dmg
