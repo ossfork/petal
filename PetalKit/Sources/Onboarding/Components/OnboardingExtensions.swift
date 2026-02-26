@@ -42,6 +42,10 @@ struct OnboardingPageContainer<Content: View>: View {
     }
 }
 
+#if DEBUG
+
 #Preview("Welcome") {
     OnboardingView(model: .makePreview(page: .welcome))
 }
+
+#endif

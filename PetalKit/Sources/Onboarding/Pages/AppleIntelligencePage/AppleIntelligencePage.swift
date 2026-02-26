@@ -70,6 +70,8 @@ struct AppleIntelligencePage: View {
     }
 }
 
+#if DEBUG
+
 #Preview("Apple Intelligence - Off") {
     OnboardingView(model: .makePreview(page: .appleIntelligence) { model in
         model.$appleIntelligenceEnabled.withLock { $0 = false }
@@ -81,3 +83,5 @@ struct AppleIntelligencePage: View {
         model.$appleIntelligenceEnabled.withLock { $0 = true }
     })
 }
+
+#endif

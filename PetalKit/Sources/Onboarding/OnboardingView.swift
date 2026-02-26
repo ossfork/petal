@@ -91,6 +91,8 @@ public struct OnboardingView: View {
 
 // MARK: - Previews
 
+#if DEBUG
+
 #Preview("Welcome") {
     OnboardingView(model: .makePreview(page: .welcome))
 }
@@ -122,3 +124,5 @@ public struct OnboardingView: View {
 #Preview("Download") {
     OnboardingView(model: .makePreview(page: .download))
 }
+
+#endif

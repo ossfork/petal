@@ -240,6 +240,8 @@ private extension View {
     }
 }
 
+#if DEBUG
+
 #Preview("Download - Not Downloaded") {
     OnboardingView(model: .makePreview(page: .download))
 }
@@ -268,3 +270,5 @@ private extension View {
         model.modelDownloadViewModel.state = .downloaded
     })
 }
+
+#endif

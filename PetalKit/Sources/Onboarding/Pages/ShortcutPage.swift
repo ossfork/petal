@@ -29,6 +29,10 @@ struct ShortcutPage: View {
     }
 }
 
+#if DEBUG
+
 #Preview("Shortcut") {
     OnboardingView(model: .makePreview(page: .shortcut))
 }
+
+#endif
