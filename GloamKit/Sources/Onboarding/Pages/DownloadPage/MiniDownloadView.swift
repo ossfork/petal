@@ -12,7 +12,7 @@ public struct MiniDownloadView: View {
         self.model = model
         self.onExpand = onExpand
     }
-
+ 
     public var body: some View {
         progressContent
             .frame(width: 130, height: 110)

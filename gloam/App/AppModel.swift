@@ -92,6 +92,9 @@ final class AppModel {
     @ObservationIgnored private var isAwaitingCancelRecordingConfirmation = false
     @ObservationIgnored private var ignoreNextShortcutKeyUp = false
     @ObservationIgnored private var currentShortcutPressStart: Date?
+    @ObservationIgnored private var isStartingRecording = false
+    @ObservationIgnored private var isStoppingRecording = false
+    @ObservationIgnored private var pendingStopAfterStart = false
     @ObservationIgnored private var transcriptionProgressTask: Task<Void, Never>?
     @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
     @ObservationIgnored private var miniDownloadRestoreTask: Task<Void, Never>?
@@ -338,6 +341,10 @@ final class AppModel {
         }
 
         if toggleRecordingIsActive {
+            guard !isStoppingRecording else {
+                logger.debug("Ignoring toggle stop: stop already in flight")
+                return
+            }
             toggleRecordingIsActive = false
             ignoreNextShortcutKeyUp = true
             logger.info("Toggle recording stop requested")
@@ -346,11 +353,21 @@ final class AppModel {
             return
         }
 
-        _ = await audioClient.isRecording()
+        if isRecordingLifecycleBusy {
+            logger.debug("Ignoring key down while recording lifecycle is busy")
+            return
+        }
+
+        let isCurrentlyRecording = await audioClient.isRecording()
+        if isCurrentlyRecording {
+            logger.debug("Ignoring key down because recording is already active")
+            return
+        }
 
         guard !pushToTalkIsActive else { return }
 
         pushToTalkIsActive = true
+        pendingStopAfterStart = false
         currentShortcutPressStart = now
 
         if !microphoneAuthorized {
@@ -368,6 +385,9 @@ final class AppModel {
             }
         }
 
+        isStartingRecording = true
+        defer { isStartingRecording = false }
+
         do {
             try await audioClient.startRecording { [weak self] level in
                 guard let self else { return }
@@ -382,6 +402,13 @@ final class AppModel {
             await floatingCapsuleClient.showRecording()
             logger.info("Recording started")
             consoleLog("Recording started")
+
+            if pendingStopAfterStart {
+                pendingStopAfterStart = false
+                logger.debug("Applying deferred stop after recording start completed")
+                await stopRecordingAndTranscribe()
+                return
+            }
         } catch {
             reportIssue(error)
             sessionState = .error(error.localizedDescription)
@@ -411,11 +438,30 @@ final class AppModel {
 
         pushToTalkIsActive = false
 
-        let isCurrentlyRecording = await audioClient.isRecording()
-        guard isCurrentlyRecording else { return }
+        if isStoppingRecording {
+            logger.debug("Ignoring key up while stop is already in flight")
+            return
+        }
 
         let holdDuration = now.timeIntervalSince(currentShortcutPressStart ?? now)
         currentShortcutPressStart = nil
+
+        let isCurrentlyRecording = await audioClient.isRecording()
+        if !isCurrentlyRecording {
+            guard isStartingRecording else { return }
+            if holdDuration < toggleActivationThresholdSeconds {
+                toggleRecordingIsActive = true
+                transientMessage = "Listening — tap your shortcut to stop."
+                logger.info("Toggle recording engaged while start in progress. holdDuration=\(holdDuration, privacy: .public)")
+                let holdDurationText = holdDuration.formatted(.number.precision(.fractionLength(2)))
+                consoleLog("Toggle recording engaged while start in progress. holdDuration=\(holdDurationText)s")
+                return
+            }
+
+            pendingStopAfterStart = true
+            logger.debug("Deferring stop request until recording start completes")
+            return
+        }
 
         if holdDuration < toggleActivationThresholdSeconds {
             toggleRecordingIsActive = true
@@ -432,6 +478,23 @@ final class AppModel {
     // MARK: - Private: Recording & Transcription
 
     private func stopRecordingAndTranscribe() async {
+        guard !isStoppingRecording else {
+            logger.debug("Ignoring stop request while stop is already in flight")
+            return
+        }
+        isStoppingRecording = true
+        defer { isStoppingRecording = false }
+
+        let isCurrentlyRecording = await audioClient.isRecording()
+        guard isCurrentlyRecording else {
+            logger.debug("Ignoring stop request because no recording is active")
+            pushToTalkIsActive = false
+            toggleRecordingIsActive = false
+            sessionState = .idle
+            await floatingCapsuleClient.hide()
+            return
+        }
+
         toggleRecordingIsActive = false
         isAwaitingCancelRecordingConfirmation = false
         sessionState = .processing(.trimming)
@@ -912,12 +975,12 @@ final class AppModel {
             "Deep link start requested. setupCompleted=\(self.hasCompletedSetup), microphoneAuthorized=\(self.microphoneAuthorized), isProcessing=\(self.isProcessing)"
         )
         let isCurrentlyRecording = await audioClient.isRecording()
-        if isCurrentlyRecording || isProcessing {
+        if isCurrentlyRecording || isRecordingLifecycleBusy {
             logger.info(
-                "Deep link start ignored: isCurrentlyRecording=\(isCurrentlyRecording, privacy: .public), isProcessing=\(self.isProcessing, privacy: .public)"
+                "Deep link start ignored: isCurrentlyRecording=\(isCurrentlyRecording, privacy: .public), isProcessing=\(self.isProcessing, privacy: .public), isStarting=\(self.isStartingRecording, privacy: .public), isStopping=\(self.isStoppingRecording, privacy: .public)"
             )
             consoleLog(
-                "Deep link start ignored: isCurrentlyRecording=\(isCurrentlyRecording), isProcessing=\(self.isProcessing)"
+                "Deep link start ignored: isCurrentlyRecording=\(isCurrentlyRecording), isProcessing=\(self.isProcessing), isStarting=\(self.isStartingRecording), isStopping=\(self.isStoppingRecording)"
             )
             return
         }
@@ -941,6 +1004,9 @@ final class AppModel {
                 }
             }
         }
+
+        isStartingRecording = true
+        defer { isStartingRecording = false }
 
         do {
             logger.info("Deep link start attempting to start recording")
@@ -1134,6 +1200,10 @@ final class AppModel {
     }
 
     // MARK: - Private: Helpers
+
+    private var isRecordingLifecycleBusy: Bool {
+        isStartingRecording || isStoppingRecording || isProcessing
+    }
 
     private func recordingLevelDidUpdate(_ level: Double) {
         guard case .recording = sessionState else { return }
