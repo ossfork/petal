@@ -51,6 +51,22 @@ struct PetalApp: App {
                     NSApp.sendAction(#selector(AppDelegate.showAboutPanel), to: nil, from: nil)
                 }
             }
+
+            CommandGroup(after: .appInfo) {
+                if let updatesModel {
+                    Button("Check for Updates…") {
+                        updatesModel.checkForUpdates()
+                    }
+                    .disabled(!updatesModel.canCheckForUpdates)
+                }
+            }
+
+            CommandGroup(replacing: .appSettings) {
+                Button("Settings…") {
+                    model.openSettingsWindow()
+                }
+                .keyboardShortcut(",", modifiers: .command)
+            }
         }
 
 

@@ -25,6 +25,12 @@ final class MenuBarContentViewModel {
 
     var statusTitle: String { appModel.statusTitle }
     var statusSymbolName: String { appModel.menuBarSymbolName }
+    var isRecording: Bool {
+        if case .recording = appModel.sessionState {
+            return true
+        }
+        return false
+    }
     var statusColor: Color {
         switch appModel.sessionState {
         case .recording:
@@ -57,7 +63,8 @@ final class MenuBarContentViewModel {
     }
 
     var historyMenuItems: [HistoryMenuItem] {
-        appModel.recentTranscriptHistoryEntries
+        Array(
+            appModel.recentTranscriptHistoryEntries
             .compactMap { entry in
                 guard let transcript = historyClient.transcriptText(entry.preferredTranscriptRelativePath) else { return nil }
                 let normalizedTranscript = transcript
@@ -74,6 +81,8 @@ final class MenuBarContentViewModel {
                     subtitle: subtitle
                 )
             }
+            .prefix(6)
+        )
     }
 
     var showsCheckForUpdates: Bool { updatesModel != nil }
@@ -93,6 +102,10 @@ final class MenuBarContentViewModel {
 
     func copyHistoryEntry(_ entryID: UUID) {
         appModel.copyTranscriptHistoryButtonTapped(entryID)
+    }
+
+    func stopRecording() {
+        Task { await appModel.handleDeepLink(.stop) }
     }
 
     func checkForUpdates() {

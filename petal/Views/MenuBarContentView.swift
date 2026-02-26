@@ -15,6 +15,13 @@ struct MenuBarContentView: View {
                 Label(viewModel.statusTitle, systemImage: viewModel.statusSymbolName)
                     .foregroundStyle(viewModel.statusColor)
                 Spacer()
+                if viewModel.isRecording {
+                    Button("Stop") {
+                        viewModel.stopRecording()
+                    }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.red)
+                }
             }
 
             if let error = viewModel.statusErrorMessage {
@@ -67,7 +74,7 @@ struct MenuBarContentView: View {
                 }
             }
 
-            MenuSection(divider: true) {
+            MenuSection("App", divider: true) {
                 if viewModel.showsCheckForUpdates {
                     MenuCommand("Check for Updates…") {
                         viewModel.checkForUpdates()
@@ -82,7 +89,9 @@ struct MenuBarContentView: View {
                 MenuCommand("Settings…") {
                     viewModel.openSettings()
                 }
+            }
 
+            MenuSection(divider: true) {
                 MenuCommand("Quit Petal") {
                     viewModel.quit()
                 }
