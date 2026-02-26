@@ -21,6 +21,14 @@ public extension SharedKey where Self == AppStorageKey<Bool>.Default {
     static var appleIntelligenceEnabled: Self {
         Self[.appStorage("apple_intelligence_enabled"), default: false]
     }
+
+    static var logsEnabled: Self {
+        Self[.appStorage("logs_enabled"), default: false]
+    }
+
+    static var restoreClipboardAfterPaste: Self {
+        Self[.appStorage("restore_clipboard_after_paste"), default: true]
+    }
 }
 
 public extension SharedKey where Self == AppStorageKey<String>.Default {

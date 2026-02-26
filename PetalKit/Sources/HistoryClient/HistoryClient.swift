@@ -11,8 +11,10 @@ public struct HistoryClient: Sendable {
     public var applyRetention: @Sendable (HistoryRetentionMode, [TranscriptHistoryDay]) -> [TranscriptHistoryDay] = { _, days in days }
     public var appendEntry: @Sendable (AppendEntryRequest) -> [TranscriptHistoryDay] = { _ in [] }
     public var persistArtifacts: @Sendable (PersistArtifactsRequest) async -> PersistedArtifacts? = { _ in nil }
+    public var cleanHistoryOlderThan: @Sendable (Int, HistoryRetentionMode, [TranscriptHistoryDay]) -> [TranscriptHistoryDay] = { _, _, days in days }
     public var openHistoryFolder: @Sendable (HistoryRetentionMode) -> Bool = { _ in false }
     public var historyAudioURL: @Sendable (String?) -> URL? = { _ in nil }
+    public var transcriptText: @Sendable (String?) -> String? = { _ in nil }
     public var modelsDirectoryPath: @Sendable () -> String = { "" }
     public var historyDirectoryPath: @Sendable () -> String = { "" }
     public var deleteMediaOnly: @Sendable ([TranscriptHistoryDay]) -> [TranscriptHistoryDay] = { days in days }
@@ -30,7 +32,7 @@ public struct AppendEntryRequest: Sendable {
     public var transcriptRelativePath: String?
     public var retentionMode: HistoryRetentionMode
     public var timestamp: Date
-    public var id: UUID
+    public var sessionID: UUID
 
     public init(
         currentDays: [TranscriptHistoryDay],
@@ -44,7 +46,7 @@ public struct AppendEntryRequest: Sendable {
         transcriptRelativePath: String?,
         retentionMode: HistoryRetentionMode,
         timestamp: Date,
-        id: UUID
+        sessionID: UUID
     ) {
         self.currentDays = currentDays
         self.transcript = transcript
@@ -57,7 +59,7 @@ public struct AppendEntryRequest: Sendable {
         self.transcriptRelativePath = transcriptRelativePath
         self.retentionMode = retentionMode
         self.timestamp = timestamp
-        self.id = id
+        self.sessionID = sessionID
     }
 }
 
@@ -69,6 +71,7 @@ public struct PersistArtifactsRequest: Sendable {
     public var modelID: String
     public var retentionMode: HistoryRetentionMode
     public var compressAudio: Bool
+    public var persistAudio: Bool
 
     public init(
         audioURL: URL,
@@ -77,7 +80,8 @@ public struct PersistArtifactsRequest: Sendable {
         mode: String,
         modelID: String,
         retentionMode: HistoryRetentionMode,
-        compressAudio: Bool = false
+        compressAudio: Bool = false,
+        persistAudio: Bool = true
     ) {
         self.audioURL = audioURL
         self.transcript = transcript
@@ -86,6 +90,7 @@ public struct PersistArtifactsRequest: Sendable {
         self.modelID = modelID
         self.retentionMode = retentionMode
         self.compressAudio = compressAudio
+        self.persistAudio = persistAudio
     }
 }
 
@@ -115,11 +120,17 @@ extension HistoryClient: DependencyKey {
             persistArtifacts: { request in
                 await runtime.persistArtifacts(request)
             },
+            cleanHistoryOlderThan: { daysToKeep, retentionMode, days in
+                runtime.cleanHistoryOlderThan(daysToKeep: daysToKeep, retentionMode: retentionMode, days: days)
+            },
             openHistoryFolder: { retentionMode in
                 runtime.openHistoryFolder(retentionMode: retentionMode)
             },
             historyAudioURL: { relativePath in
                 runtime.historyAudioURL(relativePath: relativePath)
+            },
+            transcriptText: { relativePath in
+                runtime.transcriptText(relativePath: relativePath)
             },
             modelsDirectoryPath: {
                 runtime.modelsDirectoryPath
@@ -160,34 +171,54 @@ private final class HistoryRuntime: @unchecked Sendable {
             return []
         }
         ensureDataDirectories(retentionMode: retentionMode)
-        return pruned(days: currentDays, retentionMode: retentionMode)
+        let retained = pruned(days: currentDays, retentionMode: retentionMode)
+        return healed(days: retained, retentionMode: retentionMode)
     }
 
     func appendEntry(_ request: AppendEntryRequest) -> [TranscriptHistoryDay] {
         guard request.retentionMode.keepsHistory else { return request.currentDays }
 
-        let day = Self.historyDayFormatter.string(from: request.timestamp)
-        let entry = TranscriptHistoryEntry(
-            id: request.id,
-            timestamp: request.timestamp,
-            transcript: request.retentionMode.keepsTranscripts ? request.transcript : "",
-            modelID: request.modelID,
-            transcriptionMode: request.mode,
-            audioDurationSeconds: request.audioDuration,
+        let variant = TranscriptHistoryVariant(
+            mode: request.mode,
             transcriptionElapsedSeconds: request.transcriptionElapsed,
             characterCount: request.transcript.count,
             pasteResult: request.pasteResult,
-            audioRelativePath: request.audioRelativePath,
             transcriptRelativePath: request.transcriptRelativePath
         )
+        let day = Self.historyDayFormatter.string(from: request.timestamp)
 
         var updatedDays = request.currentDays
         if let dayIndex = updatedDays.firstIndex(where: { $0.day == day }) {
-            updatedDays[dayIndex].entries.insert(entry, at: 0)
-            if updatedDays[dayIndex].entries.count > 200 {
-                updatedDays[dayIndex].entries.removeLast(updatedDays[dayIndex].entries.count - 200)
+            if var existingEntry = updatedDays[dayIndex].entries[id: request.sessionID] {
+                existingEntry.timestamp = request.timestamp
+                existingEntry.modelID = request.modelID
+                existingEntry.audioDurationSeconds = request.audioDuration
+                if let audioRelativePath = request.audioRelativePath {
+                    existingEntry.audioRelativePath = audioRelativePath
+                }
+                existingEntry.variants[id: variant.id] = variant
+                updatedDays[dayIndex].entries[id: existingEntry.id] = existingEntry
+            } else {
+                let entry = TranscriptHistoryEntry(
+                    id: request.sessionID,
+                    timestamp: request.timestamp,
+                    modelID: request.modelID,
+                    audioDurationSeconds: request.audioDuration,
+                    audioRelativePath: request.audioRelativePath,
+                    variants: [variant]
+                )
+                updatedDays[dayIndex].entries.insert(entry, at: 0)
             }
+            updatedDays[dayIndex].entries = Self.sortedAndCapped(updatedDays[dayIndex].entries)
         } else {
+            let entry = TranscriptHistoryEntry(
+                id: request.sessionID,
+                timestamp: request.timestamp,
+                modelID: request.modelID,
+                audioDurationSeconds: request.audioDuration,
+                audioRelativePath: request.audioRelativePath,
+                variants: [variant]
+            )
             updatedDays.append(TranscriptHistoryDay(day: day, entries: [entry]))
         }
         updatedDays.sort { $0.day > $1.day }
@@ -201,14 +232,15 @@ private final class HistoryRuntime: @unchecked Sendable {
         let fileManager = FileManager.default
         let stamp = Self.historyArtifactFormatter.string(from: request.timestamp)
         let safeModelID = request.modelID.replacingOccurrences(of: "/", with: "-")
-        let baseName = "\(stamp)-\(safeModelID)-\(request.mode)"
+        let safeMode = request.mode.replacingOccurrences(of: "/", with: "-")
+        let baseName = "\(stamp)-\(safeModelID)"
 
         let audioTarget = Self.historyMediaDirectoryURL.appending(path: "\(baseName).m4a")
-        let transcriptTarget = Self.historyTranscriptsDirectoryURL.appending(path: "\(baseName).txt")
+        let transcriptTarget = Self.historyTranscriptsDirectoryURL.appending(path: "\(baseName)-\(safeMode).txt")
 
         var artifacts = PersistedArtifacts()
         do {
-            if request.retentionMode.keepsAudio {
+            if request.retentionMode.keepsAudio && request.persistAudio {
                 if fileManager.fileExists(atPath: audioTarget.path) {
                     try fileManager.removeItem(at: audioTarget)
                 }
@@ -234,6 +266,47 @@ private final class HistoryRuntime: @unchecked Sendable {
         }
     }
 
+    func cleanHistoryOlderThan(daysToKeep: Int, retentionMode: HistoryRetentionMode, days: [TranscriptHistoryDay]) -> [TranscriptHistoryDay] {
+        guard daysToKeep > 0 else { return days }
+
+        let cutoff = Date().addingTimeInterval(-Double(daysToKeep) * 24 * 60 * 60)
+        var pathsToDelete = Set<String>()
+        var updatedDays: [TranscriptHistoryDay] = []
+
+        for day in days {
+            let keptEntries = day.entries.filter { entry in
+                let keep = entry.timestamp >= cutoff
+                if !keep {
+                    if let audioPath = entry.audioRelativePath {
+                        pathsToDelete.insert(audioPath)
+                    }
+                    for variant in entry.variants {
+                        if let transcriptPath = variant.transcriptRelativePath {
+                            pathsToDelete.insert(transcriptPath)
+                        }
+                    }
+                }
+                return keep
+            }
+
+            if !keptEntries.isEmpty {
+                updatedDays.append(
+                    TranscriptHistoryDay(
+                        day: day.day,
+                        entries: IdentifiedArray(uniqueElements: keptEntries)
+                    )
+                )
+            }
+        }
+
+        for path in pathsToDelete {
+            removeHistoryFile(relativePath: path)
+        }
+
+        let retained = pruned(days: updatedDays, retentionMode: retentionMode)
+        return healed(days: retained, retentionMode: retentionMode)
+    }
+
     func openHistoryFolder(retentionMode: HistoryRetentionMode) -> Bool {
         guard retentionMode.keepsHistory else { return false }
         if !FileManager.default.fileExists(atPath: Self.historyDirectoryURL.path) {
@@ -245,17 +318,24 @@ private final class HistoryRuntime: @unchecked Sendable {
 
     func historyAudioURL(relativePath: String?) -> URL? {
         guard let relativePath else { return nil }
-        let audioURL = Self.historyDirectoryURL.appending(path: relativePath)
+        guard let audioURL = historyURL(relativePath: relativePath) else { return nil }
         guard FileManager.default.fileExists(atPath: audioURL.path) else { return nil }
         return audioURL
+    }
+
+    func transcriptText(relativePath: String?) -> String? {
+        guard let relativePath else { return nil }
+        guard let transcriptURL = historyURL(relativePath: relativePath) else { return nil }
+        guard FileManager.default.fileExists(atPath: transcriptURL.path) else { return nil }
+        return try? String(contentsOf: transcriptURL, encoding: .utf8)
     }
 
     func deleteMediaOnly(days: [TranscriptHistoryDay]) -> [TranscriptHistoryDay] {
         try? FileManager.default.removeItem(at: Self.historyMediaDirectoryURL)
         var updatedDays = days
         for dayIndex in updatedDays.indices {
-            for entryIndex in updatedDays[dayIndex].entries.indices {
-                updatedDays[dayIndex].entries[entryIndex].audioRelativePath = nil
+            for entryID in updatedDays[dayIndex].entries.ids {
+                updatedDays[dayIndex].entries[id: entryID]?.audioRelativePath = nil
             }
         }
         return updatedDays
@@ -288,20 +368,95 @@ private final class HistoryRuntime: @unchecked Sendable {
         var updatedDays = days
         if !retentionMode.keepsAudio {
             for dayIndex in updatedDays.indices {
-                for entryIndex in updatedDays[dayIndex].entries.indices {
-                    updatedDays[dayIndex].entries[entryIndex].audioRelativePath = nil
+                for entryID in updatedDays[dayIndex].entries.ids {
+                    updatedDays[dayIndex].entries[id: entryID]?.audioRelativePath = nil
                 }
             }
         }
         if !retentionMode.keepsTranscripts {
             for dayIndex in updatedDays.indices {
-                for entryIndex in updatedDays[dayIndex].entries.indices {
-                    updatedDays[dayIndex].entries[entryIndex].transcriptRelativePath = nil
-                    updatedDays[dayIndex].entries[entryIndex].transcript = ""
+                for entryID in updatedDays[dayIndex].entries.ids {
+                    guard var entry = updatedDays[dayIndex].entries[id: entryID] else { continue }
+                    for variantID in entry.variants.ids {
+                        entry.variants[id: variantID]?.transcriptRelativePath = nil
+                    }
+                    updatedDays[dayIndex].entries[id: entryID] = entry
                 }
             }
         }
         return updatedDays
+    }
+
+    private func healed(
+        days: [TranscriptHistoryDay],
+        retentionMode: HistoryRetentionMode
+    ) -> [TranscriptHistoryDay] {
+        var healedDays: [TranscriptHistoryDay] = []
+
+        for day in days {
+            var healedEntries: [TranscriptHistoryEntry] = []
+
+            for entry in day.entries {
+                var healedEntry = entry
+
+                if retentionMode.keepsAudio,
+                   let audioRelativePath = healedEntry.audioRelativePath,
+                   historyURL(relativePath: audioRelativePath).map({ FileManager.default.fileExists(atPath: $0.path) }) != true
+                {
+                    healedEntry.audioRelativePath = nil
+                }
+
+                if retentionMode.keepsTranscripts {
+                    healedEntry.variants = IdentifiedArray(
+                        uniqueElements: healedEntry.variants.compactMap { variant in
+                            guard let transcriptRelativePath = variant.transcriptRelativePath else { return nil }
+                            guard let transcriptURL = historyURL(relativePath: transcriptRelativePath),
+                                  FileManager.default.fileExists(atPath: transcriptURL.path)
+                            else {
+                                return nil
+                            }
+                            return variant
+                        }
+                    )
+                }
+
+                if !healedEntry.variants.isEmpty {
+                    healedEntries.append(healedEntry)
+                }
+            }
+
+            if !healedEntries.isEmpty {
+                healedDays.append(
+                    TranscriptHistoryDay(
+                        day: day.day,
+                        entries: IdentifiedArray(uniqueElements: healedEntries.sorted { $0.timestamp > $1.timestamp })
+                    )
+                )
+            }
+        }
+
+        healedDays.sort { $0.day > $1.day }
+        return healedDays
+    }
+
+    private func historyURL(relativePath: String) -> URL? {
+        let candidate = Self.historyDirectoryURL.appending(path: relativePath).standardizedFileURL
+        let base = Self.historyDirectoryURL.standardizedFileURL
+        guard candidate.path.hasPrefix(base.path + "/") else { return nil }
+        return candidate
+    }
+
+    private func removeHistoryFile(relativePath: String) {
+        guard let fileURL = historyURL(relativePath: relativePath) else { return }
+        try? FileManager.default.removeItem(at: fileURL)
+    }
+
+    private static func sortedAndCapped(_ entries: IdentifiedArrayOf<TranscriptHistoryEntry>) -> IdentifiedArrayOf<TranscriptHistoryEntry> {
+        var sorted = IdentifiedArray(uniqueElements: entries.sorted { $0.timestamp > $1.timestamp })
+        if sorted.count > 200 {
+            sorted.removeLast(sorted.count - 200)
+        }
+        return sorted
     }
 
     private static let historyDayFormatter: DateFormatter = {

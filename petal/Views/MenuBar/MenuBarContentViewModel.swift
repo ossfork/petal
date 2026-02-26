@@ -1,4 +1,6 @@
 import AppKit
+import Dependencies
+import HistoryClient
 import Observation
 import Shared
 import SwiftUI
@@ -14,6 +16,7 @@ final class MenuBarContentViewModel {
 
     private let appModel: AppModel
     private var updatesModel: CheckForUpdatesModel?
+    @ObservationIgnored @Dependency(\.historyClient) private var historyClient
 
     init(appModel: AppModel, updatesModel: CheckForUpdatesModel? = nil) {
         self.appModel = appModel
@@ -55,14 +58,15 @@ final class MenuBarContentViewModel {
 
     var historyMenuItems: [HistoryMenuItem] {
         appModel.recentTranscriptHistoryEntries
-            .filter { !$0.transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-            .map { entry in
-                let normalizedTranscript = entry.transcript
+            .compactMap { entry in
+                guard let transcript = historyClient.transcriptText(entry.preferredTranscriptRelativePath) else { return nil }
+                let normalizedTranscript = transcript
                     .replacingOccurrences(of: "\n", with: " ")
                     .trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !normalizedTranscript.isEmpty else { return nil }
 
                 let title = String(normalizedTranscript.prefix(56))
-                let subtitle = "\(entry.transcriptionMode.capitalized) • \(entry.characterCount) chars"
+                let subtitle = "\(entry.modeSummary.capitalized) • \(entry.preferredCharacterCount) chars"
 
                 return HistoryMenuItem(
                     id: entry.id,

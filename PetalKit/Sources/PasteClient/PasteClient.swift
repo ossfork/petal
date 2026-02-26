@@ -20,14 +20,14 @@ public enum PasteResult: Equatable, Sendable {
 
 @DependencyClient
 public struct PasteClient: Sendable {
-    public var paste: @Sendable (String) async -> PasteResult = { _ in .copiedOnly }
+    public var paste: @Sendable (_ text: String, _ restoreClipboard: Bool) async -> PasteResult = { _, _ in .copiedOnly }
 }
 
 extension PasteClient: DependencyKey {
     public static var liveValue: Self {
         return Self(
-            paste: { text in
-                await LivePasteRuntimeContainer.shared.paste(text: text)
+            paste: { text, restoreClipboard in
+                await LivePasteRuntimeContainer.shared.paste(text: text, restoreClipboard: restoreClipboard)
             }
         )
     }
@@ -36,7 +36,7 @@ extension PasteClient: DependencyKey {
 extension PasteClient: TestDependencyKey {
     public static var testValue: Self {
         Self(
-            paste: { _ in .pasted }
+            paste: { _, _ in .pasted }
         )
     }
 }
@@ -52,9 +52,9 @@ public extension DependencyValues {
 private final class LivePasteRuntime {
     private typealias PasteboardSnapshot = [[NSPasteboard.PasteboardType: Data]]
 
-    func paste(text: String) async -> PasteResult {
+    func paste(text: String, restoreClipboard: Bool) async -> PasteResult {
         let pasteboard = NSPasteboard.general
-        let snapshot = snapshotPasteboard(pasteboard)
+        let snapshot = restoreClipboard ? snapshotPasteboard(pasteboard) : nil
 
         pasteboard.clearContents()
         guard pasteboard.setString(text, forType: .string) else {
@@ -65,8 +65,10 @@ private final class LivePasteRuntime {
             return .copiedOnly
         }
 
-        try? await Task.sleep(for: .milliseconds(180))
-        restorePasteboard(pasteboard, snapshot: snapshot)
+        if let snapshot {
+            try? await Task.sleep(for: .milliseconds(180))
+            restorePasteboard(pasteboard, snapshot: snapshot)
+        }
 
         return .pasted
     }

@@ -19,6 +19,8 @@ final class SettingsViewModel {
     @ObservationIgnored @Shared(.historyRetentionMode) var historyRetentionMode: HistoryRetentionMode = .both
     @ObservationIgnored @Shared(.compressHistoryAudio) var compressHistoryAudio = false
     @ObservationIgnored @Shared(.appleIntelligenceEnabled) var appleIntelligenceEnabled = false
+    @ObservationIgnored @Shared(.logsEnabled) var logsEnabled = false
+    @ObservationIgnored @Shared(.restoreClipboardAfterPaste) var restoreClipboardAfterPaste = true
     @ObservationIgnored @Shared(.pushToTalkThreshold) var pushToTalkThreshold: PushToTalkThreshold = .long
     @ObservationIgnored @Shared(.transcriptHistoryDays) private var transcriptHistoryDays: [TranscriptHistoryDay] = []
 
@@ -41,9 +43,14 @@ final class SettingsViewModel {
 
     var recentHistoryEntries: [TranscriptHistoryEntry] {
         transcriptHistoryDays.flatMap(\.entries)
+            .filter { transcriptText(for: $0).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false }
             .sorted { $0.timestamp > $1.timestamp }
             .prefix(3)
             .map { $0 }
+    }
+
+    var canExportLogs: Bool {
+        logClient.logFileURL() != nil
     }
 
     var appleIntelligenceAvailable: Bool {
@@ -122,8 +129,14 @@ final class SettingsViewModel {
     }
 
     func copyHistoryEntry(_ entry: TranscriptHistoryEntry) {
+        let transcript = transcriptText(for: entry)
+        guard transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { return }
         NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(entry.transcript, forType: .string)
+        NSPasteboard.general.setString(transcript, forType: .string)
+    }
+
+    func transcriptText(for entry: TranscriptHistoryEntry) -> String {
+        historyClient.transcriptText(entry.preferredTranscriptRelativePath) ?? ""
     }
 
     func deleteAllHistory() {

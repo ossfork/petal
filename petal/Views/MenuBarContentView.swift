@@ -115,15 +115,18 @@ struct MenuBarContentView: View {
                     TranscriptHistoryEntry(
                         id: UUID(),
                         timestamp: Date(),
-                        transcript: "This transcript should copy from the history submenu.",
                         modelID: ModelOption.whisperLargeV3Turbo.rawValue,
-                        transcriptionMode: "smart",
                         audioDurationSeconds: 5.8,
-                        transcriptionElapsedSeconds: 1.9,
-                        characterCount: 57,
-                        pasteResult: "pasted",
                         audioRelativePath: "audio/clip1.m4a",
-                        transcriptRelativePath: "transcripts/clip1.txt"
+                        variants: [
+                            TranscriptHistoryVariant(
+                                mode: "smart",
+                                transcriptionElapsedSeconds: 1.9,
+                                characterCount: 57,
+                                pasteResult: "pasted",
+                                transcriptRelativePath: "transcripts/clip1.txt"
+                            )
+                        ]
                     )
                 ]
             )

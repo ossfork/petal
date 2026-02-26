@@ -39,7 +39,7 @@ extension LogClient: DependencyKey {
                 fileWriter.write(level: "DEBUG", category: category, message: "\(label): \(valueDescription)")
             },
             logFileURL: {
-                fileWriter.currentFileURL
+                fileWriter.currentFileURLIfExists()
             }
         )
     }
@@ -65,6 +65,7 @@ public func appDumpString<T>(_ value: T) -> String {
 // MARK: - File Writer
 
 private final class LogFileWriter: @unchecked Sendable {
+    private static let logsEnabledDefaultsKey = "logs_enabled"
     private static let logsDirectory: URL = {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         return docs.appendingPathComponent("petal/logs", isDirectory: true)
@@ -81,20 +82,17 @@ private final class LogFileWriter: @unchecked Sendable {
         let url = Self.logsDirectory.appendingPathComponent(fileName)
 
         self.currentFileURL = url
+    }
 
-        // Do all file-system setup off the caller thread so early app startup logging cannot block launch.
-        queue.async { [url] in
-            let fm = FileManager.default
-            try? fm.createDirectory(at: Self.logsDirectory, withIntermediateDirectories: true)
-            if !fm.fileExists(atPath: url.path) {
-                _ = fm.createFile(atPath: url.path, contents: nil)
-            }
-            self.fileHandle = try? FileHandle(forWritingTo: url)
-            _ = try? self.fileHandle?.seekToEnd()
-        }
+    func currentFileURLIfExists() -> URL? {
+        let url = currentFileURL
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        return url
     }
 
     func write(level: String, category: String, message: String) {
+        guard Self.isFileLoggingEnabled else { return }
+
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let timestamp = formatter.string(from: Date())
@@ -102,11 +100,20 @@ private final class LogFileWriter: @unchecked Sendable {
 
         guard let data = line.data(using: .utf8) else { return }
         queue.async {
+            let fm = FileManager.default
+            try? fm.createDirectory(at: Self.logsDirectory, withIntermediateDirectories: true)
+            if !fm.fileExists(atPath: self.currentFileURL.path) {
+                _ = fm.createFile(atPath: self.currentFileURL.path, contents: nil)
+            }
             if self.fileHandle == nil {
                 self.fileHandle = try? FileHandle(forWritingTo: self.currentFileURL)
                 _ = try? self.fileHandle?.seekToEnd()
             }
             self.fileHandle?.write(data)
         }
+    }
+
+    private static var isFileLoggingEnabled: Bool {
+        UserDefaults.standard.bool(forKey: logsEnabledDefaultsKey)
     }
 }

@@ -193,6 +193,21 @@ public extension DependencyValues {
 }
 
 private actor LiveMLXRuntime {
+    private static let qwenPrimaryParams = STTGenerateParameters(
+        maxTokens: 2048,
+        temperature: 0.0,
+        language: "English",
+        chunkDuration: 30.0,
+        minChunkDuration: 1.0
+    )
+    private static let qwenFallbackParams = STTGenerateParameters(
+        maxTokens: 1536,
+        temperature: 0.0,
+        language: "English",
+        chunkDuration: 15.0,
+        minChunkDuration: 1.0
+    )
+
     private var loadedModel: MLXPipelineModel?
     private var voxtralPipeline: VoxtralPipeline?
     private var qwen3ASRModel: Qwen3ASRModel?
@@ -293,17 +308,143 @@ private actor LiveMLXRuntime {
         model: Qwen3ASRModel
     ) throws -> String {
         let (_, audio) = try loadAudioArray(from: audioURL, sampleRate: model.sampleRate)
-        let output = model.generate(
+        let primaryOutput = model.generate(
             audio: audio,
-            generationParameters: STTGenerateParameters(language: "English")
+            generationParameters: Self.qwenPrimaryParams
         )
-        let text = output.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let primaryText = normalizeQwenTranscript(primaryOutput.text)
+        let text: String
+
+        if QwenTranscriptGuard.isLikelyLooped(primaryText) {
+            let fallbackOutput = model.generate(
+                audio: audio,
+                generationParameters: Self.qwenFallbackParams
+            )
+            let fallbackText = normalizeQwenTranscript(fallbackOutput.text)
+
+            if fallbackText.isEmpty {
+                text = primaryText
+            } else if QwenTranscriptGuard.isLikelyLooped(fallbackText) {
+                text = QwenTranscriptGuard.preferredTranscript(primary: primaryText, fallback: fallbackText)
+            } else {
+                text = fallbackText
+            }
+        } else {
+            text = primaryText
+        }
 
         switch mode {
         case .verbatim:
             return text
         case .smart:
             return text
+        }
+    }
+
+    private func normalizeQwenTranscript(_ text: String) -> String {
+        text
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
+enum QwenTranscriptGuard {
+    static func isLikelyLooped(_ text: String) -> Bool {
+        let words = words(in: text)
+        guard words.count >= 16 else { return false }
+
+        let metrics = LoopMetrics(words: words)
+        let dominantShare = Double(metrics.maxFrequency) / Double(words.count)
+
+        if metrics.longestRun >= 7 { return true }
+        if dominantShare >= 0.5, metrics.uniqueRatio <= 0.3 { return true }
+        if metrics.hasRepeatedNGram(n: 3, minRepeats: 5), metrics.uniqueRatio <= 0.45 { return true }
+        return false
+    }
+
+    static func preferredTranscript(primary: String, fallback: String) -> String {
+        let primaryMetrics = LoopMetrics(words: words(in: primary))
+        let fallbackMetrics = LoopMetrics(words: words(in: fallback))
+        let primaryScore = primaryMetrics.qualityScore
+        let fallbackScore = fallbackMetrics.qualityScore
+
+        if primaryScore == fallbackScore {
+            return primary.count <= fallback.count ? primary : fallback
+        }
+        return primaryScore >= fallbackScore ? primary : fallback
+    }
+
+    private static func words(in text: String) -> [String] {
+        text
+            .lowercased()
+            .split(whereSeparator: { !$0.isLetter && !$0.isNumber && $0 != "'" })
+            .map(String.init)
+    }
+
+    private struct LoopMetrics {
+        let words: [String]
+        let uniqueRatio: Double
+        let maxFrequency: Int
+        let longestRun: Int
+
+        init(words: [String]) {
+            self.words = words
+            if words.isEmpty {
+                uniqueRatio = 0
+                maxFrequency = 0
+                longestRun = 0
+                return
+            }
+
+            var counts: [String: Int] = [:]
+            counts.reserveCapacity(words.count)
+
+            var currentRun = 0
+            var lastWord: String?
+            var bestRun = 0
+
+            for word in words {
+                counts[word, default: 0] += 1
+
+                if word == lastWord {
+                    currentRun += 1
+                } else {
+                    currentRun = 1
+                    lastWord = word
+                }
+
+                if currentRun > bestRun {
+                    bestRun = currentRun
+                }
+            }
+
+            uniqueRatio = Double(counts.count) / Double(words.count)
+            maxFrequency = counts.values.max() ?? 0
+            longestRun = bestRun
+        }
+
+        var qualityScore: Double {
+            guard !words.isEmpty else { return -Double.greatestFiniteMagnitude }
+            let runPenalty = Double(longestRun) / Double(words.count)
+            let dominancePenalty = Double(maxFrequency) / Double(words.count)
+            return uniqueRatio - runPenalty - dominancePenalty
+        }
+
+        func hasRepeatedNGram(n: Int, minRepeats: Int) -> Bool {
+            guard n > 0, words.count >= n * minRepeats else { return false }
+
+            var counts: [String: Int] = [:]
+            counts.reserveCapacity(words.count / n)
+            let limit = words.count - n
+
+            for index in 0...limit {
+                let key = words[index..<(index + n)].joined(separator: " ")
+                counts[key, default: 0] += 1
+                if counts[key, default: 0] >= minRepeats {
+                    return true
+                }
+            }
+            return false
         }
     }
 }

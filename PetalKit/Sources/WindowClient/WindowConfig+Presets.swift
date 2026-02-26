@@ -22,7 +22,7 @@ extension WindowConfig {
             hidesZoomButton: true,
             isFloating: true
         )),
-        size: CGSize(width: 500, height: 420)
+        size: CGSize(width: 500, height: 1050)
     )
 
     public static let onboarding = WindowConfig(

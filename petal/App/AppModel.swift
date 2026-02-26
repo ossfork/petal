@@ -46,6 +46,7 @@ final class AppModel {
     @ObservationIgnored @Shared(.compressHistoryAudio) var compressHistoryAudio = false
     @ObservationIgnored @Shared(.historyRetentionMode) var historyRetentionMode: HistoryRetentionMode = .both
     @ObservationIgnored @Shared(.pushToTalkThreshold) var pushToTalkThreshold: PushToTalkThreshold = .long
+    @ObservationIgnored @Shared(.restoreClipboardAfterPaste) var restoreClipboardAfterPaste = true
     @ObservationIgnored @Shared(.transcriptHistoryDays) var transcriptHistoryDays: [TranscriptHistoryDay] = []
 
     let modelDownloadViewModel: ModelDownloadModel
@@ -101,6 +102,7 @@ final class AppModel {
     @ObservationIgnored private var menuBarFlashTask: Task<Void, Never>?
     @ObservationIgnored private var downloadStateObserverTask: Task<Void, Never>?
     @ObservationIgnored private var isShowingMiniDownload = false
+    @ObservationIgnored private var activeHistorySessionID: UUID?
     var menuBarFlashOn = true
     @ObservationIgnored private var estimatedTranscriptionRTF = 2.2
     private var toggleActivationThresholdSeconds: Double { pushToTalkThreshold.seconds }
@@ -201,6 +203,7 @@ final class AppModel {
 
     func selectedModelDidChange() {
         modelDownloadViewModel.selectedModelChanged()
+        estimatedTranscriptionRTF = defaultTranscriptionRTF(for: selectedModelOption)
         let normalizedMode = normalizedTranscriptionMode(transcriptionMode)
         if transcriptionMode != normalizedMode {
             $transcriptionMode.withLock { $0 = normalizedMode }
@@ -299,10 +302,12 @@ final class AppModel {
     // MARK: - History
 
     func copyTranscriptHistoryButtonTapped(_ entryID: UUID) {
-        guard let entry = transcriptHistoryDays.flatMap(\.entries).first(where: { $0.id == entryID }) else { return }
+        guard let entry = transcriptHistoryDays.lazy.compactMap({ $0.entries[id: entryID] }).first else { return }
+        let transcript = formattedHistoryEntry(entry)
+        guard transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { return }
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
-        pasteboard.setString(formattedHistoryEntry(entry), forType: .string)
+        pasteboard.setString(transcript, forType: .string)
         transientMessage = "Copied to clipboard."
     }
 
@@ -398,6 +403,7 @@ final class AppModel {
 
             isAwaitingCancelRecordingConfirmation = false
             sessionState = .recording
+            activeHistorySessionID = uuid()
             await soundClient.playRecordingStarted()
             await floatingCapsuleClient.showRecording()
             logger.info("Recording started")
@@ -490,6 +496,7 @@ final class AppModel {
             logger.debug("Ignoring stop request because no recording is active")
             pushToTalkIsActive = false
             toggleRecordingIsActive = false
+            activeHistorySessionID = nil
             sessionState = .idle
             await floatingCapsuleClient.hide()
             return
@@ -499,6 +506,8 @@ final class AppModel {
         isAwaitingCancelRecordingConfirmation = false
         sessionState = .processing(.trimming)
         await floatingCapsuleClient.showTrimming()
+        let historySessionID = activeHistorySessionID ?? uuid()
+        defer { activeHistorySessionID = nil }
 
         do {
             let audioURL = try await audioClient.stopRecording()
@@ -531,6 +540,8 @@ final class AppModel {
                 mode,
                 mode == .smart ? smartPrompt : nil
             )
+            let originalTranscript = transcript
+            var shouldPersistOriginalVariant = false
             let transcriptionElapsed = now.timeIntervalSince(transcriptionStart)
             updateTranscriptionSpeedEstimate(audioDuration: audioDuration, elapsed: transcriptionElapsed)
             stopTranscriptionProgressTracking(finalProgress: 1)
@@ -555,6 +566,7 @@ final class AppModel {
                    !refined.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 {
                     logger.info("Apple Intelligence refinement succeeded: outputLength=\(refined.count, privacy: .public)")
+                    shouldPersistOriginalVariant = refined != transcript
                     transcript = refined
                 } else {
                     logger.warning("Apple Intelligence refinement returned empty or failed, keeping original transcript")
@@ -585,12 +597,13 @@ final class AppModel {
                     transcriptionElapsed: transcriptionElapsed,
                     pasteResult: .skipped,
                     audioRelativePath: persistedPaths?.audioRelativePath,
-                    transcriptRelativePath: persistedPaths?.transcriptRelativePath
+                    transcriptRelativePath: persistedPaths?.transcriptRelativePath,
+                    sessionID: historySessionID
                 )
             } else {
                 await soundClient.playTranscriptionCompleted()
 
-                let pasteResult = await pasteClient.paste(transcript)
+                let pasteResult = await pasteClient.paste(transcript, restoreClipboardAfterPaste)
                 logger.info("Transcription completed. characters=\(transcript.count, privacy: .public), pasteResult=\(String(describing: pasteResult), privacy: .public)")
                 consoleLog("Transcription completed. characters=\(transcript.count), pasteResult=\(String(describing: pasteResult))")
                 logClient.dumpDebug(
@@ -622,8 +635,32 @@ final class AppModel {
                     transcriptionElapsed: transcriptionElapsed,
                     pasteResult: pasteResult,
                     audioRelativePath: persistedPaths?.audioRelativePath,
-                    transcriptRelativePath: persistedPaths?.transcriptRelativePath
+                    transcriptRelativePath: persistedPaths?.transcriptRelativePath,
+                    sessionID: historySessionID
                 )
+
+                if shouldPersistOriginalVariant {
+                    let originalPaths = await persistHistoryArtifacts(
+                        audioURL: audioURL,
+                        transcript: originalTranscript,
+                        timestamp: transcriptionStart,
+                        mode: "original",
+                        modelID: selectedModelOption.rawValue,
+                        persistAudio: false
+                    )
+
+                    appendTranscriptHistory(
+                        transcript: originalTranscript,
+                        modelID: selectedModelOption.rawValue,
+                        mode: "original",
+                        audioDuration: audioDuration,
+                        transcriptionElapsed: transcriptionElapsed,
+                        pasteResult: .skipped,
+                        audioRelativePath: originalPaths?.audioRelativePath,
+                        transcriptRelativePath: originalPaths?.transcriptRelativePath,
+                        sessionID: historySessionID
+                    )
+                }
 
                 switch pasteResult {
                 case .pasted:
@@ -1024,6 +1061,7 @@ final class AppModel {
             ignoreNextShortcutKeyUp = false
             currentShortcutPressStart = nil
             sessionState = .recording
+            activeHistorySessionID = uuid()
             transientMessage = "Listening... use petal://stop to transcribe."
             await soundClient.playRecordingStarted()
             await floatingCapsuleClient.showRecording()
@@ -1344,7 +1382,16 @@ final class AppModel {
 
             while !Task.isCancelled {
                 let elapsed = now.timeIntervalSince(start)
-                let progress = min(max(elapsed / expectedDuration, 0), 0.97)
+                let normalized = max(elapsed / expectedDuration, 0)
+                let progress: Double
+                if normalized <= 1 {
+                    // Move faster in the early/mid phase so progress does not feel stalled.
+                    progress = min(pow(normalized, 0.72) * 0.94, 0.94)
+                } else {
+                    // Keep advancing past expected duration instead of freezing in the high 90s.
+                    let tail = min((normalized - 1) / 2.0, 1)
+                    progress = 0.94 + (0.995 - 0.94) * tail
+                }
                 await self.floatingCapsuleClient.updateTranscriptionProgress(progress)
 
                 try? await self.clock.sleep(for: .milliseconds(120))
@@ -1367,6 +1414,25 @@ final class AppModel {
         return max(2, estimate)
     }
 
+    private func defaultTranscriptionRTF(for model: ModelOption?) -> Double {
+        guard let model else { return 2.2 }
+
+        switch model {
+        case .qwen3ASR06B4bit:
+            return 2.2
+        case .whisperLargeV3Turbo:
+            return 0.85
+        case .whisperTiny:
+            return 2.8
+        case .mini3b:
+            return 0.8
+        case .mini3b8bit:
+            return 1.1
+        case .appleSpeech:
+            return 2.6
+        }
+    }
+
     private func updateTranscriptionSpeedEstimate(audioDuration: Double, elapsed: Double) {
         guard audioDuration > 0, elapsed > 0 else { return }
         let latestRTF = audioDuration / elapsed
@@ -1382,7 +1448,8 @@ final class AppModel {
         transcriptionElapsed: Double,
         pasteResult: PasteResult,
         audioRelativePath: String?,
-        transcriptRelativePath: String?
+        transcriptRelativePath: String?,
+        sessionID: UUID
     ) {
         let entry = historyClient.appendEntry(
             AppendEntryRequest(
@@ -1397,7 +1464,7 @@ final class AppModel {
                 transcriptRelativePath: transcriptRelativePath,
                 retentionMode: historyRetentionMode,
                 timestamp: now,
-                id: uuid()
+                sessionID: sessionID
             )
         )
         $transcriptHistoryDays.withLock { $0 = entry }
@@ -1408,7 +1475,8 @@ final class AppModel {
         transcript: String,
         timestamp: Date,
         mode: String,
-        modelID: String
+        modelID: String,
+        persistAudio: Bool = true
     ) async -> PersistedArtifacts? {
         await historyClient.persistArtifacts(
             PersistArtifactsRequest(
@@ -1418,13 +1486,14 @@ final class AppModel {
                 mode: mode,
                 modelID: modelID,
                 retentionMode: historyRetentionMode,
-                compressAudio: compressHistoryAudio
+                compressAudio: compressHistoryAudio,
+                persistAudio: persistAudio
             )
         )
     }
 
     private func formattedHistoryEntry(_ entry: TranscriptHistoryEntry) -> String {
-        entry.transcript
+        historyClient.transcriptText(entry.preferredTranscriptRelativePath) ?? ""
     }
 
     deinit {

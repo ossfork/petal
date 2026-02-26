@@ -81,10 +81,21 @@ struct GeneralPane: View {
                 }
             }
 
+            Section("Clipboard") {
+                Toggle("Restore clipboard after paste", isOn: Binding(viewModel.$restoreClipboardAfterPaste))
+                Text("When enabled, Petal restores your previous clipboard contents after auto-pasting.")
+                    .settingDescription()
+            }
+
             Section("Diagnostics") {
+                Toggle("Enable logs", isOn: Binding(viewModel.$logsEnabled))
+                Text("Disabled by default to avoid creating log files unless you explicitly turn this on.")
+                    .settingDescription()
+
                 Button("Export Logs…") {
                     viewModel.exportLogs()
                 }
+                .disabled(!viewModel.canExportLogs)
             }
         }
         .formStyle(.grouped)
@@ -290,17 +301,17 @@ struct TranscriptionPane: View {
 
 struct HistoryPane: View {
     @Bindable var viewModel: SettingsViewModel
-    @State private var showDeleteAllConfirmation = false
-    @State private var showDeleteMediaConfirmation = false
+    @State private var historyAlert: HistoryAlert?
 
     var body: some View {
         Form {
             if !viewModel.recentHistoryEntries.isEmpty {
                 Section("Recent") {
                     ForEach(viewModel.recentHistoryEntries) { entry in
+                        let transcript = viewModel.transcriptText(for: entry)
                         HStack(alignment: .top) {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(entry.transcript)
+                                Text(transcript)
                                     .lineLimit(2)
                                     .truncationMode(.tail)
                                 Text(entry.timestamp, style: .relative)
@@ -350,30 +361,87 @@ struct HistoryPane: View {
             }
 
             Section("Clear Data") {
-                Button("Delete All History & Media", role: .destructive) {
-                    showDeleteAllConfirmation = true
+                HStack(spacing: 12) {
+                    Button("Delete All History & Media", role: .destructive) {
+                        historyAlert = .deleteAll
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    Button("Delete Media Only", role: .destructive) {
+                        historyAlert = .deleteMedia
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                Button("Delete Media Only", role: .destructive) {
-                    showDeleteMediaConfirmation = true
-                }
+                .buttonStyle(.bordered)
             }
         }
         .formStyle(.grouped)
-        .alert("Delete All History & Media", isPresented: $showDeleteAllConfirmation) {
-            Button("Delete All", role: .destructive) {
-                viewModel.deleteAllHistory()
+        .alert(historyAlert?.title ?? "", isPresented: isShowingHistoryAlert) {
+            if let historyAlert {
+                Button(historyAlert.confirmTitle, role: .destructive) {
+                    performHistoryAction(for: historyAlert)
+                    self.historyAlert = nil
+                }
             }
-            Button("Cancel", role: .cancel) {}
+            Button("Cancel", role: .cancel) {
+                historyAlert = nil
+            }
         } message: {
-            Text("This will permanently delete all transcription history, audio files, and transcript files.")
+            if let historyAlert {
+                Text(historyAlert.message)
+            }
         }
-        .alert("Delete Media Only", isPresented: $showDeleteMediaConfirmation) {
-            Button("Delete Media", role: .destructive) {
-                viewModel.deleteMediaOnly()
+    }
+
+    private var isShowingHistoryAlert: Binding<Bool> {
+        Binding(
+            get: { historyAlert != nil },
+            set: { isPresented in
+                if !isPresented {
+                    historyAlert = nil
+                }
             }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("This will delete all saved audio files but keep your transcription history intact.")
+        )
+    }
+
+    private func performHistoryAction(for alert: HistoryAlert) {
+        switch alert {
+        case .deleteAll:
+            viewModel.deleteAllHistory()
+        case .deleteMedia:
+            viewModel.deleteMediaOnly()
+        }
+    }
+}
+
+private enum HistoryAlert {
+    case deleteAll
+    case deleteMedia
+
+    var title: String {
+        switch self {
+        case .deleteAll:
+            return "Delete All History & Media"
+        case .deleteMedia:
+            return "Delete Media Only"
+        }
+    }
+
+    var confirmTitle: String {
+        switch self {
+        case .deleteAll:
+            return "Delete All"
+        case .deleteMedia:
+            return "Delete Media"
+        }
+    }
+
+    var message: String {
+        switch self {
+        case .deleteAll:
+            return "This will permanently delete all transcription history, audio files, and transcript files."
+        case .deleteMedia:
+            return "This will delete all saved audio files but keep your transcription history intact."
         }
     }
 }
