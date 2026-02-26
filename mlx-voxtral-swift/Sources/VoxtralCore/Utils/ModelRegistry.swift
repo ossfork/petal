@@ -66,17 +66,6 @@ public enum ModelRegistry {
             quantization: "8-bit",
             parameters: "3B"
         ),
-
-        // Quantized large model tier
-        VoxtralModelInfo(
-            id: "small-24b-8bit",
-            repoId: "mzbac/Voxtral-Small-24B-2507-8bit",
-            name: "Voxtral Small 24B (8-bit)",
-            description: "Higher quality, requires more memory (~25GB)",
-            size: "~25 GB",
-            quantization: "8-bit",
-            parameters: "24B"
-        ),
     ]
 
     /// Get the default/recommended model
@@ -104,11 +93,6 @@ public enum ModelRegistry {
         models.filter { $0.parameters == "3B" && !$0.repoId.hasPrefix("mistralai/") }
     }
 
-    /// Get all small/large models (24B) - quantized only
-    public static var smallModels: [VoxtralModelInfo] {
-        models.filter { $0.parameters == "24B" && !$0.repoId.hasPrefix("mistralai/") }
-    }
-
     /// Print formatted list of available models
     public static func printAvailableModels() {
         print("\n" + String(repeating: "=", count: 70))
@@ -133,16 +117,6 @@ public enum ModelRegistry {
             print("    \(model.description)")
             print()
         }
-
-        print("--- Small Models (24B parameters, quantized) ---")
-        for model in smallModels {
-            print("  \(model.id): \(model.name)")
-            print("    Repo: \(model.repoId)")
-            print("    Size: \(model.size) | Quantization: \(model.quantization)")
-            print("    \(model.description)")
-            print()
-        }
-
         print(String(repeating: "=", count: 70))
     }
 }

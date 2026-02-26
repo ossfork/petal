@@ -27,7 +27,6 @@ public class VoxtralPipeline: @unchecked Sendable {
     public enum Model: String, CaseIterable, Sendable {
         case mini3b = "mini-3b"
         case mini3b8bit = "mini-3b-8bit"
-        case small24b8bit = "small-24b-8bit"
 
         /// Get the HuggingFace repo ID for this model
         public var repoId: String {
@@ -36,8 +35,6 @@ public class VoxtralPipeline: @unchecked Sendable {
                 return "mlx-community/Voxtral-Mini-3B-2507-bf16"
             case .mini3b8bit:
                 return "mzbac/voxtral-mini-3b-8bit"
-            case .small24b8bit:
-                return "mzbac/Voxtral-Small-24B-2507-8bit"
             }
         }
 
@@ -46,7 +43,6 @@ public class VoxtralPipeline: @unchecked Sendable {
             switch self {
             case .mini3b: return "Voxtral Mini 3B (bf16)"
             case .mini3b8bit: return "Voxtral Mini 3B (8-bit)"
-            case .small24b8bit: return "Voxtral Small 24B (8-bit)"
             }
         }
 
