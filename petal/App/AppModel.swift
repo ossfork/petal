@@ -1548,7 +1548,6 @@ private enum DeepLinkStartError: LocalizedError {
     }
 }
 
-#if DEBUG
 extension AppModel {
     static func makePreview(_ configure: (AppModel) -> Void = { _ in }) -> AppModel {
         let model = AppModel(isPreviewMode: true)
@@ -1565,4 +1564,3 @@ extension AppModel {
         return model
     }
 }
-#endif

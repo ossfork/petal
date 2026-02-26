@@ -372,7 +372,6 @@ extension OnboardingModel.Page {
 
 // MARK: - Preview Support
 
-#if DEBUG
 extension OnboardingModel {
     public static func makePreview(
         page: Page = .welcome,
@@ -383,4 +382,3 @@ extension OnboardingModel {
         return model
     }
 }
-#endif
