@@ -253,6 +253,7 @@ echo "=== Step 3/10: Sign embedded aria2c ==="
 echo "=== Step 4/10: Re-sign app bundle ==="
 codesign --force --deep --sign "$SIGNING_IDENTITY" \
     --keychain "$BUILD_KEYCHAIN" \
+    --entitlements "$PROJECT_DIR/petal/petal.entitlements" \
     --options runtime \
     --timestamp \
     "$APP_PATH"

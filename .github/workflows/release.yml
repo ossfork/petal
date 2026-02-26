@@ -140,6 +140,7 @@ jobs:
         run: |
           codesign --force --deep \
             --sign "Developer ID Application: Aayush Pokharel (${{ secrets.APPLE_TEAM_ID }})" \
+            --entitlements petal/petal.entitlements \
             --options runtime \
             --timestamp \
             "$RUNNER_TEMP/export/${{ env.PRODUCT_NAME }}.app"
