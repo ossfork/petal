@@ -72,7 +72,6 @@ struct ModelInfoRow: View {
             }
         }
         .font(.system(size: 9))
-        .help(label)
     }
 
     private var providerIcon: Image {
