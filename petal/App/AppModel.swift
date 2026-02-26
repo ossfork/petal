@@ -1086,9 +1086,27 @@ final class AppModel {
     }
 
     private func ensureSetupReadyForDeepLinkStart() async -> Bool {
+        let intendedModelID = selectedModelID
+
+        func reapplyIntendedModelIfNeeded(phase: String) {
+            let currentModelID = selectedModelID
+            guard currentModelID != intendedModelID else { return }
+
+            logger.warning(
+                "Deep link setup model drift detected. phase=\(phase, privacy: .public), intended=\(intendedModelID, privacy: .public), current=\(currentModelID, privacy: .public)"
+            )
+            consoleLog(
+                "Deep link setup model drift detected. phase=\(phase), intended=\(intendedModelID), current=\(currentModelID)"
+            )
+
+            modelDownloadViewModel.$selectedModelID.withLock { $0 = intendedModelID }
+            modelDownloadViewModel.selectedModelChanged()
+        }
+
+        reapplyIntendedModelIfNeeded(phase: "bootstrap")
         modelDownloadViewModel.selectedModelChanged()
 
-        guard let selectedModelOption else {
+        guard let selectedModelOption = ModelOption(rawValue: intendedModelID) else {
             logger.error("Deep link start failed: selected model is unavailable")
             consoleLog("Deep link start failed: selected model is unavailable")
             return false
@@ -1107,12 +1125,14 @@ final class AppModel {
             var didDownload = false
 
             for attempt in 1...maxAttempts {
+                reapplyIntendedModelIfNeeded(phase: "download-attempt-\(attempt)-preflight")
                 logger.info(
                     "Deep link setup downloading model: \(selectedModelOption.rawValue, privacy: .public), attempt=\(attempt, privacy: .public)"
                 )
                 consoleLog("Deep link setup downloading model: \(selectedModelOption.rawValue), attempt=\(attempt)")
 
                 await modelDownloadViewModel.downloadModel()
+                reapplyIntendedModelIfNeeded(phase: "download-attempt-\(attempt)-completion")
 
                 transientMessage = modelDownloadViewModel.transientMessage
                 lastError = modelDownloadViewModel.lastError
@@ -1169,7 +1189,9 @@ final class AppModel {
             consoleLog("Deep link setup marked complete")
         }
 
+        reapplyIntendedModelIfNeeded(phase: "warmup-preflight")
         await warmModelTask()
+        reapplyIntendedModelIfNeeded(phase: "warmup-complete")
         transientMessage = nil
         return true
     }
