@@ -342,8 +342,8 @@ struct HistoryPane: View {
             }
 
             Section("Compression") {
-                Toggle("Compress audio", isOn: Binding(viewModel.$compressHistoryAudio))
-                Text("Convert saved audio to AAC to save disk space.")
+                Toggle("Extra compression", isOn: Binding(viewModel.$compressHistoryAudio))
+                Text("History audio is saved as AAC (.m4a) by default. Enable for lower-bitrate files.")
                     .settingDescription()
             }
 
