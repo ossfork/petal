@@ -12,9 +12,9 @@
   </a>
 </p>
 
-Petal is a native macOS menu bar app for fast, local-first audio transcription in a clean, minimal interface.
-
-`#macOS` `#MenuBar` `#Transcription` `#SwiftUI`
+<p align="center">
+  Petal is a native macOS menu bar app for fast, local-first audio transcription in a clean, minimal interface.
+</p>
 
 ## Deep Links
 
