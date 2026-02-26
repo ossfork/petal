@@ -107,7 +107,7 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 provider: .appleSpeech,
                 recommended: false,
                 speedScore: 5,
-                smartScore: 1
+                smartScore: 3
             )
         case .qwen3ASR06B4bit:
             return ModelDescriptor(

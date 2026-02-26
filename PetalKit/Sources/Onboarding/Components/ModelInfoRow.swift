@@ -42,12 +42,14 @@ struct ModelInfoRow: View {
                     ratingView(
                         icon: "bolt.fill",
                         score: option.descriptor.speedScore,
-                        color: .orange
+                        color: .orange,
+                        label: "Speed"
                     )
                     ratingView(
                         icon: "sparkle",
                         score: option.descriptor.smartScore,
-                        color: .yellow
+                        color: .yellow,
+                        label: "Accuracy"
                     )
 
                     if let sizeLabel = option.sizeLabel {
@@ -60,8 +62,10 @@ struct ModelInfoRow: View {
         }
     }
 
-    private func ratingView(icon: String, score: Int, color: Color) -> some View {
-        HStack(spacing: 2) {
+    private func ratingView(icon: String, score: Int, color: Color, label: String) -> some View {
+        HStack(spacing: 3) {
+            Text(label)
+                .foregroundStyle(.secondary)
             ForEach(0 ..< 5, id: \.self) { i in
                 Image(systemName: icon)
                     .foregroundStyle(i < score ? AnyShapeStyle(color) : AnyShapeStyle(.tertiary))

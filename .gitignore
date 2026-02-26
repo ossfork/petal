@@ -1,5 +1,6 @@
 .derived/
 .DS_Store
+PetalKit/.build/
 
 ops/*.p8
 ops/*.p12
