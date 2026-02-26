@@ -150,8 +150,6 @@ private extension ModelOption {
             return .mini3b
         case .mini3b8bit:
             return .mini3b8bit
-        case .small24b8bit:
-            return .small24b8bit
         }
     }
 }

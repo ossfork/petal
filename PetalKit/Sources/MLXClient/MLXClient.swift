@@ -57,7 +57,6 @@ public struct MLXModelInfo: Sendable, Equatable {
 public enum MLXPipelineModel: String, Sendable {
     case mini3b
     case mini3b8bit
-    case small24b8bit
     case qwen3ASR06B4bit
     case whisperLargeV3Turbo
     case whisperTiny
@@ -207,7 +206,7 @@ private actor LiveMLXRuntime {
         unloadModel()
 
         switch model {
-        case .mini3b, .mini3b8bit, .small24b8bit:
+        case .mini3b, .mini3b8bit:
             var config = VoxtralPipeline.Configuration.default
             config.maxTokens = 256
             config.temperature = 0.0
@@ -245,7 +244,7 @@ private actor LiveMLXRuntime {
         }
 
         switch loadedModel {
-        case .mini3b, .mini3b8bit, .small24b8bit:
+        case .mini3b, .mini3b8bit:
             guard let voxtralPipeline else {
                 throw MLXError.pipelineUnavailable
             }
@@ -512,7 +511,7 @@ private extension MLXModelInfo {
 private extension MLXPipelineModel {
     var qwenRepoID: String? {
         switch self {
-        case .mini3b, .mini3b8bit, .small24b8bit, .whisperLargeV3Turbo, .whisperTiny:
+        case .mini3b, .mini3b8bit, .whisperLargeV3Turbo, .whisperTiny:
             return nil
         case .qwen3ASR06B4bit:
             return "mlx-community/Qwen3-ASR-0.6B-4bit"
@@ -525,7 +524,7 @@ private extension MLXPipelineModel {
             return "openai_whisper-large-v3_turbo"
         case .whisperTiny:
             return "openai_whisper-tiny"
-        case .mini3b, .mini3b8bit, .small24b8bit, .qwen3ASR06B4bit:
+        case .mini3b, .mini3b8bit, .qwen3ASR06B4bit:
             return nil
         }
     }
@@ -536,8 +535,6 @@ private extension MLXPipelineModel {
             return .mini3b
         case .mini3b8bit:
             return .mini3b8bit
-        case .small24b8bit:
-            return .small24b8bit
         case .qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny:
             return .mini3b
         }
