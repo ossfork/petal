@@ -177,6 +177,15 @@ jobs:
             --require \
             --skip-gatekeeper
 
+      - name: Re-sign app bundle after embedded binary signing
+        run: |
+          codesign --force \
+            --sign "Developer ID Application: Aayush Pokharel (${{ secrets.APPLE_TEAM_ID }})" \
+            --keychain "$KEYCHAIN_PATH" \
+            --options runtime \
+            --timestamp \
+            "$APP_PATH"
+
       - name: Notarize app
         env:
           API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
