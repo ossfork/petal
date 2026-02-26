@@ -166,6 +166,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func handleOrQueueDeepLink(_ command: PetalDeepLinkCommand) {
+        if command == .checkForUpdates {
+            triggerUpdateCheckFromDeepLink()
+            return
+        }
+
         guard let model else {
             pendingDeepLinkCommands.append(command)
             logger.debug("Queued deep link command because model is not ready: \(command.rawValue, privacy: .public)")
@@ -185,5 +190,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 await model.handleDeepLink(command)
             }
         }
+    }
+
+    private func triggerUpdateCheckFromDeepLink() {
+        let updater = updaterController.updater
+        guard updater.canCheckForUpdates else {
+            logger.debug("Ignored check-for-updates deep link because updater is not ready yet")
+            return
+        }
+
+        logger.info("Triggering Sparkle update check from deep link")
+        updater.checkForUpdates()
     }
 }

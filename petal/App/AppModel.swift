@@ -325,6 +325,8 @@ final class AppModel {
             await toggleRecordingFromDeepLink()
         case .setup:
             changeModelButtonTapped()
+        case .checkForUpdates:
+            logger.debug("check-for-updates deep link is handled by Sparkle updater controller")
         }
     }
 

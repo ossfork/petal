@@ -319,13 +319,38 @@ jobs:
           DMG_URL="https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag }}/$DMG_NAME"
           VERSION="${{ steps.version.outputs.version }}"
 
-          curl -sfL "$APPCAST_URL" -o "$RUNNER_TEMP/verify-appcast.xml"
+          for attempt in {1..12}; do
+            if curl -sfL "$APPCAST_URL" -o "$RUNNER_TEMP/verify-appcast.xml"; then
+              break
+            fi
+
+            if [ "$attempt" -eq 12 ]; then
+              echo "Failed to fetch appcast from public URL after retries" >&2
+              exit 1
+            fi
+
+            echo "Appcast not reachable yet (attempt $attempt/12); retrying in 10s..."
+            sleep 10
+          done
+
           xmllint --noout "$RUNNER_TEMP/verify-appcast.xml"
           grep -Eq 'sparkle:edSignature="[A-Za-z0-9+/=]+"' "$RUNNER_TEMP/verify-appcast.xml"
           grep -q "<sparkle:shortVersionString>$VERSION</sparkle:shortVersionString>" "$RUNNER_TEMP/verify-appcast.xml"
 
-          HTTP_CODE=$(curl -sfIL "$DMG_URL" -o /dev/null -w "%{http_code}")
-          [ "$HTTP_CODE" = "200" ]
+          for attempt in {1..12}; do
+            HTTP_CODE=$(curl -sfIL "$DMG_URL" -o /dev/null -w "%{http_code}") && true
+            if [ "${HTTP_CODE:-}" = "200" ]; then
+              break
+            fi
+
+            if [ "$attempt" -eq 12 ]; then
+              echo "DMG URL is not publicly reachable after retries. last_http_code=${HTTP_CODE:-n/a}" >&2
+              exit 1
+            fi
+
+            echo "DMG not reachable yet (attempt $attempt/12, status=${HTTP_CODE:-n/a}); retrying in 10s..."
+            sleep 10
+          done
 
       - name: Cleanup
         if: always()
