@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OPS_DIR="$ROOT_DIR/ops/private"
 PRIVATE_KEY_PATH="$OPS_DIR/sparkle_private_ed25519.key"
-ACCOUNT_NAME="gloam"
+ACCOUNT_NAME="petal"
 SPARKLE_VERSION="${SPARKLE_VERSION:-2.8.1}"
 SPARKLE_BIN_DIR=""
 
@@ -13,7 +13,7 @@ usage() {
 Usage: setup-sparkle-keys.sh [options]
 
 Options:
-  --account <name>            Keychain account for Sparkle signing key (default: gloam)
+  --account <name>            Keychain account for Sparkle signing key (default: petal)
   --private-key <path>        Exported private key output path
   --sparkle-bin-dir <path>    Directory containing Sparkle binaries (generate_keys/sign_update)
   --sparkle-version <version> Sparkle release version to download if binaries are missing

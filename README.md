@@ -1,23 +1,23 @@
 <p align="center">
-  <h1 align="center">Gloam for macOS</h1>
+  <h1 align="center">Petal for macOS</h1>
 </p>
 
 <p align="center">
-  <a aria-label="Open Issues" href="https://github.com/Aayush9029/gloam/issues" target="_blank">
-    <img alt="Issues" src="https://img.shields.io/github/issues/Aayush9029/gloam?style=for-the-badge">
+  <a aria-label="Open Issues" href="https://github.com/Aayush9029/petal/issues" target="_blank">
+    <img alt="Issues" src="https://img.shields.io/github/issues/Aayush9029/petal?style=for-the-badge">
   </a>
-  <a aria-label="Latest Release" href="https://github.com/Aayush9029/gloam/releases/latest" target="_blank">
-    <img alt="Latest Release" src="https://img.shields.io/github/v/release/Aayush9029/gloam?style=for-the-badge">
+  <a aria-label="Latest Release" href="https://github.com/Aayush9029/petal/releases/latest" target="_blank">
+    <img alt="Latest Release" src="https://img.shields.io/github/v/release/Aayush9029/petal?style=for-the-badge">
   </a>
 </p>
 
-Gloam is a menu bar transcription app for macOS built with Swift, SwiftUI, MLX, and Point-Free dependencies.
+Petal is a menu bar transcription app for macOS built with Swift, SwiftUI, MLX, and Point-Free dependencies.
 
 ## Current Architecture
 
-- `gloam`: app target (menu bar UX, onboarding, setup, services)
-- `GloamKit`: modular package layer (shared domain, clients, UI, onboarding)
-- `GloamMLXClient`: MLX/Voxtral bridge package used by higher-level clients
+- `petal`: app target (menu bar UX, onboarding, setup, services)
+- `PetalKit`: modular package layer (shared domain, clients, UI, onboarding)
+- `PetalMLXClient`: MLX/Voxtral bridge package used by higher-level clients
 - `Vendor/mlx-voxtral-swift`: low-level model runtime dependency
 
 ## Release Pipeline
@@ -35,10 +35,10 @@ Gloam is a menu bar transcription app for macOS built with Swift, SwiftUI, MLX, 
 
 ## Deep Links
 
-- `gloam://start`
-- `gloam://stop`
-- `gloam://toggle`
-- `gloam://setup`
+- `petal://start`
+- `petal://stop`
+- `petal://toggle`
+- `petal://setup`
 
 ## Secrets and Ops
 

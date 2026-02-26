@@ -5,8 +5,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 DERIVED_DATA_PATH="$ROOT_DIR/.derived/phase-gate"
-APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug/gloam.app"
-BUILD_LOG_PATH="${TMPDIR:-/tmp}/gloam-phase-build.log"
+APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug/petal.app"
+BUILD_LOG_PATH="${TMPDIR:-/tmp}/petal-phase-build.log"
 
 echo "==> Phase gate: package tests"
 PACKAGE_MANIFESTS=()
@@ -39,8 +39,8 @@ echo "==> Phase gate: app build"
 rm -f "$DERIVED_DATA_PATH/SourcePackages/workspace-state.json"
 
 if ! xcodebuild \
-  -project gloam.xcodeproj \
-  -scheme gloam \
+  -project petal.xcodeproj \
+  -scheme petal \
   -configuration Debug \
   -destination 'platform=macOS' \
   -derivedDataPath "$DERIVED_DATA_PATH" \
@@ -56,11 +56,11 @@ fi
 echo "==> Phase gate: aria2c smoke test"
 ./scripts/ci/test-aria2c.sh --app "$APP_PATH"
 
-if [[ "${GLOAM_RUN_E2E:-0}" == "1" ]]; then
+if [[ "${PETAL_RUN_E2E:-0}" == "1" ]]; then
   echo "==> Phase gate: end-to-end app flow (terminal launch, single-instance monitored)"
-  ./scripts/ci/e2e-app-terminal.sh --app "$APP_PATH" ${GLOAM_APP_E2E_ARGS:-}
+  ./scripts/ci/e2e-app-terminal.sh --app "$APP_PATH" ${PETAL_APP_E2E_ARGS:-}
 else
-  echo "==> Phase gate: end-to-end app flow (skipped, set GLOAM_RUN_E2E=1)"
+  echo "==> Phase gate: end-to-end app flow (skipped, set PETAL_RUN_E2E=1)"
 fi
 
 echo "==> Phase gate complete"

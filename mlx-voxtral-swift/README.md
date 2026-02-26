@@ -1,6 +1,6 @@
 # VoxtralCore (Vendored)
 
-Minimal vendored package used by `gloam`.
+Minimal vendored package used by `petal`.
 
 ## Scope
 

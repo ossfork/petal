@@ -22,11 +22,11 @@ STOP_WAIT_TIMEOUT_SECONDS="${STOP_WAIT_TIMEOUT_SECONDS:-30}"
 MODEL_PREP_TIMEOUT_SECONDS="${MODEL_PREP_TIMEOUT_SECONDS:-1800}"
 E2E_AUDIO_FIXTURE_PATH="${E2E_AUDIO_FIXTURE_PATH:-$ROOT_DIR/mlx-audio-swift/Tests/media/conversational_a.wav}"
 MODELS_CSV=""
-LOCK_DIR="/tmp/gloam-e2e-full-matrix.lock"
+LOCK_DIR="/tmp/petal-e2e-full-matrix.lock"
 
-HISTORY_DIR="$HOME/Documents/gloam/history"
-MODELS_DIR="$HOME/Documents/gloam/models"
-APP_DEFAULTS_DOMAIN="com.optimalapps.gloam"
+HISTORY_DIR="$HOME/Documents/petal/history"
+MODELS_DIR="$HOME/Documents/petal/models"
+APP_DEFAULTS_DOMAIN="com.optimalapps.petal"
 APP_BIN=""
 LSREGISTER_BIN="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
@@ -47,13 +47,13 @@ Usage: $(basename "$0") [options]
 Options:
   --app <path>             Use an existing .app bundle path.
   --skip-build             Skip xcodebuild even when --app is not provided.
-  --no-clean-start         Keep existing ~/Documents/gloam/{history,models}.
+  --no-clean-start         Keep existing ~/Documents/petal/{history,models}.
   --wait-timeout <secs>    Timeout for each per-model transcription wait. Default: ${WAIT_TIMEOUT_SECONDS}
   --models <csv>           Comma-separated model IDs to run (subset of built-in list).
   --start-timeout <secs>   Timeout waiting for deep-link start confirmation. Default: ${START_WAIT_TIMEOUT_SECONDS}
   --stop-timeout <secs>    Timeout waiting for deep-link stop confirmation. Default: ${STOP_WAIT_TIMEOUT_SECONDS}
   --model-prep-timeout <s> Timeout waiting for non-Apple model warmup/download readiness. Default: ${MODEL_PREP_TIMEOUT_SECONDS}
-  --skip-toggle-check      Skip the extra gloam://toggle behavior check.
+  --skip-toggle-check      Skip the extra petal://toggle behavior check.
   --report-name <name>     Base report name. Default: ${REPORT_NAME}
   -h, --help               Show this help text.
 EOF
@@ -136,22 +136,22 @@ echo "Work dir: $WORK_DIR" | tee -a "$SESSION_LOG"
 
 build_app_if_needed() {
   if [[ -n "$APP_PATH" ]]; then
-    if [[ ! -x "$APP_PATH/Contents/MacOS/gloam" ]]; then
+    if [[ ! -x "$APP_PATH/Contents/MacOS/petal" ]]; then
       echo "Provided app path is invalid or not executable: $APP_PATH" >&2
       exit 1
     fi
-    APP_BIN="$APP_PATH/Contents/MacOS/gloam"
+    APP_BIN="$APP_PATH/Contents/MacOS/petal"
     echo "Using app path: $APP_PATH" | tee -a "$SESSION_LOG"
     return
   fi
 
-  APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug/gloam.app"
+  APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug/petal.app"
   if [[ "$SKIP_BUILD" == "1" ]]; then
-    if [[ ! -x "$APP_PATH/Contents/MacOS/gloam" ]]; then
+    if [[ ! -x "$APP_PATH/Contents/MacOS/petal" ]]; then
       echo "--skip-build was set but no built app exists at $APP_PATH" >&2
       exit 1
     fi
-    APP_BIN="$APP_PATH/Contents/MacOS/gloam"
+    APP_BIN="$APP_PATH/Contents/MacOS/petal"
     echo "Using existing built app: $APP_PATH" | tee -a "$SESSION_LOG"
     return
   fi
@@ -160,8 +160,8 @@ build_app_if_needed() {
 
   run_build() {
     xcodebuild \
-      -project gloam.xcodeproj \
-      -scheme gloam \
+      -project petal.xcodeproj \
+      -scheme petal \
       -configuration Debug \
       -destination 'platform=macOS' \
       -derivedDataPath "$DERIVED_DATA_PATH" \
@@ -182,15 +182,15 @@ build_app_if_needed() {
       exit 65
     fi
   fi
-  APP_BIN="$APP_PATH/Contents/MacOS/gloam"
+  APP_BIN="$APP_PATH/Contents/MacOS/petal"
   echo "Build completed: $APP_PATH" | tee -a "$SESSION_LOG"
 }
 
-kill_all_gloam() {
-  pkill -x gloam 2>/dev/null || true
+kill_all_petal() {
+  pkill -x petal 2>/dev/null || true
   sleep 1
-  if pgrep -x gloam >/dev/null 2>&1; then
-    pkill -9 -x gloam 2>/dev/null || true
+  if pgrep -x petal >/dev/null 2>&1; then
+    pkill -9 -x petal 2>/dev/null || true
     sleep 1
   fi
 }
@@ -200,11 +200,11 @@ wait_for_zero_instances() {
   local start now count
   start="$(date +%s)"
   while true; do
-    count="$(pgrep -x gloam | wc -l | tr -d '[:space:]')"
+    count="$(pgrep -x petal | wc -l | tr -d '[:space:]')"
     if [[ "$count" == "0" ]]; then
       return 0
     fi
-    kill_all_gloam
+    kill_all_petal
     now="$(date +%s)"
     if (( now - start > timeout )); then
       return 1
@@ -215,10 +215,10 @@ wait_for_zero_instances() {
 
 enable_unattended_e2e_env() {
   local enabled=true
-  if ! launchctl setenv GLOAM_UNATTENDED_E2E 1 >/dev/null 2>&1; then
+  if ! launchctl setenv PETAL_UNATTENDED_E2E 1 >/dev/null 2>&1; then
     enabled=false
   fi
-  if ! launchctl setenv GLOAM_E2E_AUDIO_FILE "$E2E_AUDIO_FIXTURE_PATH" >/dev/null 2>&1; then
+  if ! launchctl setenv PETAL_E2E_AUDIO_FILE "$E2E_AUDIO_FIXTURE_PATH" >/dev/null 2>&1; then
     enabled=false
   fi
 
@@ -231,8 +231,8 @@ enable_unattended_e2e_env() {
 }
 
 disable_unattended_e2e_env() {
-  launchctl unsetenv GLOAM_UNATTENDED_E2E >/dev/null 2>&1 || true
-  launchctl unsetenv GLOAM_E2E_AUDIO_FILE >/dev/null 2>&1 || true
+  launchctl unsetenv PETAL_UNATTENDED_E2E >/dev/null 2>&1 || true
+  launchctl unsetenv PETAL_E2E_AUDIO_FILE >/dev/null 2>&1 || true
 }
 
 ensure_e2e_audio_fixture() {
@@ -297,7 +297,7 @@ ensure_clean_start() {
   fi
 
   echo "Running clean start: removing $HISTORY_DIR and $MODELS_DIR" | tee -a "$SESSION_LOG"
-  kill_all_gloam
+  kill_all_petal
   rm -rf "$HISTORY_DIR" "$MODELS_DIR"
 }
 
@@ -311,7 +311,7 @@ ensure_url_scheme_routing() {
   all_paths="$(
     "$LSREGISTER_BIN" -dump \
       | sed -n 's/^path:[[:space:]]*//p' \
-      | rg '/gloam\.app \(0x' \
+      | rg '/petal\.app \(0x' \
       | rg -v '/Updater\.app' \
       | sed -E 's/ \(0x[0-9a-f]+\)$//' \
       | sort -u \
@@ -320,7 +320,7 @@ ensure_url_scheme_routing() {
 
   local before_count
   before_count="$(printf "%s\n" "$all_paths" | sed '/^$/d' | wc -l | tr -d '[:space:]')"
-  echo "LaunchServices gloam.app registrations before isolation: $before_count" | tee -a "$SESSION_LOG"
+  echo "LaunchServices petal.app registrations before isolation: $before_count" | tee -a "$SESSION_LOG"
 
   printf "%s\n" "$all_paths" | while IFS= read -r path; do
     [[ -z "$path" ]] && continue
@@ -335,14 +335,14 @@ ensure_url_scheme_routing() {
   after_count="$(
     "$LSREGISTER_BIN" -dump \
       | sed -n 's/^path:[[:space:]]*//p' \
-      | rg '/gloam\.app \(0x' \
+      | rg '/petal\.app \(0x' \
       | rg -v '/Updater\.app' \
       | sed -E 's/ \(0x[0-9a-f]+\)$//' \
       | sort -u \
       | wc -l \
       | tr -d '[:space:]'
   )"
-  echo "LaunchServices gloam.app registrations after isolation: $after_count" | tee -a "$SESSION_LOG"
+  echo "LaunchServices petal.app registrations after isolation: $after_count" | tee -a "$SESSION_LOG"
 }
 
 setup_defaults_for_model() {
@@ -422,7 +422,7 @@ run_single_model() {
   local model_id="$1"
   local model_log="$WORK_DIR/${model_id}.log"
   local run_log_copy="$WORK_DIR/${model_id}.app-log-stream.log"
-  local app_file_log="$HOME/Documents/gloam/logs/gloam-$(date +%F).log"
+  local app_file_log="$HOME/Documents/petal/logs/petal-$(date +%F).log"
   local app_file_log_copy="$WORK_DIR/${model_id}.app-file-log.log"
   local app_file_log_before_lines=0
   local start_epoch end_epoch duration
@@ -446,10 +446,10 @@ run_single_model() {
 
   echo "=== Running model: $model_id ===" | tee -a "$SESSION_LOG"
   setup_defaults_for_model "$model_id"
-  kill_all_gloam
+  kill_all_petal
   if ! wait_for_zero_instances 30; then
     status="FAIL"
-    notes="could not clear existing gloam instances before run"
+    notes="could not clear existing petal instances before run"
   fi
 
   before_count="$(history_entries_count)"
@@ -457,7 +457,7 @@ run_single_model() {
     app_file_log_before_lines="$(wc -l < "$app_file_log" | tr -d '[:space:]')"
   fi
   start_epoch="$(date +%s)"
-  local phrase="gloam e2e run ${RUN_ID} model ${model_id} deep link start stop verification"
+  local phrase="petal e2e run ${RUN_ID} model ${model_id} deep link start stop verification"
   if [[ "$model_id" == "small-24b-8bit" ]]; then
     flow_timeout=21600
   fi
@@ -478,7 +478,7 @@ run_single_model() {
   local run_flow_failed=0
   if [[ "$status" == "PASS" ]]; then
     /usr/bin/log stream --style compact --level debug \
-      --predicate 'subsystem == "com.optimalapps.gloam"' \
+      --predicate 'subsystem == "com.optimalapps.petal"' \
       >"$run_log_copy" 2>&1 &
     local log_pid=$!
     sleep 2
@@ -488,7 +488,7 @@ run_single_model() {
       if [[ -n "${log_pid:-}" ]] && kill -0 "$log_pid" 2>/dev/null; then
         kill "$log_pid" 2>/dev/null || true
       fi
-      kill_all_gloam
+      kill_all_petal
       wait_for_zero_instances 15 || true
       extract_log_delta "$app_file_log" "$app_file_log_before_lines" "$app_file_log_copy"
     }
@@ -500,7 +500,7 @@ run_single_model() {
     sleep 5
 
     local launched_count
-    launched_count="$(pgrep -x gloam | wc -l | tr -d '[:space:]')"
+    launched_count="$(pgrep -x petal | wc -l | tr -d '[:space:]')"
     echo "instances_after_launch=$launched_count" >>"$model_log"
     if [[ "$launched_count" != "1" ]]; then
       run_flow_failed=1
@@ -515,7 +515,7 @@ run_single_model() {
 
     if (( run_flow_failed == 0 )); then
       echo "Sending deep link: start" >>"$model_log"
-      open "gloam://start" >>"$model_log" 2>&1
+      open "petal://start" >>"$model_log" 2>&1
 
       if ! wait_for_log_pattern_any \
         "Recording started from deep link|Deep link start failed|Deep link start aborted|Deep link start ignored|Deep link setup download failed" \
@@ -544,7 +544,7 @@ run_single_model() {
         say -v Samantha "$phrase" >>"$model_log" 2>&1
         sleep 1
         echo "Sending deep link: stop" >>"$model_log"
-        open "gloam://stop" >>"$model_log" 2>&1
+        open "petal://stop" >>"$model_log" 2>&1
 
         if ! wait_for_log_pattern_any "Stopping recording from deep link|Deep link stop ignored: no active recording" "$STOP_WAIT_TIMEOUT_SECONDS" "${runtime_logs[@]}"; then
           run_flow_failed=1
@@ -702,11 +702,11 @@ run_single_model() {
 
 run_toggle_check() {
   setup_defaults_for_model "apple-speech"
-  kill_all_gloam
+  kill_all_petal
   wait_for_zero_instances 20 || true
 
   local log_file="$WORK_DIR/toggle-log-stream.log"
-  local file_log_source="$HOME/Documents/gloam/logs/gloam-$(date +%F).log"
+  local file_log_source="$HOME/Documents/petal/logs/petal-$(date +%F).log"
   local file_log_copy="$WORK_DIR/toggle-app-file-log.log"
   local file_log_before_lines=0
   local launch_count
@@ -717,7 +717,7 @@ run_toggle_check() {
   fi
 
   /usr/bin/log stream --style compact --level debug \
-    --predicate 'subsystem == "com.optimalapps.gloam"' \
+    --predicate 'subsystem == "com.optimalapps.petal"' \
     >"$log_file" 2>&1 &
   local log_pid=$!
   sleep 2
@@ -728,20 +728,20 @@ run_toggle_check() {
     if [[ -n "${log_pid:-}" ]] && kill -0 "$log_pid" 2>/dev/null; then
       kill "$log_pid" 2>/dev/null || true
     fi
-    kill_all_gloam
+    kill_all_petal
     extract_log_delta "$file_log_source" "$file_log_before_lines" "$file_log_copy"
   }
   trap cleanup_toggle RETURN
 
   open "$APP_PATH"
   sleep 4
-  launch_count="$(pgrep -x gloam | wc -l | tr -d '[:space:]')"
+  launch_count="$(pgrep -x petal | wc -l | tr -d '[:space:]')"
   if [[ "$launch_count" != "1" ]]; then
     echo "toggle_check=FAIL reason=instance_count_after_launch:$launch_count log=$log_file file_log=$file_log_copy" | tee -a "$SESSION_LOG" >"$TOGGLE_LOG"
     return 1
   fi
 
-  open "gloam://toggle"
+  open "petal://toggle"
 
   if ! wait_for_log_pattern_any \
     "Recording started from deep link|Deep link start failed|Deep link start aborted|Deep link start ignored" \
@@ -764,9 +764,9 @@ run_toggle_check() {
     return 1
   fi
 
-  say -v Samantha "gloam toggle e2e run ${RUN_ID} verification"
+  say -v Samantha "petal toggle e2e run ${RUN_ID} verification"
   sleep 1
-  open "gloam://toggle"
+  open "petal://toggle"
 
   if ! wait_for_log_pattern_any \
     "Stopping recording from deep link|Deep link stop ignored: no active recording" \
@@ -803,7 +803,7 @@ generate_reports() {
   jq -s '.' "$RESULTS_DIR"/*.json >"$SUMMARY_JSON"
 
   {
-    echo "# Gloam Full E2E Matrix Report"
+    echo "# Petal Full E2E Matrix Report"
     echo
     echo "- Run ID: \`$RUN_ID\`"
     echo "- Timestamp: \`$(date -u +"%Y-%m-%dT%H:%M:%SZ")\`"
@@ -831,7 +831,7 @@ generate_reports() {
 cleanup_global() {
   disable_unattended_e2e_env
   clear_unattended_e2e_default
-  kill_all_gloam
+  kill_all_petal
   rm -rf "$LOCK_DIR"
 }
 trap cleanup_global EXIT INT TERM

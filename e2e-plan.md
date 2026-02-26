@@ -1,7 +1,7 @@
-# Full Gloam Deep-Link E2E Matrix Plan
+# Full Petal Deep-Link E2E Matrix Plan
 
 ## Summary
-Run a full end-to-end matrix that uses real app audio capture (`say` routed through Loopback), deep-link control (`gloam://start` / `gloam://stop`), model switching via `defaults` + relaunch, and post-run artifact/log validation across all `ModelOption` cases.
+Run a full end-to-end matrix that uses real app audio capture (`say` routed through Loopback), deep-link control (`petal://start` / `petal://stop`), model switching via `defaults` + relaunch, and post-run artifact/log validation across all `ModelOption` cases.
 
 ## Scope and Success Criteria
 - Scope:
@@ -43,23 +43,23 @@ Run a full end-to-end matrix that uses real app audio capture (`say` routed thro
 ## Execution Design
 
 ### 1. Preflight
-1. Build `gloam.app` in Debug (derived data path under repo `.derived`).
-2. Confirm deep-link scheme works (`gloam://start` accepted by app).
+1. Build `petal.app` in Debug (derived data path under repo `.derived`).
+2. Confirm deep-link scheme works (`petal://start` accepted by app).
 3. Confirm Loopback route is active (operator-provided precondition).
 4. Confirm permissions are granted:
    - Microphone required.
    - Accessibility optional for paste fidelity; do not fail run solely on `pasteResult` not being `pasted`.
 
 ### 2. Clean Start
-1. Stop all running `gloam` processes.
+1. Stop all running `petal` processes.
 2. Remove prior data roots for deterministic baseline:
-   - `~/Documents/gloam/history`
-   - `~/Documents/gloam/models`
+   - `~/Documents/petal/history`
+   - `~/Documents/petal/models`
 3. Recreate base folder as needed via app runtime on first run.
 
 ### 3. Per-Model Test Loop
 For each model ID in the fixed order above:
-1. Set defaults domain `com.optimalapps.gloam`:
+1. Set defaults domain `com.optimalapps.petal`:
    - `selected_model_id=<model>`
    - `has_completed_setup=true`
    - `history_retention_mode=both`
@@ -67,18 +67,18 @@ For each model ID in the fixed order above:
 2. Relaunch app cleanly (single instance only).
 3. Start log stream predicate for process/subsystem.
 4. Trigger recording:
-   - `open "gloam://start"`
+   - `open "petal://start"`
 5. Speak deterministic sentence:
    - run `say -v Samantha "<timestamped sentence mentioning model id>"`
 6. Stop recording:
-   - `open "gloam://stop"`
+   - `open "petal://stop"`
 7. Wait for completion signal:
    - must see `Transcription completed` within timeout.
    - fail model if timeout or `Transcription failed` appears.
 8. Collect latest history entry and linked artifacts:
-   - `~/Documents/gloam/history/history.json`
-   - `~/Documents/gloam/history/transcripts/*.txt`
-   - `~/Documents/gloam/history/media/*.m4a`
+   - `~/Documents/petal/history/history.json`
+   - `~/Documents/petal/history/transcripts/*.txt`
+   - `~/Documents/petal/history/media/*.m4a`
 9. Validate:
    - latest/new entry has expected `modelID`
    - transcript text exists and is not blank
@@ -89,8 +89,8 @@ For each model ID in the fixed order above:
 
 ### 4. Matrix Extras
 - Include one extra deep-link behavior check:
-  - `gloam://toggle` starts when idle and stops when recording.
-- Keep `gloam://setup` out of critical pass/fail (UI-opening behavior, weak log observability), but log observation if invoked.
+  - `petal://toggle` starts when idle and stops when recording.
+- Keep `petal://setup` out of critical pass/fail (UI-opening behavior, weak log observability), but log observation if invoked.
 
 ### 5. Final Aggregation
 1. Generate Markdown + JSON summary.
@@ -108,7 +108,7 @@ For each model ID in the fixed order above:
 2. Download-heavy model cases:
    - long-download models (`mini-3b`, `mini-3b-8bit`, `small-24b-8bit`) still complete or fail with explicit reason captured.
 3. Single-instance safety:
-   - verify exactly one `gloam` instance after launch/start/stop.
+   - verify exactly one `petal` instance after launch/start/stop.
 4. Artifact integrity:
    - every successful run produces coherent `history.json` entry + transcript/media files.
 5. Toggle deep-link behavior:

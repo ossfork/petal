@@ -49,7 +49,7 @@ public class ModelDownloader {
         if let modelPath { try? FileManager.default.removeItem(at: modelPath) }
     }
 
-    /// Default models directory (in Documents/gloam/models)
+    /// Default models directory (in Documents/petal/models)
     public static var modelsDirectory: URL {
         appDirectory.appendingPathComponent("models")
     }
@@ -527,7 +527,7 @@ public class ModelDownloader {
         let candidateURLs: [URL] = [
             Bundle.main.resourceURL?.appendingPathComponent("Tools/aria2c"),
             Bundle.main.resourceURL?.appendingPathComponent("aria2c"),
-            URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("gloam/Resources/Tools/aria2c"),
+            URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("petal/Resources/Tools/aria2c"),
             URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".local/bin/aria2c"),
             URL(fileURLWithPath: "/opt/homebrew/bin/aria2c"),
             URL(fileURLWithPath: "/usr/local/bin/aria2c")
@@ -542,7 +542,7 @@ public class ModelDownloader {
 
     private static var appDirectory: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            .appendingPathComponent("gloam")
+            .appendingPathComponent("petal")
     }
 
     private static func ensureModelDirectories() throws {

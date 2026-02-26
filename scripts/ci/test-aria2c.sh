@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-SOURCE_PATH="$ROOT_DIR/gloam/Resources/Tools/aria2c"
+SOURCE_PATH="$ROOT_DIR/petal/Resources/Tools/aria2c"
 APP_PATH=""
 DOWNLOAD_URL="https://raw.githubusercontent.com/github/gitignore/main/Swift.gitignore"
 
@@ -23,7 +23,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     *)
       echo "Unknown argument: $1" >&2
-      echo "Usage: $(basename "$0") [--source <path/to/aria2c>] [--app <path/to/gloam.app>] [--download-url <url>]" >&2
+      echo "Usage: $(basename "$0") [--source <path/to/aria2c>] [--app <path/to/petal.app>] [--download-url <url>]" >&2
       exit 1
       ;;
   esac
