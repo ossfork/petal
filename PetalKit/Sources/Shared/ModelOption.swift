@@ -59,7 +59,6 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
     case whisperTiny = "whisper-tiny"
     case mini3b = "mini-3b"
     case mini3b8bit = "mini-3b-8bit"
-    case small24b8bit = "small-24b-8bit"
 
     public static var allCases: [ModelOption] {
         var options: [ModelOption] = [
@@ -68,7 +67,6 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
             .whisperTiny,
             .mini3b,
             .mini3b8bit,
-            .small24b8bit,
         ]
         if isAppleSpeechSupportedOnCurrentDevice {
             options.insert(.appleSpeech, at: 0)
@@ -176,20 +174,6 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 speedScore: 3,
                 smartScore: 4
             )
-        case .small24b8bit:
-            return ModelDescriptor(
-                id: rawValue,
-                repoID: "mzbac/Voxtral-Small-24B-2507-8bit",
-                name: "Voxtral Small 24B (8-bit)",
-                summary: "Higher-quality 24B Voxtral model, quantized for MLX with Smart mode support.",
-                size: "~25 GB",
-                quantization: "8-bit",
-                parameters: "24B",
-                provider: .voxtralCore,
-                recommended: false,
-                speedScore: 1,
-                smartScore: 5
-            )
         }
     }
 
@@ -221,7 +205,7 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .appleSpeech:
             return false
-        case .qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny, .mini3b, .mini3b8bit, .small24b8bit:
+        case .qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny, .mini3b, .mini3b8bit:
             return true
         }
     }
@@ -230,7 +214,7 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .appleSpeech, .qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny:
             return [.verbatim]
-        case .mini3b, .mini3b8bit, .small24b8bit:
+        case .mini3b, .mini3b8bit:
             return TranscriptionMode.allCases
         }
     }
@@ -272,15 +256,8 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
         case Self.mini3b8bit.rawValue,
              "mzbac/voxtral-mini-3b-8bit":
             return .mini3b8bit
-        case Self.small24b8bit.rawValue,
-             "mzbac/voxtral-small-24b-2507-8bit":
-            return .small24b8bit
         case "mini-3b-4bit", "mzbac/voxtral-mini-3b-4bit-mixed":
             return .mini3b8bit
-        case "small-24b", "small-4bit",
-             "mistralai/voxtral-small-24b-2507",
-             "vincentgourbin/voxtral-small-4bit-mixed":
-            return .small24b8bit
         default:
             return .defaultOption
         }
