@@ -7,6 +7,7 @@ public struct MiniDownloadView: View {
     @Bindable var model: ModelDownloadModel
     var onExpand: () -> Void
     @State private var isHovered = false
+    private let contentVerticalOffset: CGFloat = -8
 
     public init(model: ModelDownloadModel, onExpand: @escaping () -> Void) {
         self.model = model
@@ -16,8 +17,11 @@ public struct MiniDownloadView: View {
     public var body: some View {
         progressContent
             .frame(width: 130, height: 110)
-            .offset(y: -6)
-            .overlay { expandButton }
+            .offset(y: contentVerticalOffset)
+            .overlay {
+                expandButton
+                    .offset(y: contentVerticalOffset)
+            }
             .animation(.easeInOut(duration: 0.2), value: isHovered)
             .onHover { isHovered = $0 }
     }
