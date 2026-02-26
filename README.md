@@ -35,22 +35,22 @@
   <tbody>
     <tr>
       <td valign="middle"><img src="assets/readme/models/apple.png" alt="Apple" width="28" height="28"> Apple</td>
-      <td><code>apple/speech-transcriber</code></td>
+      <td>Apple Speech Transcriber (version varies by macOS)</td>
       <td>Built in on supported Macs. No model download required.</td>
     </tr>
     <tr>
       <td valign="middle"><img src="assets/readme/models/qwen.png" alt="Qwen" width="28" height="28"> Qwen</td>
-      <td><code>mlx-community/Qwen3-ASR-0.6B-4bit</code></td>
+      <td>Qwen3 ASR</td>
       <td>Default balanced on-device model.</td>
     </tr>
     <tr>
       <td valign="middle"><img src="assets/readme/models/openai.png" alt="Whisper" width="28" height="28"> Whisper</td>
-      <td><code>Whisper Large V3 Turbo</code>, <code>Whisper Tiny</code></td>
+      <td>Whisper Large V3, Whisper Tiny</td>
       <td>High-accuracy and lightweight Whisper options via WhisperKit.</td>
     </tr>
     <tr>
       <td valign="middle"><img src="assets/readme/models/mistral.png" alt="Voxtral" width="28" height="28"> Voxtral</td>
-      <td><code>Voxtral Mini 3B (bf16)</code>, <code>Voxtral Mini 3B (8-bit)</code></td>
+      <td>Voxtral BF16, Voxtral 8-bit</td>
       <td>Fast local transcription with higher-end on-device quality.</td>
     </tr>
   </tbody>
