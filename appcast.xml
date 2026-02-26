@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Petal</title>
+    <link>https://github.com/Aayush9029/petal</link>
+    <description>Most recent changes with links to updates.</description>
+    <language>en</language>
+    <item>
+      <title>Version 1.0.0</title>
+      <pubDate>Thu, 26 Feb 2026 19:07:08 +0000</pubDate>
+      <sparkle:version>1</sparkle:version>
+      <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/Aayush9029/petal/releases/download/v1.0.0/Petal-1.0.0.dmg"
+        sparkle:edSignature="3dGJk1f7TZFzxRMoNgX2+JE4Tlup6DJtzNsns63L7CY0Jxb5dqOyPXPwGcdIpTRjNptQO5Y3HqWgl5ebwlB5AA=="
+        length="29018597"
+        type="application/octet-stream"
+      />
+    </item>
+  </channel>
+</rss>

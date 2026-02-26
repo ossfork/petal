@@ -42,7 +42,7 @@
   <key>SUEnableInstallerLauncherService</key>
   <false/>
   <key>SUFeedURL</key>
-  <string>https://github.com/Aayush9029/petal/releases/latest/download/appcast.xml</string>
+  <string>https://raw.githubusercontent.com/Aayush9029/petal/main/appcast.xml</string>
   <key>SUPublicEDKey</key>
   <string>$(SPARKLE_PUBLIC_ED_KEY)</string>
 </dict>

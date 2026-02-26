@@ -1,0 +1,268 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+env:
+  SCHEME: petal
+  PRODUCT_NAME: petal
+  BUNDLE_ID: com.optimalapps.petal
+  XCODE_VERSION: "26.2"
+  DMG_NAME_PREFIX: Petal
+  SPARKLE_VERSION: "2.8.1"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: macos-26
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building version: $VERSION"
+
+      - name: Import Developer ID certificate
+        env:
+          CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
+
+          # Create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # Import certificate
+          echo "$CERTIFICATE_P12" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security import "$RUNNER_TEMP/certificate.p12" \
+            -P "$CERTIFICATE_PASSWORD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+
+          # Allow codesign to access keychain
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # Add to search list
+          security list-keychains -d user -s "$KEYCHAIN_PATH" "$(security list-keychains -d user | tr -d '"' | tr '\n' ' ')"
+
+      - name: Setup App Store Connect API key
+        env:
+          API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+        run: |
+          mkdir -p ~/private_keys
+          echo "$API_KEY_P8" | base64 --decode > ~/private_keys/AuthKey_${API_KEY_ID}.p8
+
+      - name: Download Sparkle
+        run: |
+          curl -L -o "$RUNNER_TEMP/Sparkle.tar.xz" \
+            "https://github.com/sparkle-project/Sparkle/releases/download/${{ env.SPARKLE_VERSION }}/Sparkle-${{ env.SPARKLE_VERSION }}.tar.xz"
+          mkdir -p "$RUNNER_TEMP/sparkle-tools"
+          tar -xf "$RUNNER_TEMP/Sparkle.tar.xz" -C "$RUNNER_TEMP/sparkle-tools"
+
+      - name: Resolve SPM packages
+        run: |
+          defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
+          xcodebuild -resolvePackageDependencies \
+            -scheme "$SCHEME" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm"
+
+      - name: Archive
+        run: |
+          xcodebuild archive \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -archivePath "$RUNNER_TEMP/petal.xcarchive" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm" \
+            ARCHS=arm64 \
+            MARKETING_VERSION="${{ steps.version.outputs.version }}" \
+            CURRENT_PROJECT_VERSION="${GITHUB_RUN_NUMBER}" \
+            CODE_SIGN_IDENTITY="Developer ID Application" \
+            DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
+            CODE_SIGN_STYLE=Manual \
+            OTHER_CODE_SIGN_FLAGS="--timestamp"
+
+      - name: Create export options plist
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" << 'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>developer-id</string>
+              <key>teamID</key>
+              <string>TEAM_ID_PLACEHOLDER</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>signingCertificate</key>
+              <string>Developer ID Application</string>
+          </dict>
+          </plist>
+          PLIST
+
+          # Replace placeholder with actual team ID
+          sed -i '' "s/TEAM_ID_PLACEHOLDER/${{ secrets.APPLE_TEAM_ID }}/" "$RUNNER_TEMP/ExportOptions.plist"
+
+      - name: Export archive
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/petal.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export"
+
+      - name: Sign embedded aria2c
+        run: |
+          scripts/release/sign-aria2c.sh \
+            --app "$RUNNER_TEMP/export/${{ env.PRODUCT_NAME }}.app" \
+            --identity "Developer ID Application: Aayush Pokharel (${{ secrets.APPLE_TEAM_ID }})" \
+            --skip-gatekeeper
+
+      - name: Re-sign app bundle
+        run: |
+          codesign --force --deep \
+            --sign "Developer ID Application: Aayush Pokharel (${{ secrets.APPLE_TEAM_ID }})" \
+            --options runtime \
+            --timestamp \
+            "$RUNNER_TEMP/export/${{ env.PRODUCT_NAME }}.app"
+
+      - name: Notarize app
+        env:
+          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          ditto -c -k --keepParent "$RUNNER_TEMP/export/${{ env.PRODUCT_NAME }}.app" "$RUNNER_TEMP/app-for-notarization.zip"
+
+          xcrun notarytool submit "$RUNNER_TEMP/app-for-notarization.zip" \
+            --key ~/private_keys/AuthKey_${API_KEY_ID}.p8 \
+            --key-id "$API_KEY_ID" \
+            --issuer "$API_ISSUER_ID" \
+            --wait
+
+      - name: Staple app
+        run: |
+          xcrun stapler staple "$RUNNER_TEMP/export/${{ env.PRODUCT_NAME }}.app"
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Create DMG
+        run: |
+          DMG_NAME="${{ env.DMG_NAME_PREFIX }}-${{ steps.version.outputs.version }}.dmg"
+          DMG_PATH="$RUNNER_TEMP/$DMG_NAME"
+
+          scripts/release/create-dmg.sh \
+            --app "$RUNNER_TEMP/export/${{ env.PRODUCT_NAME }}.app" \
+            --output "$DMG_PATH"
+
+          echo "DMG_NAME=$DMG_NAME" >> "$GITHUB_ENV"
+          echo "DMG_PATH=$DMG_PATH" >> "$GITHUB_ENV"
+
+      - name: Sign DMG
+        run: |
+          codesign --force --sign "Developer ID Application: Aayush Pokharel (${{ secrets.APPLE_TEAM_ID }})" \
+            --timestamp \
+            "$DMG_PATH"
+
+      - name: Notarize and staple DMG
+        env:
+          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          xcrun notarytool submit "$DMG_PATH" \
+            --key ~/private_keys/AuthKey_${API_KEY_ID}.p8 \
+            --key-id "$API_KEY_ID" \
+            --issuer "$API_ISSUER_ID" \
+            --wait
+
+          xcrun stapler staple "$DMG_PATH"
+
+      - name: Upload DMG to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" "$DMG_PATH" --clobber
+
+      - name: Generate appcast.xml
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          SIGN_UPDATE="$RUNNER_TEMP/sparkle-tools/bin/sign_update"
+          chmod +x "$SIGN_UPDATE"
+
+          # Sign DMG with EdDSA key (sign_update reads key from stdin)
+          RAW_OUTPUT=$(echo "$SPARKLE_PRIVATE_KEY" | "$SIGN_UPDATE" "$DMG_PATH" --ed-key-file -)
+          ED_SIGNATURE=$(echo "$RAW_OUTPUT" | sed -n 's/.*sparkle:edSignature="\([^"]*\)".*/\1/p')
+          FILE_SIZE=$(stat -f%z "$DMG_PATH")
+          VERSION="${{ steps.version.outputs.version }}"
+          BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
+          DOWNLOAD_URL="https://github.com/Aayush9029/petal/releases/download/v${VERSION}/${DMG_NAME}"
+
+          python3 scripts/release/generate-appcast.py \
+            --output appcast.xml \
+            --title "Petal" \
+            --link "https://github.com/Aayush9029/petal" \
+            --version "$VERSION" \
+            --build "$BUILD_NUMBER" \
+            --download-url "$DOWNLOAD_URL" \
+            --ed-signature "$ED_SIGNATURE" \
+            --length "$FILE_SIZE" \
+            --minimum-system-version "15.0"
+
+      - name: Push appcast.xml to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add appcast.xml
+          git commit -m "Update appcast.xml for ${{ github.event.release.tag_name }}"
+          git push origin HEAD:main
+
+      - name: Verify
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          echo "--- Verifying appcast.xml ---"
+          # Has EdDSA signature
+          grep -q 'sparkle:edSignature="' appcast.xml
+          echo "✓ sparkle:edSignature present"
+
+          # Correct version
+          grep -q "<sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>" appcast.xml
+          echo "✓ Version $VERSION found"
+
+          echo "--- Verifying DMG upload ---"
+          gh release view "${{ github.event.release.tag_name }}" --json assets -q '.assets[].name' | grep -q "$DMG_NAME"
+          echo "✓ DMG attached to release"
+
+          echo "--- All checks passed ---"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Cleanup
+        if: always()
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
+          if [ -f "$KEYCHAIN_PATH" ]; then
+            security delete-keychain "$KEYCHAIN_PATH" || true
+          fi
+          rm -f ~/private_keys/AuthKey_*.p8
+          rm -f "$RUNNER_TEMP/certificate.p12"
+          rm -f "$RUNNER_TEMP/app-for-notarization.zip"

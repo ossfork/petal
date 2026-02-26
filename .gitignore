@@ -9,3 +9,4 @@ ops/*.env
 ops/private/
 
 build-release/
+secret_keys/
