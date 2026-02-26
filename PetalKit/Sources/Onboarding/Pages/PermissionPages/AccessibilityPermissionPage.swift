@@ -14,8 +14,6 @@ struct AccessibilityPermissionPage: View {
     }
 }
 
-#if DEBUG
-
 #Preview("Accessibility - Pending") {
     OnboardingView(model: .makePreview(page: .accessibility) { model in
         model.accessibilityAuthorized = false
@@ -25,5 +23,3 @@ struct AccessibilityPermissionPage: View {
 #Preview("Accessibility - Enabled") {
     OnboardingView(model: .makePreview(page: .accessibility))
 }
-
-#endif

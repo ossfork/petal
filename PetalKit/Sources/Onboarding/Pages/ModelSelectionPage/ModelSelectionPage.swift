@@ -35,10 +35,6 @@ struct ModelSelectionPage: View {
     }
 }
 
-#if DEBUG
-
 #Preview("Model Selection") {
     OnboardingView(model: .makePreview(page: .model))
 }
-
-#endif

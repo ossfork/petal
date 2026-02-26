@@ -53,8 +53,6 @@ struct HistoryRetentionPage: View {
     }
 }
 
-#if DEBUG
-
 #Preview("History Retention") {
     OnboardingView(model: .makePreview(page: .historyRetention))
 }
@@ -70,5 +68,3 @@ struct HistoryRetentionPage: View {
         model.$historyRetentionMode.withLock { $0 = .transcripts }
     })
 }
-
-#endif
