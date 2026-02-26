@@ -49,6 +49,11 @@
       <td>Default balanced on-device model.</td>
     </tr>
     <tr>
+      <td valign="middle"><img src="assets/readme/models/nvidia.png" alt="NVIDIA" width="28" height="28"> NVIDIA</td>
+      <td>Parakeet TDT 0.6B, Parakeet CTC 0.6B</td>
+      <td>Fast local Parakeet variants via MLX Audio STT.</td>
+    </tr>
+    <tr>
       <td valign="middle"><img src="assets/readme/models/openai.png" alt="Whisper" width="28" height="28"> Whisper</td>
       <td>Whisper Large V3, Whisper Tiny</td>
       <td>High-accuracy and lightweight Whisper options via WhisperKit.</td>

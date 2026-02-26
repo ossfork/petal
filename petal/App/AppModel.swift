@@ -1422,6 +1422,10 @@ final class AppModel {
         switch model {
         case .qwen3ASR06B4bit:
             return 2.2
+        case .parakeetTDT06BV3:
+            return 1.8
+        case .parakeetCTC06B:
+            return 2.0
         case .whisperLargeV3Turbo:
             return 0.85
         case .whisperTiny:

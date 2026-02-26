@@ -142,6 +142,10 @@ private extension ModelOption {
             return nil
         case .qwen3ASR06B4bit:
             return .qwen3ASR06B4bit
+        case .parakeetTDT06BV3:
+            return .parakeetTDT06BV3
+        case .parakeetCTC06B:
+            return .parakeetCTC06B
         case .whisperLargeV3Turbo:
             return .whisperLargeV3Turbo
         case .whisperTiny:

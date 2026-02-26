@@ -7,6 +7,7 @@ public extension ModelProvider {
         switch self {
         case .appleSpeech: .swiftLogo
         case .mlxAudioSTT: .qwen
+        case .nvidia: .nvidia
         case .whisperKit: .openai
         case .voxtralCore: .mistral
         }

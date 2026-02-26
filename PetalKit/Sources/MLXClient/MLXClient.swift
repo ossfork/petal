@@ -58,6 +58,8 @@ public enum MLXPipelineModel: String, Sendable {
     case mini3b
     case mini3b8bit
     case qwen3ASR06B4bit
+    case parakeetTDT06BV3
+    case parakeetCTC06B
     case whisperLargeV3Turbo
     case whisperTiny
 }
@@ -211,6 +213,7 @@ private actor LiveMLXRuntime {
     private var loadedModel: MLXPipelineModel?
     private var voxtralPipeline: VoxtralPipeline?
     private var qwen3ASRModel: Qwen3ASRModel?
+    private var parakeetModel: ParakeetModel?
     private var whisperKitInstance: WhisperKit?
 
     func prepareModelIfNeeded(model: MLXPipelineModel) async throws {
@@ -242,6 +245,12 @@ private actor LiveMLXRuntime {
                 throw MLXError.invalidModelIdentifier(model.rawValue)
             }
             qwen3ASRModel = try await Qwen3ASRModel.fromPretrained(repoID, cache: petalHubCache)
+
+        case .parakeetTDT06BV3, .parakeetCTC06B:
+            guard let repoID = model.parakeetRepoID else {
+                throw MLXError.invalidModelIdentifier(model.rawValue)
+            }
+            parakeetModel = try await ParakeetModel.fromPretrained(repoID, cache: petalHubCache)
 
         case .whisperLargeV3Turbo, .whisperTiny:
             guard let variant = model.whisperKitVariant else {
@@ -277,6 +286,12 @@ private actor LiveMLXRuntime {
             }
             return try transcribeWithQwen(audioURL: audioURL, mode: mode, model: qwen3ASRModel)
 
+        case .parakeetTDT06BV3, .parakeetCTC06B:
+            guard let parakeetModel else {
+                throw MLXError.pipelineUnavailable
+            }
+            return try transcribeWithParakeet(audioURL: audioURL, mode: mode, model: parakeetModel)
+
         case .whisperLargeV3Turbo, .whisperTiny:
             guard let whisperKitInstance else {
                 throw MLXError.pipelineUnavailable
@@ -297,6 +312,7 @@ private actor LiveMLXRuntime {
         voxtralPipeline?.unload()
         voxtralPipeline = nil
         qwen3ASRModel = nil
+        parakeetModel = nil
         whisperKitInstance = nil
         loadedModel = nil
     }
@@ -342,6 +358,33 @@ private actor LiveMLXRuntime {
     }
 
     private func normalizeQwenTranscript(_ text: String) -> String {
+        text
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    // Parakeet currently supports direct ASR generation only, so smart mode falls back to verbatim output.
+    private func transcribeWithParakeet(
+        audioURL: URL,
+        mode: MLXTranscriptionMode,
+        model: ParakeetModel
+    ) throws -> String {
+        let (_, audio) = try loadAudioArray(from: audioURL, sampleRate: model.preprocessConfig.sampleRate)
+        let output = model.generate(audio: audio)
+        let text = normalizeParakeetTranscript(output.text)
+        guard !text.isEmpty else {
+            throw MLXError.pipelineUnavailable
+        }
+
+        switch mode {
+        case .verbatim:
+            return text
+        case .smart:
+            return text
+        }
+    }
+
+    private func normalizeParakeetTranscript(_ text: String) -> String {
         text
             .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -652,10 +695,21 @@ private extension MLXModelInfo {
 private extension MLXPipelineModel {
     var qwenRepoID: String? {
         switch self {
-        case .mini3b, .mini3b8bit, .whisperLargeV3Turbo, .whisperTiny:
+        case .mini3b, .mini3b8bit, .parakeetTDT06BV3, .parakeetCTC06B, .whisperLargeV3Turbo, .whisperTiny:
             return nil
         case .qwen3ASR06B4bit:
             return "mlx-community/Qwen3-ASR-0.6B-4bit"
+        }
+    }
+
+    var parakeetRepoID: String? {
+        switch self {
+        case .parakeetTDT06BV3:
+            return "mlx-community/parakeet-tdt-0.6b-v3"
+        case .parakeetCTC06B:
+            return "mlx-community/parakeet-ctc-0.6b"
+        case .mini3b, .mini3b8bit, .qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny:
+            return nil
         }
     }
 
@@ -665,7 +719,7 @@ private extension MLXPipelineModel {
             return "openai_whisper-large-v3_turbo"
         case .whisperTiny:
             return "openai_whisper-tiny"
-        case .mini3b, .mini3b8bit, .qwen3ASR06B4bit:
+        case .mini3b, .mini3b8bit, .qwen3ASR06B4bit, .parakeetTDT06BV3, .parakeetCTC06B:
             return nil
         }
     }
@@ -676,7 +730,7 @@ private extension MLXPipelineModel {
             return .mini3b
         case .mini3b8bit:
             return .mini3b8bit
-        case .qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny:
+        case .qwen3ASR06B4bit, .parakeetTDT06BV3, .parakeetCTC06B, .whisperLargeV3Turbo, .whisperTiny:
             return .mini3b
         }
     }

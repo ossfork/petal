@@ -33,6 +33,8 @@ LSREGISTER_BIN="/System/Library/Frameworks/CoreServices.framework/Frameworks/Lau
 MODELS=(
   "apple-speech"
   "qwen3-asr-0.6b-4bit"
+  "parakeet-tdt-0.6b-v3"
+  "parakeet-ctc-0.6b"
   "whisper-large-v3-turbo"
   "whisper-tiny"
   "mini-3b"
@@ -389,6 +391,12 @@ model_dir_found() {
     qwen3-asr-0.6b-4bit)
       pattern='Qwen3-ASR-0.6B-4bit'
       ;;
+    parakeet-tdt-0.6b-v3)
+      pattern='parakeet-tdt'
+      ;;
+    parakeet-ctc-0.6b)
+      pattern='parakeet-ctc-0.6b'
+      ;;
     whisper-large-v3-turbo)
       pattern='whisper-large-v3'
       ;;
@@ -590,7 +598,16 @@ run_single_model() {
     latest_for_model="$(jq -c --arg model "$model_id" '[.[]?.entries[]? | select(.modelID == $model)] | sort_by(.timestamp) | last // empty' "$history_json")"
     if [[ -n "$latest_for_model" ]]; then
       history_entry_found="true"
-      transcript_rel="$(jq -r '.transcriptRelativePath // ""' <<<"$latest_for_model")"
+      transcript_rel="$(
+        jq -r '
+          .transcriptRelativePath
+          // ((.variants // [])
+            | map(.transcriptRelativePath // "")
+            | map(select(length > 0))
+            | first)
+          // ""
+        ' <<<"$latest_for_model"
+      )"
       media_rel="$(jq -r '.audioRelativePath // ""' <<<"$latest_for_model")"
       transcript_preview="$(jq -r '.transcript // ""' <<<"$latest_for_model" | tr '\n' ' ' | cut -c1-220)"
 
@@ -598,6 +615,9 @@ run_single_model() {
         transcript_abs="$HISTORY_DIR/$transcript_rel"
         if [[ -s "$transcript_abs" ]]; then
           transcript_file_found="true"
+          if [[ -z "${transcript_preview// }" ]]; then
+            transcript_preview="$(tr '\n' ' ' <"$transcript_abs" | cut -c1-220)"
+          fi
         fi
       fi
       if [[ -n "$media_rel" ]]; then

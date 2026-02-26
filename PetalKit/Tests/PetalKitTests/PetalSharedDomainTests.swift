@@ -19,6 +19,13 @@ func qwenModelIDsMapToQwenOption() {
 }
 
 @Test
+func parakeetModelIDsMapToParakeetOptions() {
+    #expect(ModelOption.from(modelID: "parakeet") == .parakeetTDT06BV3)
+    #expect(ModelOption.from(modelID: "mlx-community/parakeet-tdt-0.6b-v3") == .parakeetTDT06BV3)
+    #expect(ModelOption.from(modelID: "mlx-community/parakeet-ctc-0.6b") == .parakeetCTC06B)
+}
+
+@Test
 func whisperModelIDsMapToWhisperOptions() {
     #expect(ModelOption.from(modelID: "whisper-large-v3-turbo") == .whisperLargeV3Turbo)
     #expect(ModelOption.from(modelID: "whisper-large-v3") == .whisperLargeV3Turbo)
@@ -38,6 +45,8 @@ func modelCatalogIncludesBothBackends() {
     #expect(ModelOption.allCases.contains(.mini3b))
     #expect(ModelOption.allCases.contains(.mini3b8bit))
     #expect(ModelOption.allCases.contains(.qwen3ASR06B4bit))
+    #expect(ModelOption.allCases.contains(.parakeetTDT06BV3))
+    #expect(ModelOption.allCases.contains(.parakeetCTC06B))
     #expect(ModelOption.allCases.contains(.whisperLargeV3Turbo))
 }
 
@@ -56,6 +65,15 @@ func transcriptionModeDisplayTextStable() {
 func qwenSupportsVerbatimOnly() {
     #expect(ModelOption.qwen3ASR06B4bit.supportedTranscriptionModes == [.verbatim])
     #expect(!ModelOption.qwen3ASR06B4bit.supportsSmartTranscription)
+}
+
+@Test
+func parakeetSupportsVerbatimOnly() {
+    #expect(ModelOption.parakeetTDT06BV3.supportedTranscriptionModes == [.verbatim])
+    #expect(ModelOption.parakeetCTC06B.supportedTranscriptionModes == [.verbatim])
+    #expect(!ModelOption.parakeetTDT06BV3.supportsSmartTranscription)
+    #expect(!ModelOption.parakeetCTC06B.supportsSmartTranscription)
+    #expect(ModelOption.parakeetTDT06BV3.providerDisplayName == "NVIDIA")
 }
 
 @Test
