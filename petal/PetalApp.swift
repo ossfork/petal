@@ -44,28 +44,12 @@ struct PetalApp: App {
                     }
                 }
         }
-        .menuBarExtraStyle(.window)
+        .menuBarExtraStyle(.menu)
         .commands {
             CommandGroup(replacing: .appInfo) {
                 Button("About Petal") {
                     NSApp.sendAction(#selector(AppDelegate.showAboutPanel), to: nil, from: nil)
                 }
-            }
-
-            CommandGroup(after: .appInfo) {
-                if let updatesModel {
-                    Button("Check for Updates…") {
-                        updatesModel.checkForUpdates()
-                    }
-                    .disabled(!updatesModel.canCheckForUpdates)
-                }
-            }
-
-            CommandGroup(replacing: .appSettings) {
-                Button("Settings…") {
-                    model.openSettingsWindow()
-                }
-                .keyboardShortcut(",", modifiers: .command)
             }
         }
 

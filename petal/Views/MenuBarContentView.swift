@@ -1,102 +1,89 @@
-import MacControlCenterUI
 import Shared
 import SwiftUI
 
 struct MenuBarContentView: View {
     @Bindable var viewModel: MenuBarContentViewModel
 
-    @State private var isPresented = false
-
     var body: some View {
-        MacControlCenterMenu(isPresented: $isPresented) {
-            MenuSection("Status", divider: false)
+        Label(viewModel.statusTitle, systemImage: viewModel.statusSymbolName)
+            .foregroundStyle(viewModel.statusColor)
 
-            HStack {
-                Label(viewModel.statusTitle, systemImage: viewModel.statusSymbolName)
-                    .foregroundStyle(viewModel.statusColor)
-                Spacer()
-                if viewModel.isRecording {
-                    Button("Stop") {
-                        viewModel.stopRecording()
-                    }
-                    .buttonStyle(.borderless)
-                    .foregroundStyle(.red)
+        if viewModel.isRecording {
+            Button("Stop Recording") {
+                viewModel.stopRecording()
+            }
+        }
+
+        if let error = viewModel.statusErrorMessage {
+            Text(error)
+                .foregroundStyle(.red)
+        }
+
+        if let message = viewModel.transientMessage {
+            Text(message)
+                .foregroundStyle(.secondary)
+        }
+
+        Divider()
+
+        if viewModel.shouldShowPermissionsSection {
+            if viewModel.needsMicrophonePermission {
+                Button("Grant Microphone Access") {
+                    viewModel.requestMicrophonePermission()
                 }
             }
 
-            if let error = viewModel.statusErrorMessage {
-                Text(error)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-            }
-
-            if let message = viewModel.transientMessage {
-                Text(message)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            if viewModel.shouldShowPermissionsSection {
-                MenuSection("Permissions")
-
-                if viewModel.needsMicrophonePermission {
-                    MenuCommand("Grant Microphone Access") {
-                        viewModel.requestMicrophonePermission()
-                    }
-                }
-
-                if viewModel.needsAccessibilityPermission {
-                    MenuCommand("Enable Accessibility Access") {
-                        viewModel.requestAccessibilityPermission()
-                    }
+            if viewModel.needsAccessibilityPermission {
+                Button("Enable Accessibility Access") {
+                    viewModel.requestAccessibilityPermission()
                 }
             }
+        }
 
-            if viewModel.shouldShowHistoryMenu {
-                MenuSection("History")
-
-                Menu("Recent Transcripts") {
-                    if viewModel.historyMenuItems.isEmpty {
-                        Text("No transcripts yet")
-                    } else {
-                        ForEach(viewModel.historyMenuItems) { item in
-                            Button {
-                                viewModel.copyHistoryEntry(item.id)
-                            } label: {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(item.title)
-                                    Text(item.subtitle)
-                                        .font(.caption)
-                                }
+        if viewModel.shouldShowHistoryMenu {
+            Menu("History") {
+                if viewModel.historyMenuItems.isEmpty {
+                    Text("No transcripts yet")
+                } else {
+                    ForEach(viewModel.historyMenuItems) { item in
+                        Button {
+                            viewModel.copyHistoryEntry(item.id)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(item.title)
+                                Text(item.subtitle)
+                                    .font(.caption)
                             }
                         }
                     }
                 }
             }
-
-            MenuSection("App", divider: true) {
-                if viewModel.showsCheckForUpdates {
-                    MenuCommand("Check for Updates…") {
-                        viewModel.checkForUpdates()
-                    }
-                    .disabled(!viewModel.canCheckForUpdates)
-                }
-
-                MenuCommand("About Petal") {
-                    viewModel.showAbout()
-                }
-
-                MenuCommand("Settings…") {
-                    viewModel.openSettings()
-                }
-            }
-
-            MenuSection(divider: true) {
-                MenuCommand("Quit Petal") {
-                    viewModel.quit()
-                }
-            }
         }
+
+        Divider()
+
+        if viewModel.showsCheckForUpdates {
+            Button("Check for Updates…") {
+                viewModel.checkForUpdates()
+            }
+            .disabled(!viewModel.canCheckForUpdates)
+        }
+
+        Button("About Petal") {
+            viewModel.showAbout()
+        }
+
+        Button("Settings…") {
+            viewModel.openSettings()
+        }
+        .keyboardShortcut(",", modifiers: .command)
+
+        Divider()
+
+        Button("Quit Petal") {
+            viewModel.quit()
+        }
+        .keyboardShortcut("q", modifiers: .command)
     }
 }
 
