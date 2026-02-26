@@ -1,46 +1,22 @@
 <p align="center">
+  <img src="assets/readme/petal-icon.png" alt="Petal app icon" width="120" height="120">
   <h1 align="center">Petal for macOS</h1>
 </p>
 
 <p align="center">
-  <a aria-label="Open Issues" href="https://github.com/Aayush9029/petal/issues" target="_blank">
-    <img alt="Issues" src="https://img.shields.io/github/issues/Aayush9029/petal?style=for-the-badge">
+  <a aria-label="Download Latest Version" href="https://github.com/Aayush9029/petal/releases/latest" target="_blank">
+    <img alt="Download Latest Version" src="https://img.shields.io/badge/Download%20Latest%20Version-black.svg?style=for-the-badge&logo=apple">
   </a>
-  <a aria-label="Latest Release" href="https://github.com/Aayush9029/petal/releases/latest" target="_blank">
-    <img alt="Latest Release" src="https://img.shields.io/github/v/release/Aayush9029/petal?style=for-the-badge">
+  <a aria-label="Support Development" href="https://github.com/sponsors/Aayush9029" target="_blank">
+    <img alt="Support Development" src="https://img.shields.io/badge/Support%20Development-black.svg?style=for-the-badge&logo=githubsponsors">
   </a>
 </p>
 
-Petal is a menu bar transcription app for macOS built with Swift, SwiftUI, MLX, and Point-Free dependencies.
+Petal is a native macOS menu bar app for fast, local-first audio transcription in a clean, minimal interface.
 
-## Current Architecture
-
-- `petal`: app target (menu bar UX, onboarding, setup, services)
-- `PetalKit`: modular package layer (shared domain, clients, UI, onboarding)
-- `PetalMLXClient`: MLX/Voxtral bridge package used by higher-level clients
-- `Vendor/mlx-voxtral-swift`: low-level model runtime dependency
-
-## Release Pipeline
-
-- Push to `main`: runs package/app/aria2c validation gates
-- Publish release: archives app, signs embedded `aria2c`, notarizes app, creates/signs/notarizes DMG, generates Sparkle `appcast.xml`, uploads release assets
-- Workflow: `.github/workflows/release.yml`
-
-## Developer Commands
-
-```bash
-# Full local gate (packages + app build + aria2c smoke checks)
-./scripts/phase-gate.sh
-```
+`#macOS` `#MenuBar` `#Transcription` `#SwiftUI`
 
 ## Deep Links
 
-- `petal://start`
-- `petal://stop`
-- `petal://toggle`
-- `petal://setup`
-
-## Secrets and Ops
-
-Operational key material and templates live under `ops/`. Real secret files are intentionally git-ignored.
-Use `scripts/release/setup-sparkle-keys.sh` to generate/export Sparkle keys and wire `SPARKLE_PRIVATE_KEY` + `SPARKLE_PUBLIC_ED_KEY`.
+- `Petal Start`: `petal://start`
+- `Petal Stop`: `petal://stop`
