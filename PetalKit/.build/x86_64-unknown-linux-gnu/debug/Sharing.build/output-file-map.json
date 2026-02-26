@@ -1,0 +1,166 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/Internal/Deprecations.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/Deprecations.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/Deprecations.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/Deprecations~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/Deprecations.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/Deprecations.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/Internal/KeyPath+Sendable.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/KeyPath+Sendable.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/KeyPath+Sendable.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/KeyPath+Sendable~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/KeyPath+Sendable.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/KeyPath+Sendable.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/Internal/MutexBackport.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/MutexBackport.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/MutexBackport.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/MutexBackport~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/MutexBackport.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/MutexBackport.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/Internal/NSRecursiveLock+WithLock.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/NSRecursiveLock+WithLock.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/NSRecursiveLock+WithLock.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/NSRecursiveLock+WithLock~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/NSRecursiveLock+WithLock.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/NSRecursiveLock+WithLock.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/Internal/PassthroughRelay.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/PassthroughRelay.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/PassthroughRelay.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/PassthroughRelay~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/PassthroughRelay.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/PassthroughRelay.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/Internal/PersistentReferences.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/PersistentReferences.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/PersistentReferences.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/PersistentReferences~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/PersistentReferences.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/PersistentReferences.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/Internal/Reference.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/Reference.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/Reference.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/Reference~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/Reference.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/Reference.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/Internal/SharedChangeTracker.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedChangeTracker.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedChangeTracker.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedChangeTracker~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedChangeTracker.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedChangeTracker.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/Internal/TypeName.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/TypeName.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/TypeName.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/TypeName~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/TypeName.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/TypeName.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/Shared.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/Shared.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/Shared.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/Shared~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/Shared.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/Shared.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/SharedBinding.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedBinding.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedBinding.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedBinding~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedBinding.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedBinding.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/SharedCollection.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedCollection.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedCollection.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedCollection~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedCollection.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedCollection.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/SharedContinuations.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedContinuations.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedContinuations.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedContinuations~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedContinuations.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedContinuations.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/SharedKey.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedKey.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedKey.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedKey~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedKey.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedKey.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/SharedKeys/AppStorageKey.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/AppStorageKey.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/AppStorageKey.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/AppStorageKey~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/AppStorageKey.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/AppStorageKey.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/SharedKeys/DefaultKey.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/DefaultKey.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/DefaultKey.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/DefaultKey~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/DefaultKey.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/DefaultKey.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/SharedKeys/FileStorageKey.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/FileStorageKey.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/FileStorageKey.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/FileStorageKey~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/FileStorageKey.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/FileStorageKey.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/SharedKeys/InMemoryKey.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/InMemoryKey.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/InMemoryKey.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/InMemoryKey~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/InMemoryKey.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/InMemoryKey.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/SharedPublisher.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedPublisher.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedPublisher.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedPublisher~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedPublisher.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedPublisher.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/SharedReader.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedReader.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedReader.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedReader~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedReader.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedReader.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/SharedReaderKey.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedReaderKey.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedReaderKey.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedReaderKey~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedReaderKey.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SharedReaderKey.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-sharing/Sources/Sharing/SwiftUIStateSharing.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SwiftUIStateSharing.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SwiftUIStateSharing.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SwiftUIStateSharing~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SwiftUIStateSharing.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/SwiftUIStateSharing.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/DerivedSources/resource_bundle_accessor.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/resource_bundle_accessor.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/resource_bundle_accessor.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/resource_bundle_accessor~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/resource_bundle_accessor.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Sharing.build/resource_bundle_accessor.dia"
+  }
+}

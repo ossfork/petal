@@ -1,0 +1,68 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-service-lifecycle/Sources/ServiceLifecycle/AsyncCancelOnGracefulShutdownSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/AsyncCancelOnGracefulShutdownSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/AsyncCancelOnGracefulShutdownSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/AsyncCancelOnGracefulShutdownSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/AsyncCancelOnGracefulShutdownSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/AsyncCancelOnGracefulShutdownSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-service-lifecycle/Sources/ServiceLifecycle/AsyncGracefulShutdownSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/AsyncGracefulShutdownSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/AsyncGracefulShutdownSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/AsyncGracefulShutdownSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/AsyncGracefulShutdownSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/AsyncGracefulShutdownSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-service-lifecycle/Sources/ServiceLifecycle/CancellationWaiter.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/CancellationWaiter.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/CancellationWaiter.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/CancellationWaiter~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/CancellationWaiter.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/CancellationWaiter.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-service-lifecycle/Sources/ServiceLifecycle/ClosureService.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ClosureService.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ClosureService.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ClosureService~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ClosureService.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ClosureService.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-service-lifecycle/Sources/ServiceLifecycle/GracefulShutdown.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/GracefulShutdown.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/GracefulShutdown.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/GracefulShutdown~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/GracefulShutdown.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/GracefulShutdown.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-service-lifecycle/Sources/ServiceLifecycle/Service.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/Service.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/Service.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/Service~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/Service.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/Service.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-service-lifecycle/Sources/ServiceLifecycle/ServiceGroup.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ServiceGroup.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ServiceGroup.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ServiceGroup~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ServiceGroup.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ServiceGroup.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-service-lifecycle/Sources/ServiceLifecycle/ServiceGroupConfiguration.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ServiceGroupConfiguration.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ServiceGroupConfiguration.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ServiceGroupConfiguration~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ServiceGroupConfiguration.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ServiceGroupConfiguration.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-service-lifecycle/Sources/ServiceLifecycle/ServiceRunnerError.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ServiceRunnerError.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ServiceRunnerError.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ServiceRunnerError~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ServiceRunnerError.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/ServiceLifecycle.build/ServiceRunnerError.dia"
+  }
+}

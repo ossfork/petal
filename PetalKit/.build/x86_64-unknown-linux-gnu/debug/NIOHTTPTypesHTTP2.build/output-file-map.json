@@ -1,0 +1,26 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/NIOHTTPTypesHTTP2.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-nio-extras/Sources/NIOHTTPTypesHTTP2/HTTP2HeadersStateMachine.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/NIOHTTPTypesHTTP2.build/HTTP2HeadersStateMachine.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/NIOHTTPTypesHTTP2.build/HTTP2HeadersStateMachine.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/NIOHTTPTypesHTTP2.build/HTTP2HeadersStateMachine~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/NIOHTTPTypesHTTP2.build/HTTP2HeadersStateMachine.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/NIOHTTPTypesHTTP2.build/HTTP2HeadersStateMachine.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-nio-extras/Sources/NIOHTTPTypesHTTP2/HTTP2ToHTTPCodec.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/NIOHTTPTypesHTTP2.build/HTTP2ToHTTPCodec.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/NIOHTTPTypesHTTP2.build/HTTP2ToHTTPCodec.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/NIOHTTPTypesHTTP2.build/HTTP2ToHTTPCodec~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/NIOHTTPTypesHTTP2.build/HTTP2ToHTTPCodec.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/NIOHTTPTypesHTTP2.build/HTTP2ToHTTPCodec.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-nio-extras/Sources/NIOHTTPTypesHTTP2/HTTPTypeConversion.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/NIOHTTPTypesHTTP2.build/HTTPTypeConversion.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/NIOHTTPTypesHTTP2.build/HTTPTypeConversion.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/NIOHTTPTypesHTTP2.build/HTTPTypeConversion~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/NIOHTTPTypesHTTP2.build/HTTPTypeConversion.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/NIOHTTPTypesHTTP2.build/HTTPTypeConversion.dia"
+  }
+}

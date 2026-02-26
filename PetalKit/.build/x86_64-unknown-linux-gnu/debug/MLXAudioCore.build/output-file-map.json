@@ -1,0 +1,54 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioCore/AudioPlayer.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/AudioPlayer.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/AudioPlayer.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/AudioPlayer~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/AudioPlayer.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/AudioPlayer.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioCore/AudioSessionManager.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/AudioSessionManager.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/AudioSessionManager.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/AudioSessionManager~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/AudioSessionManager.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/AudioSessionManager.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioCore/AudioUtils.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/AudioUtils.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/AudioUtils.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/AudioUtils~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/AudioUtils.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/AudioUtils.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioCore/DSP.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/DSP.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/DSP.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/DSP~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/DSP.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/DSP.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioCore/Generation/GenerationTypes.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/GenerationTypes.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/GenerationTypes.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/GenerationTypes~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/GenerationTypes.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/GenerationTypes.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioCore/ModelUtils.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/ModelUtils.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/ModelUtils.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/ModelUtils~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/ModelUtils.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/ModelUtils.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioCore/PCMStreamConverter.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/PCMStreamConverter.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/PCMStreamConverter.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/PCMStreamConverter~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/PCMStreamConverter.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioCore.build/PCMStreamConverter.dia"
+  }
+}

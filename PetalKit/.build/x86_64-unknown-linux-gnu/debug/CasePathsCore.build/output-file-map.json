@@ -1,0 +1,75 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-case-paths/Sources/CasePathsCore/AnyCasePath.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/AnyCasePath.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/AnyCasePath.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/AnyCasePath~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/AnyCasePath.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/AnyCasePath.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-case-paths/Sources/CasePathsCore/CasePathIterable.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/CasePathIterable.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/CasePathIterable.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/CasePathIterable~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/CasePathIterable.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/CasePathIterable.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-case-paths/Sources/CasePathsCore/CasePathReflectable.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/CasePathReflectable.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/CasePathReflectable.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/CasePathReflectable~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/CasePathReflectable.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/CasePathReflectable.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-case-paths/Sources/CasePathsCore/CasePathable.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/CasePathable.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/CasePathable.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/CasePathable~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/CasePathable.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/CasePathable.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-case-paths/Sources/CasePathsCore/Internal/KeyPath+Sendable.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/KeyPath+Sendable.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/KeyPath+Sendable.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/KeyPath+Sendable~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/KeyPath+Sendable.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/KeyPath+Sendable.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-case-paths/Sources/CasePathsCore/Internal/TypeName.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/TypeName.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/TypeName.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/TypeName~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/TypeName.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/TypeName.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-case-paths/Sources/CasePathsCore/Internal/UncheckedSendable.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/UncheckedSendable.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/UncheckedSendable.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/UncheckedSendable~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/UncheckedSendable.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/UncheckedSendable.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-case-paths/Sources/CasePathsCore/Never+CasePathable.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/Never+CasePathable.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/Never+CasePathable.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/Never+CasePathable~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/Never+CasePathable.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/Never+CasePathable.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-case-paths/Sources/CasePathsCore/Optional+CasePathable.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/Optional+CasePathable.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/Optional+CasePathable.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/Optional+CasePathable~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/Optional+CasePathable.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/Optional+CasePathable.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-case-paths/Sources/CasePathsCore/Result+CasePathable.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/Result+CasePathable.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/Result+CasePathable.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/Result+CasePathable~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/Result+CasePathable.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/CasePathsCore.build/Result+CasePathable.dia"
+  }
+}

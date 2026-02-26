@@ -1,0 +1,54 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-distributed-tracing/Sources/Tracing/InstrumentationSystem+Tracing.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/InstrumentationSystem+Tracing.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/InstrumentationSystem+Tracing.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/InstrumentationSystem+Tracing~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/InstrumentationSystem+Tracing.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/InstrumentationSystem+Tracing.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-distributed-tracing/Sources/Tracing/NoOpTracer.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/NoOpTracer.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/NoOpTracer.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/NoOpTracer~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/NoOpTracer.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/NoOpTracer.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-distributed-tracing/Sources/Tracing/SpanProtocol.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/SpanProtocol.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/SpanProtocol.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/SpanProtocol~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/SpanProtocol.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/SpanProtocol.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-distributed-tracing/Sources/Tracing/Tracer.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/Tracer.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/Tracer.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/Tracer~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/Tracer.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/Tracer.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-distributed-tracing/Sources/Tracing/TracerProtocol+Legacy.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/TracerProtocol+Legacy.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/TracerProtocol+Legacy.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/TracerProtocol+Legacy~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/TracerProtocol+Legacy.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/TracerProtocol+Legacy.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-distributed-tracing/Sources/Tracing/TracerProtocol.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/TracerProtocol.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/TracerProtocol.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/TracerProtocol~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/TracerProtocol.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/TracerProtocol.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-distributed-tracing/Sources/Tracing/TracingTime.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/TracingTime.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/TracingTime.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/TracingTime~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/TracingTime.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/TracingTime.dia"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/mlx_audio_swift_codec.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/Tools/mlx-audio-swift-codec/App.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/mlx_audio_swift_codec.build/App.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/mlx_audio_swift_codec.build/App.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/mlx_audio_swift_codec.build/App~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/mlx_audio_swift_codec.build/App.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/mlx_audio_swift_codec.build/App.dia"
+  }
+}

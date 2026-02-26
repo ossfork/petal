@@ -1,0 +1,40 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-http-types/Sources/HTTPTypesFoundation/HTTPTypes+ISOLatin1.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/HTTPTypes+ISOLatin1.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/HTTPTypes+ISOLatin1.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/HTTPTypes+ISOLatin1~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/HTTPTypes+ISOLatin1.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/HTTPTypes+ISOLatin1.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-http-types/Sources/HTTPTypesFoundation/HTTPTypesFoundation.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/HTTPTypesFoundation.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/HTTPTypesFoundation.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/HTTPTypesFoundation~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/HTTPTypesFoundation.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/HTTPTypesFoundation.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-http-types/Sources/HTTPTypesFoundation/URLRequest+HTTPTypes.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/URLRequest+HTTPTypes.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/URLRequest+HTTPTypes.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/URLRequest+HTTPTypes~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/URLRequest+HTTPTypes.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/URLRequest+HTTPTypes.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-http-types/Sources/HTTPTypesFoundation/URLResponse+HTTPTypes.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/URLResponse+HTTPTypes.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/URLResponse+HTTPTypes.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/URLResponse+HTTPTypes~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/URLResponse+HTTPTypes.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/URLResponse+HTTPTypes.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-http-types/Sources/HTTPTypesFoundation/URLSession+HTTPTypes.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/URLSession+HTTPTypes.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/URLSession+HTTPTypes.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/URLSession+HTTPTypes~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/URLSession+HTTPTypes.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/HTTPTypesFoundation.build/URLSession+HTTPTypes.dia"
+  }
+}

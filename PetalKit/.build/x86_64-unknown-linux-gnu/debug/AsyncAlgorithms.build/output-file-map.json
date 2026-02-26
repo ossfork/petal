@@ -1,0 +1,397 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncAdjacentPairsSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncAdjacentPairsSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncAdjacentPairsSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncAdjacentPairsSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncAdjacentPairsSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncAdjacentPairsSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncBufferedByteIterator.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncBufferedByteIterator.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncBufferedByteIterator.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncBufferedByteIterator~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncBufferedByteIterator.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncBufferedByteIterator.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncChain2Sequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChain2Sequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChain2Sequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChain2Sequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChain2Sequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChain2Sequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncChain3Sequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChain3Sequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChain3Sequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChain3Sequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChain3Sequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChain3Sequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncChunkedByGroupSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunkedByGroupSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunkedByGroupSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunkedByGroupSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunkedByGroupSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunkedByGroupSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncChunkedOnProjectionSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunkedOnProjectionSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunkedOnProjectionSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunkedOnProjectionSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunkedOnProjectionSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunkedOnProjectionSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncChunksOfCountOrSignalSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunksOfCountOrSignalSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunksOfCountOrSignalSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunksOfCountOrSignalSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunksOfCountOrSignalSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunksOfCountOrSignalSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncChunksOfCountSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunksOfCountSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunksOfCountSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunksOfCountSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunksOfCountSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChunksOfCountSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncCompactedSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncCompactedSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncCompactedSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncCompactedSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncCompactedSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncCompactedSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncExclusiveReductionsSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncExclusiveReductionsSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncExclusiveReductionsSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncExclusiveReductionsSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncExclusiveReductionsSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncExclusiveReductionsSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncInclusiveReductionsSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncInclusiveReductionsSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncInclusiveReductionsSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncInclusiveReductionsSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncInclusiveReductionsSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncInclusiveReductionsSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncJoinedBySeparatorSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncJoinedBySeparatorSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncJoinedBySeparatorSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncJoinedBySeparatorSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncJoinedBySeparatorSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncJoinedBySeparatorSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncJoinedSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncJoinedSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncJoinedSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncJoinedSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncJoinedSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncJoinedSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncMapErrorSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncMapErrorSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncMapErrorSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncMapErrorSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncMapErrorSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncMapErrorSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncRemoveDuplicatesSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncRemoveDuplicatesSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncRemoveDuplicatesSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncRemoveDuplicatesSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncRemoveDuplicatesSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncRemoveDuplicatesSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncShareSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncShareSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncShareSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncShareSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncShareSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncShareSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncSyncSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncSyncSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncSyncSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncSyncSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncSyncSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncSyncSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncThrottleSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrottleSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrottleSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrottleSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrottleSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrottleSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncThrowingExclusiveReductionsSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrowingExclusiveReductionsSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrowingExclusiveReductionsSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrowingExclusiveReductionsSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrowingExclusiveReductionsSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrowingExclusiveReductionsSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncThrowingInclusiveReductionsSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrowingInclusiveReductionsSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrowingInclusiveReductionsSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrowingInclusiveReductionsSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrowingInclusiveReductionsSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrowingInclusiveReductionsSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/AsyncTimerSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncTimerSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncTimerSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncTimerSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncTimerSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncTimerSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Buffer/AsyncBufferSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncBufferSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncBufferSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncBufferSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncBufferSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncBufferSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Buffer/BoundedBufferStateMachine.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/BoundedBufferStateMachine.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/BoundedBufferStateMachine.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/BoundedBufferStateMachine~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/BoundedBufferStateMachine.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/BoundedBufferStateMachine.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Buffer/BoundedBufferStorage.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/BoundedBufferStorage.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/BoundedBufferStorage.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/BoundedBufferStorage~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/BoundedBufferStorage.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/BoundedBufferStorage.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Buffer/UnboundedBufferStateMachine.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/UnboundedBufferStateMachine.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/UnboundedBufferStateMachine.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/UnboundedBufferStateMachine~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/UnboundedBufferStateMachine.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/UnboundedBufferStateMachine.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Buffer/UnboundedBufferStorage.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/UnboundedBufferStorage.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/UnboundedBufferStorage.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/UnboundedBufferStorage~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/UnboundedBufferStorage.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/UnboundedBufferStorage.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Channels/AsyncChannel.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChannel.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChannel.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChannel~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChannel.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncChannel.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Channels/AsyncThrowingChannel.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrowingChannel.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrowingChannel.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrowingChannel~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrowingChannel.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncThrowingChannel.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Channels/ChannelStateMachine.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ChannelStateMachine.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ChannelStateMachine.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ChannelStateMachine~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ChannelStateMachine.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ChannelStateMachine.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Channels/ChannelStorage.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ChannelStorage.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ChannelStorage.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ChannelStorage~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ChannelStorage.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ChannelStorage.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/CombineLatest/AsyncCombineLatest2Sequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncCombineLatest2Sequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncCombineLatest2Sequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncCombineLatest2Sequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncCombineLatest2Sequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncCombineLatest2Sequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/CombineLatest/AsyncCombineLatest3Sequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncCombineLatest3Sequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncCombineLatest3Sequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncCombineLatest3Sequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncCombineLatest3Sequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncCombineLatest3Sequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/CombineLatest/CombineLatestStateMachine.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/CombineLatestStateMachine.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/CombineLatestStateMachine.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/CombineLatestStateMachine~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/CombineLatestStateMachine.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/CombineLatestStateMachine.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/CombineLatest/CombineLatestStorage.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/CombineLatestStorage.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/CombineLatestStorage.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/CombineLatestStorage~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/CombineLatestStorage.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/CombineLatestStorage.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Debounce/AsyncDebounceSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncDebounceSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncDebounceSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncDebounceSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncDebounceSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncDebounceSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Debounce/DebounceStateMachine.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/DebounceStateMachine.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/DebounceStateMachine.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/DebounceStateMachine~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/DebounceStateMachine.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/DebounceStateMachine.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Debounce/DebounceStorage.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/DebounceStorage.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/DebounceStorage.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/DebounceStorage~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/DebounceStorage.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/DebounceStorage.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Dictionary.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Dictionary.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Dictionary.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Dictionary~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Dictionary.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Dictionary.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Internal/Disconnected.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Disconnected.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Disconnected.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Disconnected~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Disconnected.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Disconnected.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Internal/_TinyArray.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/_TinyArray.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/_TinyArray.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/_TinyArray~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/_TinyArray.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/_TinyArray.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Interspersed/AsyncInterspersedSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncInterspersedSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncInterspersedSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncInterspersedSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncInterspersedSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncInterspersedSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Locking.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Locking.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Locking.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Locking~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Locking.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Locking.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Merge/AsyncMerge2Sequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncMerge2Sequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncMerge2Sequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncMerge2Sequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncMerge2Sequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncMerge2Sequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Merge/AsyncMerge3Sequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncMerge3Sequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncMerge3Sequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncMerge3Sequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncMerge3Sequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncMerge3Sequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Merge/MergeStateMachine.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MergeStateMachine.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MergeStateMachine.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MergeStateMachine~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MergeStateMachine.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MergeStateMachine.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Merge/MergeStorage.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MergeStorage.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MergeStorage.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MergeStorage~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MergeStorage.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MergeStorage.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/MultiProducerSingleConsumerChannel/MultiProducerSingleConsumerAsyncChannel+Internal.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MultiProducerSingleConsumerAsyncChannel+Internal.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MultiProducerSingleConsumerAsyncChannel+Internal.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MultiProducerSingleConsumerAsyncChannel+Internal~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MultiProducerSingleConsumerAsyncChannel+Internal.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MultiProducerSingleConsumerAsyncChannel+Internal.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/MultiProducerSingleConsumerChannel/MultiProducerSingleConsumerAsyncChannel.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MultiProducerSingleConsumerAsyncChannel.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MultiProducerSingleConsumerAsyncChannel.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MultiProducerSingleConsumerAsyncChannel~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MultiProducerSingleConsumerAsyncChannel.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/MultiProducerSingleConsumerAsyncChannel.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/RangeReplaceableCollection.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/RangeReplaceableCollection.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/RangeReplaceableCollection.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/RangeReplaceableCollection~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/RangeReplaceableCollection.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/RangeReplaceableCollection.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Rethrow.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Rethrow.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Rethrow.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Rethrow~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Rethrow.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/Rethrow.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/SetAlgebra.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/SetAlgebra.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/SetAlgebra.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/SetAlgebra~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/SetAlgebra.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/SetAlgebra.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/UnsafeTransfer.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/UnsafeTransfer.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/UnsafeTransfer.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/UnsafeTransfer~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/UnsafeTransfer.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/UnsafeTransfer.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Zip/AsyncZip2Sequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncZip2Sequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncZip2Sequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncZip2Sequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncZip2Sequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncZip2Sequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Zip/AsyncZip3Sequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncZip3Sequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncZip3Sequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncZip3Sequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncZip3Sequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/AsyncZip3Sequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Zip/ZipStateMachine.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ZipStateMachine.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ZipStateMachine.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ZipStateMachine~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ZipStateMachine.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ZipStateMachine.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-async-algorithms/Sources/AsyncAlgorithms/Zip/ZipStorage.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ZipStorage.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ZipStorage.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ZipStorage~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ZipStorage.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/AsyncAlgorithms.build/ZipStorage.dia"
+  }
+}

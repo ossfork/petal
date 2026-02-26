@@ -1,0 +1,110 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/mlx-swift-lm/Libraries/MLXVLM/MediaProcessing.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/MediaProcessing.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/MediaProcessing.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/MediaProcessing~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/MediaProcessing.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/MediaProcessing.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/mlx-swift-lm/Libraries/MLXVLM/Models/FastVLM.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/FastVLM.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/FastVLM.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/FastVLM~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/FastVLM.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/FastVLM.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/mlx-swift-lm/Libraries/MLXVLM/Models/Gemma3.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Gemma3.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Gemma3.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Gemma3~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Gemma3.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Gemma3.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/mlx-swift-lm/Libraries/MLXVLM/Models/Idefics3.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Idefics3.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Idefics3.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Idefics3~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Idefics3.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Idefics3.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/mlx-swift-lm/Libraries/MLXVLM/Models/LFM2VL.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/LFM2VL.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/LFM2VL.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/LFM2VL~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/LFM2VL.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/LFM2VL.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/mlx-swift-lm/Libraries/MLXVLM/Models/Mistral3.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Mistral3.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Mistral3.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Mistral3~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Mistral3.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Mistral3.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/mlx-swift-lm/Libraries/MLXVLM/Models/Paligemma.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Paligemma.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Paligemma.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Paligemma~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Paligemma.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Paligemma.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/mlx-swift-lm/Libraries/MLXVLM/Models/Pixtral.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Pixtral.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Pixtral.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Pixtral~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Pixtral.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Pixtral.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/mlx-swift-lm/Libraries/MLXVLM/Models/Qwen25VL.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Qwen25VL.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Qwen25VL.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Qwen25VL~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Qwen25VL.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Qwen25VL.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/mlx-swift-lm/Libraries/MLXVLM/Models/Qwen2VL.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Qwen2VL.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Qwen2VL.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Qwen2VL~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Qwen2VL.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Qwen2VL.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/mlx-swift-lm/Libraries/MLXVLM/Models/Qwen3VL.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Qwen3VL.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Qwen3VL.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Qwen3VL~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Qwen3VL.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/Qwen3VL.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/mlx-swift-lm/Libraries/MLXVLM/Models/QwenVL.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/QwenVL.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/QwenVL.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/QwenVL~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/QwenVL.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/QwenVL.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/mlx-swift-lm/Libraries/MLXVLM/Models/SmolVLM2.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/SmolVLM2.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/SmolVLM2.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/SmolVLM2~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/SmolVLM2.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/SmolVLM2.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/mlx-swift-lm/Libraries/MLXVLM/VLMModel.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/VLMModel.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/VLMModel.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/VLMModel~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/VLMModel.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/VLMModel.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/mlx-swift-lm/Libraries/MLXVLM/VLMModelFactory.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/VLMModelFactory.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/VLMModelFactory.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/VLMModelFactory~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/VLMModelFactory.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXVLM.build/VLMModelFactory.dia"
+  }
+}

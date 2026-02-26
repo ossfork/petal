@@ -1,0 +1,152 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/LFMAudio/Conformer.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Conformer.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Conformer.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Conformer~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Conformer.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Conformer.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/LFMAudio/Detokenizer.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Detokenizer.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Detokenizer.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Detokenizer~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Detokenizer.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Detokenizer.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/LFMAudio/LFMAudioConfig.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/LFMAudioConfig.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/LFMAudioConfig.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/LFMAudioConfig~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/LFMAudioConfig.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/LFMAudioConfig.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/LFMAudio/LFMAudioModel.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/LFMAudioModel.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/LFMAudioModel.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/LFMAudioModel~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/LFMAudioModel.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/LFMAudioModel.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/LFMAudio/Processor.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Processor.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Processor.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Processor~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Processor.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Processor.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/LFMAudio/Transformer.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Transformer.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Transformer.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Transformer~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Transformer.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/Transformer.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/MossFormer2SE/MossFormer2Config.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2Config.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2Config.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2Config~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2Config.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2Config.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/MossFormer2SE/MossFormer2DSP.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2DSP.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2DSP.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2DSP~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2DSP.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2DSP.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/MossFormer2SE/MossFormer2Layers.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2Layers.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2Layers.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2Layers~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2Layers.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2Layers.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/MossFormer2SE/MossFormer2Model.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2Model.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2Model.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2Model~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2Model.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/MossFormer2Model.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/SAMAudio/SAMAudio.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudio.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudio.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudio~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudio.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudio.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/SAMAudio/SAMAudioAlign.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioAlign.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioAlign.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioAlign~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioAlign.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioAlign.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/SAMAudio/SAMAudioConfig.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioConfig.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioConfig.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioConfig~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioConfig.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioConfig.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/SAMAudio/SAMAudioPatcher.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioPatcher.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioPatcher.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioPatcher~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioPatcher.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioPatcher.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/SAMAudio/SAMAudioProcessor.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioProcessor.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioProcessor.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioProcessor~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioProcessor.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioProcessor.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/SAMAudio/SAMAudioRope.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioRope.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioRope.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioRope~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioRope.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioRope.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/SAMAudio/SAMAudioTextEncoder.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioTextEncoder.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioTextEncoder.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioTextEncoder~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioTextEncoder.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioTextEncoder.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/SAMAudio/SAMAudioTransformer.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioTransformer.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioTransformer.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioTransformer~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioTransformer.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioTransformer.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/SAMAudio/SAMAudioTypes.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioTypes.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioTypes.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioTypes~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioTypes.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioTypes.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/Models/SAMAudio/SAMAudioWeights.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioWeights.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioWeights.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioWeights~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioWeights.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/SAMAudioWeights.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioSTS/STSModel.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/STSModel.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/STSModel.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/STSModel~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/STSModel.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioSTS.build/STSModel.dia"
+  }
+}

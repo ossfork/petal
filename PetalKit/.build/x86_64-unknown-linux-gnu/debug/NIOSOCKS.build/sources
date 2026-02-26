@@ -1,0 +1,12 @@
+'/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-nio-extras/Sources/NIOSOCKS/Channel Handlers/SOCKSClientHandler.swift'
+'/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-nio-extras/Sources/NIOSOCKS/Channel Handlers/SOCKSServerHandshakeHandler.swift'
+/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-nio-extras/Sources/NIOSOCKS/Messages/AuthenticationMethod.swift
+/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-nio-extras/Sources/NIOSOCKS/Messages/ClientGreeting.swift
+/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-nio-extras/Sources/NIOSOCKS/Messages/Errors.swift
+/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-nio-extras/Sources/NIOSOCKS/Messages/Helpers.swift
+/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-nio-extras/Sources/NIOSOCKS/Messages/Messages.swift
+/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-nio-extras/Sources/NIOSOCKS/Messages/SOCKSRequest.swift
+/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-nio-extras/Sources/NIOSOCKS/Messages/SOCKSResponse.swift
+/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-nio-extras/Sources/NIOSOCKS/Messages/SelectedAuthenticationMethod.swift
+/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-nio-extras/Sources/NIOSOCKS/State/ClientStateMachine.swift
+/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-nio-extras/Sources/NIOSOCKS/State/ServerStateMachine.swift

@@ -1,0 +1,54 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/PetalKit/Tests/PetalKitTests/DownloadClientMappingTests.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/DownloadClientMappingTests.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/DownloadClientMappingTests.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/DownloadClientMappingTests~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/DownloadClientMappingTests.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/DownloadClientMappingTests.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/Tests/PetalKitTests/HistoryClientAudioPersistenceTests.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/HistoryClientAudioPersistenceTests.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/HistoryClientAudioPersistenceTests.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/HistoryClientAudioPersistenceTests~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/HistoryClientAudioPersistenceTests.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/HistoryClientAudioPersistenceTests.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/Tests/PetalKitTests/ModelDownloadModelTests.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/ModelDownloadModelTests.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/ModelDownloadModelTests.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/ModelDownloadModelTests~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/ModelDownloadModelTests.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/ModelDownloadModelTests.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/Tests/PetalKitTests/PetalAudioPreprocessingTests.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/PetalAudioPreprocessingTests.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/PetalAudioPreprocessingTests.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/PetalAudioPreprocessingTests~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/PetalAudioPreprocessingTests.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/PetalAudioPreprocessingTests.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/Tests/PetalKitTests/PetalKitSmokeTests.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/PetalKitSmokeTests.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/PetalKitSmokeTests.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/PetalKitSmokeTests~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/PetalKitSmokeTests.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/PetalKitSmokeTests.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/Tests/PetalKitTests/PetalSharedDomainTests.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/PetalSharedDomainTests.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/PetalSharedDomainTests.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/PetalSharedDomainTests~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/PetalSharedDomainTests.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/PetalSharedDomainTests.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/Tests/PetalKitTests/QwenTranscriptGuardTests.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/QwenTranscriptGuardTests.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/QwenTranscriptGuardTests.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/QwenTranscriptGuardTests~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/QwenTranscriptGuardTests.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/PetalKitTests.build/QwenTranscriptGuardTests.dia"
+  }
+}

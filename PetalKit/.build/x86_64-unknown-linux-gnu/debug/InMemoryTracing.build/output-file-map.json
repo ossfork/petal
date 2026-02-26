@@ -1,0 +1,26 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/InMemoryTracing.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-distributed-tracing/Sources/InMemoryTracing/InMemorySpan.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/InMemoryTracing.build/InMemorySpan.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/InMemoryTracing.build/InMemorySpan.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/InMemoryTracing.build/InMemorySpan~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/InMemoryTracing.build/InMemorySpan.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/InMemoryTracing.build/InMemorySpan.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-distributed-tracing/Sources/InMemoryTracing/InMemorySpanContext.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/InMemoryTracing.build/InMemorySpanContext.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/InMemoryTracing.build/InMemorySpanContext.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/InMemoryTracing.build/InMemorySpanContext~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/InMemoryTracing.build/InMemorySpanContext.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/InMemoryTracing.build/InMemorySpanContext.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-distributed-tracing/Sources/InMemoryTracing/InMemoryTracer.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/InMemoryTracing.build/InMemoryTracer.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/InMemoryTracing.build/InMemoryTracer.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/InMemoryTracing.build/InMemoryTracer~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/InMemoryTracing.build/InMemoryTracer.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/InMemoryTracing.build/InMemoryTracer.dia"
+  }
+}

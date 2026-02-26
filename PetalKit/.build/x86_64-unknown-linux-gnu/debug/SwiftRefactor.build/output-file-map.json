@@ -1,0 +1,110 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-syntax/Sources/SwiftRefactor/AddSeparatorsToIntegerLiteral.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/AddSeparatorsToIntegerLiteral.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/AddSeparatorsToIntegerLiteral.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/AddSeparatorsToIntegerLiteral~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/AddSeparatorsToIntegerLiteral.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/AddSeparatorsToIntegerLiteral.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-syntax/Sources/SwiftRefactor/CallLikeSyntax.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/CallLikeSyntax.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/CallLikeSyntax.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/CallLikeSyntax~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/CallLikeSyntax.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/CallLikeSyntax.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-syntax/Sources/SwiftRefactor/CallToTrailingClosures.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/CallToTrailingClosures.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/CallToTrailingClosures.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/CallToTrailingClosures~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/CallToTrailingClosures.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/CallToTrailingClosures.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-syntax/Sources/SwiftRefactor/ConvertComputedPropertyToStored.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertComputedPropertyToStored.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertComputedPropertyToStored.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertComputedPropertyToStored~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertComputedPropertyToStored.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertComputedPropertyToStored.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-syntax/Sources/SwiftRefactor/ConvertComputedPropertyToZeroParameterFunction.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertComputedPropertyToZeroParameterFunction.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertComputedPropertyToZeroParameterFunction.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertComputedPropertyToZeroParameterFunction~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertComputedPropertyToZeroParameterFunction.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertComputedPropertyToZeroParameterFunction.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-syntax/Sources/SwiftRefactor/ConvertStoredPropertyToComputed.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertStoredPropertyToComputed.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertStoredPropertyToComputed.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertStoredPropertyToComputed~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertStoredPropertyToComputed.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertStoredPropertyToComputed.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-syntax/Sources/SwiftRefactor/ConvertZeroParameterFunctionToComputedProperty.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertZeroParameterFunctionToComputedProperty.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertZeroParameterFunctionToComputedProperty.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertZeroParameterFunctionToComputedProperty~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertZeroParameterFunctionToComputedProperty.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ConvertZeroParameterFunctionToComputedProperty.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-syntax/Sources/SwiftRefactor/ExpandEditorPlaceholder.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ExpandEditorPlaceholder.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ExpandEditorPlaceholder.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ExpandEditorPlaceholder~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ExpandEditorPlaceholder.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/ExpandEditorPlaceholder.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-syntax/Sources/SwiftRefactor/FormatRawStringLiteral.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/FormatRawStringLiteral.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/FormatRawStringLiteral.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/FormatRawStringLiteral~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/FormatRawStringLiteral.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/FormatRawStringLiteral.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-syntax/Sources/SwiftRefactor/IntegerLiteralUtilities.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/IntegerLiteralUtilities.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/IntegerLiteralUtilities.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/IntegerLiteralUtilities~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/IntegerLiteralUtilities.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/IntegerLiteralUtilities.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-syntax/Sources/SwiftRefactor/MigrateToNewIfLetSyntax.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/MigrateToNewIfLetSyntax.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/MigrateToNewIfLetSyntax.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/MigrateToNewIfLetSyntax~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/MigrateToNewIfLetSyntax.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/MigrateToNewIfLetSyntax.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-syntax/Sources/SwiftRefactor/OpaqueParameterToGeneric.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/OpaqueParameterToGeneric.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/OpaqueParameterToGeneric.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/OpaqueParameterToGeneric~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/OpaqueParameterToGeneric.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/OpaqueParameterToGeneric.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-syntax/Sources/SwiftRefactor/RefactoringProvider.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/RefactoringProvider.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/RefactoringProvider.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/RefactoringProvider~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/RefactoringProvider.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/RefactoringProvider.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-syntax/Sources/SwiftRefactor/RemoveSeparatorsFromIntegerLiteral.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/RemoveSeparatorsFromIntegerLiteral.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/RemoveSeparatorsFromIntegerLiteral.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/RemoveSeparatorsFromIntegerLiteral~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/RemoveSeparatorsFromIntegerLiteral.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/RemoveSeparatorsFromIntegerLiteral.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-syntax/Sources/SwiftRefactor/SyntaxUtils.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/SyntaxUtils.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/SyntaxUtils.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/SyntaxUtils~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/SyntaxUtils.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SwiftRefactor.build/SyntaxUtils.dia"
+  }
+}

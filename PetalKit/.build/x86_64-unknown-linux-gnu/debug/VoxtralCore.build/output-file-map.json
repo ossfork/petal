@@ -1,0 +1,229 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Configuration/MemoryOptimizationConfig.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/MemoryOptimizationConfig.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/MemoryOptimizationConfig.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/MemoryOptimizationConfig~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/MemoryOptimizationConfig.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/MemoryOptimizationConfig.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/CoreML/MLXCoreMLBridge.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/MLXCoreMLBridge.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/MLXCoreMLBridge.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/MLXCoreMLBridge~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/MLXCoreMLBridge.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/MLXCoreMLBridge.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/CoreML/VoxtralCoreMLEncoder.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralCoreMLEncoder.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralCoreMLEncoder.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralCoreMLEncoder~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralCoreMLEncoder.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralCoreMLEncoder.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/CoreML/VoxtralHybridEncoder.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralHybridEncoder.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralHybridEncoder.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralHybridEncoder~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralHybridEncoder.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralHybridEncoder.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/MLXLMBridge.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/MLXLMBridge.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/MLXLMBridge.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/MLXLMBridge~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/MLXLMBridge.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/MLXLMBridge.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Models/Models.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/Models.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/Models.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/Models~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/Models.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/Models.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Models/VoxtralLlama.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralLlama.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralLlama.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralLlama~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralLlama.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralLlama.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Pipeline/VoxtralPipeline.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralPipeline.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralPipeline.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralPipeline~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralPipeline.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralPipeline.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Pipeline/VoxtralTranscriptionManager.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralTranscriptionManager.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralTranscriptionManager.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralTranscriptionManager~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralTranscriptionManager.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralTranscriptionManager.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Utils/Aria2RPC.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/Aria2RPC.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/Aria2RPC.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/Aria2RPC~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/Aria2RPC.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/Aria2RPC.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Utils/CustomLoadWeights.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/CustomLoadWeights.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/CustomLoadWeights.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/CustomLoadWeights~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/CustomLoadWeights.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/CustomLoadWeights.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Utils/LlamaModelWrapper.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/LlamaModelWrapper.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/LlamaModelWrapper.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/LlamaModelWrapper~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/LlamaModelWrapper.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/LlamaModelWrapper.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Utils/ModelDownloader.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/ModelDownloader.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/ModelDownloader.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/ModelDownloader~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/ModelDownloader.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/ModelDownloader.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Utils/ModelRegistry.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/ModelRegistry.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/ModelRegistry.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/ModelRegistry~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/ModelRegistry.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/ModelRegistry.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Utils/QuantizedLinearWeightLoader.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/QuantizedLinearWeightLoader.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/QuantizedLinearWeightLoader.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/QuantizedLinearWeightLoader~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/QuantizedLinearWeightLoader.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/QuantizedLinearWeightLoader.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Utils/Utils.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/Utils.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/Utils.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/Utils~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/Utils.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/Utils.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Utils/VoxtralDebug.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralDebug.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralDebug.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralDebug~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralDebug.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralDebug.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Utils/VoxtralMLXLMLoader.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralMLXLMLoader.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralMLXLMLoader.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralMLXLMLoader~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralMLXLMLoader.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralMLXLMLoader.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Utils/VoxtralMemoryManager.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralMemoryManager.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralMemoryManager.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralMemoryManager~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralMemoryManager.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralMemoryManager.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Utils/VoxtralModelLoading.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralModelLoading.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralModelLoading.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralModelLoading~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralModelLoading.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralModelLoading.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Utils/VoxtralProfiler.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralProfiler.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralProfiler.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralProfiler~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralProfiler.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralProfiler.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Utils/VoxtralPythonCompatLoader.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralPythonCompatLoader.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralPythonCompatLoader.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralPythonCompatLoader~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralPythonCompatLoader.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralPythonCompatLoader.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/Utils/VoxtralStandardLoader.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralStandardLoader.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralStandardLoader.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralStandardLoader~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralStandardLoader.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralStandardLoader.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/VoxtralComponents.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralComponents.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralComponents.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralComponents~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralComponents.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralComponents.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/VoxtralConfiguration.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralConfiguration.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralConfiguration.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralConfiguration~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralConfiguration.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralConfiguration.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/VoxtralCore.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralCore.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralCore.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralCore~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralCore.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralCore.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/VoxtralFeatureExtractor.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralFeatureExtractor.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralFeatureExtractor.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralFeatureExtractor~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralFeatureExtractor.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralFeatureExtractor.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/VoxtralGenerator.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralGenerator.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralGenerator.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralGenerator~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralGenerator.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralGenerator.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/VoxtralGeneratorBridge.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralGeneratorBridge.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralGeneratorBridge.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralGeneratorBridge~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralGeneratorBridge.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralGeneratorBridge.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/VoxtralModeling.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralModeling.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralModeling.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralModeling~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralModeling.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralModeling.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/VoxtralProcessor.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralProcessor.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralProcessor.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralProcessor~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralProcessor.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralProcessor.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-voxtral-swift/Sources/VoxtralCore/VoxtralQuantization.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralQuantization.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralQuantization.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralQuantization~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralQuantization.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/VoxtralCore.build/VoxtralQuantization.dia"
+  }
+}

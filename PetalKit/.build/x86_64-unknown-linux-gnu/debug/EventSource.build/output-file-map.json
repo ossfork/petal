@@ -1,0 +1,33 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/EventSource/Sources/EventSource/AsyncEventsSequence.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/AsyncEventsSequence.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/AsyncEventsSequence.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/AsyncEventsSequence~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/AsyncEventsSequence.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/AsyncEventsSequence.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/EventSource/Sources/EventSource/AsyncSequence+Events.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/AsyncSequence+Events.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/AsyncSequence+Events.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/AsyncSequence+Events~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/AsyncSequence+Events.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/AsyncSequence+Events.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/EventSource/Sources/EventSource/EventSource+AsyncHTTPClient.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/EventSource+AsyncHTTPClient.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/EventSource+AsyncHTTPClient.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/EventSource+AsyncHTTPClient~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/EventSource+AsyncHTTPClient.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/EventSource+AsyncHTTPClient.dia"
+  },
+  "/home/runner/work/petal/petal/PetalKit/.build/checkouts/EventSource/Sources/EventSource/EventSource.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/EventSource.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/EventSource.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/EventSource~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/EventSource.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/EventSource.build/EventSource.dia"
+  }
+}

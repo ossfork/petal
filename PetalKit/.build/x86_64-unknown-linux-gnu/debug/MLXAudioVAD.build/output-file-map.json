@@ -1,0 +1,54 @@
+{
+  "": {
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/master.swiftdeps"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioVAD/Models/SmartTurn/SmartTurn.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SmartTurn.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SmartTurn.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SmartTurn~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SmartTurn.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SmartTurn.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioVAD/Models/SmartTurn/SmartTurnConfig.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SmartTurnConfig.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SmartTurnConfig.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SmartTurnConfig~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SmartTurnConfig.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SmartTurnConfig.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioVAD/Models/SmartTurn/SmartTurnFeatures.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SmartTurnFeatures.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SmartTurnFeatures.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SmartTurnFeatures~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SmartTurnFeatures.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SmartTurnFeatures.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioVAD/Models/Sortformer/Sortformer.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/Sortformer.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/Sortformer.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/Sortformer~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/Sortformer.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/Sortformer.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioVAD/Models/Sortformer/SortformerConfig.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SortformerConfig.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SortformerConfig.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SortformerConfig~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SortformerConfig.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SortformerConfig.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioVAD/Models/Sortformer/SortformerFeatures.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SortformerFeatures.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SortformerFeatures.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SortformerFeatures~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SortformerFeatures.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/SortformerFeatures.dia"
+  },
+  "/home/runner/work/petal/petal/mlx-audio-swift/Sources/MLXAudioVAD/VADOutput.swift": {
+    "dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/VADOutput.d",
+    "object": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/VADOutput.swift.o",
+    "swiftmodule": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/VADOutput~partial.swiftmodule",
+    "swift-dependencies": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/VADOutput.swiftdeps",
+    "diagnostics": "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXAudioVAD.build/VADOutput.dia"
+  }
+}
