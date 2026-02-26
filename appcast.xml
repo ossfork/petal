@@ -7,14 +7,14 @@
     <language>en</language>
     <item>
       <title>Version 1.0.0</title>
-      <pubDate>Thu, 26 Feb 2026 19:07:08 +0000</pubDate>
+      <pubDate>Thu, 26 Feb 2026 19:33:41 +0000</pubDate>
       <sparkle:version>1</sparkle:version>
       <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
       <enclosure
         url="https://github.com/Aayush9029/petal/releases/download/v1.0.0/Petal-1.0.0.dmg"
-        sparkle:edSignature="3dGJk1f7TZFzxRMoNgX2+JE4Tlup6DJtzNsns63L7CY0Jxb5dqOyPXPwGcdIpTRjNptQO5Y3HqWgl5ebwlB5AA=="
-        length="29018597"
+        sparkle:edSignature="5j1TfT9MaoZVjU9utwLPlGFr3i72rzP7xXU3z1F/JWitJYShnWJz5P9pJUrdX+s36XYayXMlIOuec/lX0dYIAw=="
+        length="29018010"
         type="application/octet-stream"
       />
     </item>
