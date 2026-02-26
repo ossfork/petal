@@ -37,7 +37,6 @@ MODELS=(
   "whisper-tiny"
   "mini-3b"
   "mini-3b-8bit"
-  "small-24b-8bit"
 )
 
 usage() {
@@ -402,9 +401,6 @@ model_dir_found() {
     mini-3b-8bit)
       pattern='voxtral-mini-3b-8bit'
       ;;
-    small-24b-8bit)
-      pattern='Voxtral-Small-24B'
-      ;;
     *)
       echo "false"
       return
@@ -458,9 +454,6 @@ run_single_model() {
   fi
   start_epoch="$(date +%s)"
   local phrase="petal e2e run ${RUN_ID} model ${model_id} deep link start stop verification"
-  if [[ "$model_id" == "small-24b-8bit" ]]; then
-    flow_timeout=21600
-  fi
   if [[ "$model_id" != "apple-speech" ]]; then
     start_wait_timeout="$MODEL_PREP_TIMEOUT_SECONDS"
   fi

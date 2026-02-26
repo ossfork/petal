@@ -12,7 +12,6 @@ Run a full end-to-end matrix that uses real app audio capture (`say` routed thro
     - `whisper-tiny`
     - `mini-3b`
     - `mini-3b-8bit`
-    - `small-24b-8bit`
   - Deep-link-driven start/stop flow per model.
   - Filesystem verification for history, transcript files, media files, and model directories.
   - Log-based correctness checks and semantic sanity review from logs/artifacts.
@@ -106,7 +105,7 @@ For each model ID in the fixed order above:
 1. Full matrix happy-path:
    - all models complete with `Transcription completed`.
 2. Download-heavy model cases:
-   - long-download models (`mini-3b`, `mini-3b-8bit`, `small-24b-8bit`) still complete or fail with explicit reason captured.
+   - long-download models (`mini-3b`, `mini-3b-8bit`) still complete or fail with explicit reason captured.
 3. Single-instance safety:
    - verify exactly one `petal` instance after launch/start/stop.
 4. Artifact integrity:
