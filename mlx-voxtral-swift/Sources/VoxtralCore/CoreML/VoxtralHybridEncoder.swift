@@ -471,12 +471,11 @@ extension VoxtralForConditionalGeneration {
     /// - Parameter preferredBackend: Preferred backend for audio encoding
     /// - Returns: Configured VoxtralHybridEncoder
     public func createHybridEncoder(preferredBackend: VoxtralEncoderBackend = .auto) -> VoxtralHybridEncoder {
-        // Determine Core ML variant based on text hidden size
-        // Small (24B) has hiddenSize 5120, Mini (3B) has hiddenSize 3072
-        let coreMLVariant: VoxtralCoreMLVariant = config.textConfig.hiddenSize == 5120 ? .small : .mini
+        // Mini Core ML variant is used for currently supported Voxtral models.
+        let coreMLVariant: VoxtralCoreMLVariant = .mini
         VoxtralDebug.log("Model text hiddenSize: \(config.textConfig.hiddenSize) -> Core ML variant: \(coreMLVariant.rawValue)")
 
-        let coreMLConfig = coreMLVariant == .small ? VoxtralCoreMLConfig.small : VoxtralCoreMLConfig.mini
+        let coreMLConfig = VoxtralCoreMLConfig.mini
 
         let encoderConfig = VoxtralEncoderConfig(
             hidden_size: config.audioConfig.hiddenSize,
@@ -515,8 +514,7 @@ extension VoxtralForConditionalGeneration {
         preferredBackend: VoxtralEncoderBackend = .auto,
         progress: ((Double, String) -> Void)? = nil
     ) async throws -> VoxtralHybridEncoder {
-        // Determine variant based on text hidden size
-        let variant: VoxtralCoreMLVariant = config.textConfig.hiddenSize == 5120 ? .small : .mini
+        let variant: VoxtralCoreMLVariant = .mini
         VoxtralDebug.log("Model text hiddenSize: \(config.textConfig.hiddenSize) -> Core ML variant: \(variant.rawValue)")
 
         let encoderConfig = VoxtralEncoderConfig(

@@ -51,54 +51,37 @@ public enum VoxtralCoreMLError: Error, LocalizedError {
 /// Voxtral Core ML model variant
 public enum VoxtralCoreMLVariant: String, Sendable {
     case mini = "mini"    // 3B - output 3072
-    case small = "small"  // 24B - output 5120
 
     /// Output hidden size for this variant
     public var hiddenSize: Int {
-        switch self {
-        case .mini: return 3072
-        case .small: return 5120
-        }
+        3072
     }
 
     /// HuggingFace repository for this variant
     public var huggingFaceRepo: String {
-        switch self {
-        case .mini: return "VincentGOURBIN/voxtral-encoder-coreml-mini"
-        case .small: return "VincentGOURBIN/voxtral-encoder-coreml-small"
-        }
+        "VincentGOURBIN/voxtral-encoder-coreml-mini"
     }
 
     /// Model file name for this variant
     public var modelName: String {
-        switch self {
-        case .mini: return "VoxtralEncoderMini.mlmodelc"
-        case .small: return "VoxtralEncoderSmall.mlmodelc"
-        }
+        "VoxtralEncoderMini.mlmodelc"
     }
 
     /// Detect variant from MLX model repo ID
     public static func fromMLXModelRepoId(_ repoId: String) -> VoxtralCoreMLVariant {
-        // Small models (24B)
-        if repoId.lowercased().contains("small") || repoId.lowercased().contains("24b") {
-            return .small
-        }
-        // Default to mini (3B)
+        _ = repoId
         return .mini
     }
 
     /// Description for display
     public var description: String {
-        switch self {
-        case .mini: return "Mini (3B) - output [1, 375, 3072]"
-        case .small: return "Small (24B) - output [1, 375, 5120]"
-        }
+        "Mini (3B) - output [1, 375, 3072]"
     }
 }
 
 /// Configuration for Core ML encoder
 public struct VoxtralCoreMLConfig {
-    /// Model variant (mini or small)
+    /// Model variant (mini)
     public var variant: VoxtralCoreMLVariant
 
     /// Preferred compute units (default: cpuAndNeuralEngine for ANE)
@@ -129,15 +112,6 @@ public struct VoxtralCoreMLConfig {
     public static var mini: VoxtralCoreMLConfig {
         VoxtralCoreMLConfig(
             variant: .mini,
-            computeUnits: .cpuAndGPU,
-            allowLowPrecisionAccumulationOnGPU: true
-        )
-    }
-
-    /// Default configuration for Small variant
-    public static var small: VoxtralCoreMLConfig {
-        VoxtralCoreMLConfig(
-            variant: .small,
             computeUnits: .cpuAndGPU,
             allowLowPrecisionAccumulationOnGPU: true
         )
@@ -507,7 +481,7 @@ public class VoxtralCoreMLEncoder: @unchecked Sendable {
     }
 
     /// Download Core ML encoder for a specific MLX model
-    /// Automatically selects the correct variant based on the MLX model's configuration
+    /// Uses the mini variant for currently supported models
     /// - Parameters:
     ///   - mlxModelRepoId: The MLX model repository ID to match
     ///   - progress: Optional progress callback
@@ -540,7 +514,7 @@ public class VoxtralCoreMLEncoder: @unchecked Sendable {
         return try VoxtralCoreMLEncoder(modelURL: modelURL, config: finalConfig)
     }
 
-    /// Convenience initializer that auto-selects variant based on MLX model
+    /// Convenience initializer for MLX model IDs (uses mini variant)
     /// - Parameters:
     ///   - mlxModelRepoId: MLX model repository ID to match variant
     ///   - config: Core ML configuration
