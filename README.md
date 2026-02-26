@@ -16,6 +16,11 @@
   </a>
 </p>
 
+<img width="2088" height="1202" alt="CleanShot 2026-02-26 at 14 29 25@2x" src="https://github.com/user-attachments/assets/53b4df91-6e02-4fae-8232-59518450b106" />
+
+
+
+
 ## Install
 
 1. Download the latest version from the release page.
