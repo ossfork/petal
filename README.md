@@ -11,15 +11,57 @@
   <a aria-label="Download Latest Version" href="https://github.com/Aayush9029/petal/releases/latest">
     <img alt="Download Latest Version" src="https://img.shields.io/badge/Download%20Latest%20Version-black.svg?style=for-the-badge&logo=apple">
   </a>
-  &nbsp;
   <a aria-label="Support Development" href="https://github.com/sponsors/Aayush9029">
     <img alt="Support Development" src="https://img.shields.io/badge/Support%20Development-black.svg?style=for-the-badge&logo=githubsponsors&logoColor=ff5ca8">
   </a>
 </p>
 
+## Install
+
+1. Download the latest version from the release page.
+2. Open the `.dmg` and move Petal to `Applications`.
+3. Launch Petal and grant microphone/accessibility permissions.
+
 ## Supported Transcription Models
 
-- <img src="assets/readme/models/openai.png" alt="OpenAI" width="28" height="28"> **Whisper**
-- <img src="assets/readme/models/qwen.png" alt="Qwen" width="28" height="28"> **Qwen**
-- <img src="assets/readme/models/mistral.png" alt="Mistral" width="28" height="28"> **Voxtral**
-- <img src="assets/readme/models/swift.png" alt="Swift" width="28" height="28"> **Swift**
+<table>
+  <thead>
+    <tr>
+      <th>Provider</th>
+      <th>Model(s)</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td valign="middle"><img src="assets/readme/models/apple.png" alt="Apple" width="28" height="28"> Apple</td>
+      <td><code>apple/speech-transcriber</code></td>
+      <td>Built in on supported Macs. No model download required.</td>
+    </tr>
+    <tr>
+      <td valign="middle"><img src="assets/readme/models/qwen.png" alt="Qwen" width="28" height="28"> Qwen</td>
+      <td><code>mlx-community/Qwen3-ASR-0.6B-4bit</code></td>
+      <td>Default balanced on-device model.</td>
+    </tr>
+    <tr>
+      <td valign="middle"><img src="assets/readme/models/openai.png" alt="Whisper" width="28" height="28"> Whisper</td>
+      <td><code>Whisper Large V3 Turbo</code>, <code>Whisper Tiny</code></td>
+      <td>High-accuracy and lightweight Whisper options via WhisperKit.</td>
+    </tr>
+    <tr>
+      <td valign="middle"><img src="assets/readme/models/mistral.png" alt="Voxtral" width="28" height="28"> Voxtral</td>
+      <td><code>Voxtral Mini 3B (bf16)</code>, <code>Voxtral Mini 3B (8-bit)</code></td>
+      <td>Fast local transcription with higher-end on-device quality.</td>
+    </tr>
+  </tbody>
+</table>
+
+## Features
+
+- Multiple transcription engines, all in one native app.
+- Local-first workflow designed for Apple Silicon Macs.
+- Fast transcription workflow with quick copy/paste output.
+
+## Privacy
+
+Petal is designed for local transcription workflows and keeps the experience on-device where possible.
