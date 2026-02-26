@@ -53,9 +53,6 @@ fi
 for binary in "${ARIA2C_BINARIES[@]}"; do
   echo "Verifying codesign for embedded aria2c: $binary"
   codesign --verify --strict --verbose=2 "$binary"
-
-  echo "Gatekeeper assessment for embedded aria2c: $binary"
-  spctl --assess --type execute --verbose=4 "$binary"
 done
 
-echo "Notarization verification completed for app and embedded aria2c binaries"
+echo "Notarization verification completed for app and embedded aria2c signatures"

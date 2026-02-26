@@ -104,6 +104,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @Dependency(\.windowClient) private var windowClient
     private let logger = Logger(subsystem: "com.optimalapps.petal", category: "AppDelegate")
     private var pendingDeepLinkCommands: [PetalDeepLinkCommand] = []
+    private var pendingUpdateCheckFromDeepLink = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         if model == nil, let bootstrapModel = Self.bootstrapModel {
@@ -113,6 +114,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         logger.info("Registered deep link AppleEvent handler")
         enforceSingleInstance()
         updaterController.startUpdater()
+        flushPendingUpdateCheckIfReady()
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
@@ -193,12 +195,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func triggerUpdateCheckFromDeepLink() {
+        pendingUpdateCheckFromDeepLink = true
+        flushPendingUpdateCheckIfReady()
+    }
+
+    private func flushPendingUpdateCheckIfReady(attempt: Int = 0) {
+        guard pendingUpdateCheckFromDeepLink else { return }
         let updater = updaterController.updater
         guard updater.canCheckForUpdates else {
-            logger.debug("Ignored check-for-updates deep link because updater is not ready yet")
+            guard attempt < 20 else {
+                logger.error("Dropping pending check-for-updates deep link because updater never became ready")
+                pendingUpdateCheckFromDeepLink = false
+                return
+            }
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+                self?.flushPendingUpdateCheckIfReady(attempt: attempt + 1)
+            }
             return
         }
 
+        pendingUpdateCheckFromDeepLink = false
         logger.info("Triggering Sparkle update check from deep link")
         updater.checkForUpdates()
     }

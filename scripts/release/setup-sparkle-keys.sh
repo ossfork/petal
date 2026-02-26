@@ -87,11 +87,26 @@ GENERATE_KEYS_BIN="$(resolve_tool generate_keys)"
 
 mkdir -p "$(dirname "$PRIVATE_KEY_PATH")"
 
-"$GENERATE_KEYS_BIN" --account "$ACCOUNT_NAME" >/dev/null
-"$GENERATE_KEYS_BIN" --account "$ACCOUNT_NAME" -x "$PRIVATE_KEY_PATH" >/dev/null
+if ! "$GENERATE_KEYS_BIN" --account "$ACCOUNT_NAME"; then
+  cat >&2 <<EOF
+Failed to generate or access a Sparkle key for account '$ACCOUNT_NAME'.
+
+If this environment cannot show Keychain prompts, import an existing private key first:
+  $GENERATE_KEYS_BIN --account "$ACCOUNT_NAME" -f /path/to/sparkle_private_ed25519.key
+EOF
+  exit 1
+fi
+
+if ! "$GENERATE_KEYS_BIN" --account "$ACCOUNT_NAME" -x "$PRIVATE_KEY_PATH"; then
+  echo "Failed to export Sparkle private key to: $PRIVATE_KEY_PATH" >&2
+  exit 1
+fi
 chmod 600 "$PRIVATE_KEY_PATH"
 
-PUBLIC_KEY="$("$GENERATE_KEYS_BIN" --account "$ACCOUNT_NAME" -p)"
+if ! PUBLIC_KEY="$("$GENERATE_KEYS_BIN" --account "$ACCOUNT_NAME" -p)"; then
+  echo "Failed to read Sparkle public key for account '$ACCOUNT_NAME'" >&2
+  exit 1
+fi
 
 echo "Sparkle key setup complete."
 echo "Private key exported to: $PRIVATE_KEY_PATH"
