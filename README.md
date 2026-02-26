@@ -11,25 +11,24 @@
   <a aria-label="Download Latest Version" href="https://github.com/Aayush9029/petal/releases/latest">
     <img alt="Download Latest Version" src="https://img.shields.io/badge/Download%20Latest%20Version-black.svg?style=for-the-badge&logo=apple">
   </a>
+</p>
+
+<p align="center">
   <a aria-label="Support Development" href="https://github.com/sponsors/Aayush9029">
-    <img alt="Support Development" src="https://img.shields.io/badge/Support%20Development-black.svg?style=for-the-badge&logo=github">
+    <img alt="Support Development" src="https://img.shields.io/badge/Support%20Development-black.svg?style=for-the-badge&logo=githubsponsors&logoColor=white">
   </a>
 </p>
 
 ## Supported Models
 
-<p align="center">
-  <img src="assets/readme/models/openai.png" alt="OpenAI" width="20" height="20"> Whisper
-  &nbsp;&nbsp;&nbsp;
-  <img src="assets/readme/models/qwen.png" alt="Qwen" width="20" height="20"> Qwen
-  &nbsp;&nbsp;&nbsp;
-  <img src="assets/readme/models/mistral.png" alt="Mistral" width="20" height="20"> Voxtral
-  &nbsp;&nbsp;&nbsp;
-  <img src="assets/readme/models/swift.svg" alt="Swift" width="20" height="20"> Swift
-</p>
+- <img src="assets/readme/models/openai.png" alt="OpenAI" width="28" height="28"> **Whisper**
+- <img src="assets/readme/models/qwen.png" alt="Qwen" width="28" height="28"> **Qwen**
+- <img src="assets/readme/models/mistral.png" alt="Mistral" width="28" height="28"> **Voxtral**
+- <img src="assets/readme/models/swift.png" alt="Swift" width="28" height="28"> **Swift**
+- <img src="assets/readme/models/mlx.png" alt="MLX" width="28" height="28"> **MLX**
 
-## Deep Links
+## Why Petal
 
-- `Petal Start`: `petal://start`
-- `Petal Stop`: `petal://stop`
-- `Petal Toggle`: `petal://toggle`
+- Fast keyboard-first transcription flow.
+- Local-first model support with native macOS performance.
+- Clean output you can quickly copy and use anywhere.
