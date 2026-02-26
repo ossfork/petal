@@ -1,3 +1,0 @@
-module Tracing {
-    header "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/Tracing.build/include/Tracing-Swift.h"
-}

@@ -1,3 +1,0 @@
-module DependenciesTestObserver {
-    header "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/DependenciesTestObserver.build/include/DependenciesTestObserver-Swift.h"
-}

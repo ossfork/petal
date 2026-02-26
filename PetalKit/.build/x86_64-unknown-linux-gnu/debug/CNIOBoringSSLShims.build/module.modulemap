@@ -1,4 +1,0 @@
-module CNIOBoringSSLShims {
-    umbrella header "/home/runner/work/petal/petal/PetalKit/.build/checkouts/swift-nio-ssl/Sources/CNIOBoringSSLShims/include/CNIOBoringSSLShims.h"
-    export *
-}

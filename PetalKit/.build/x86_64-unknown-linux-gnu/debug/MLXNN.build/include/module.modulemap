@@ -1,3 +1,0 @@
-module MLXNN {
-    header "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/MLXNN.build/include/MLXNN-Swift.h"
-}

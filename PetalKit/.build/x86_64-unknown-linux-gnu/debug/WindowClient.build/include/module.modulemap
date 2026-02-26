@@ -1,3 +1,0 @@
-module WindowClient {
-    header "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/WindowClient.build/include/WindowClient-Swift.h"
-}

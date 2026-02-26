@@ -1,3 +1,0 @@
-module SoundClient {
-    header "/home/runner/work/petal/petal/PetalKit/.build/x86_64-unknown-linux-gnu/debug/SoundClient.build/include/SoundClient-Swift.h"
-}

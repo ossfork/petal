@@ -1,4 +1,0 @@
-module yyjson {
-    umbrella header "/home/runner/work/petal/petal/PetalKit/.build/checkouts/yyjson/src/yyjson.h"
-    export *
-}
