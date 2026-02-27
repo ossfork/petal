@@ -51,61 +51,59 @@ extension KeyboardShortcuts {
 				.frame(width: 0, height: 0)
 			.allowsHitTesting(false)
 				HStack {
-					ZStack {
-						switch mode {
-						case .ready:
-							Text("RECORD")
-								.commandStyle()
-								.transition(.asymmetric(
-									insertion: .move(edge: .trailing).combined(with: .opacity),
-									removal: .move(edge: .trailing).combined(with: .opacity)
-								))
-						case .preRecording:
-							HStack {
-								BlinkingLight()
-								Text("REC")
+					Button(action: activateRecorder) {
+						ZStack {
+							switch mode {
+							case .ready:
+								Text("RECORD")
 									.commandStyle()
-									.foregroundStyle(Color.secondary)
-									.fixedSize(horizontal: true, vertical: false)
-							}
-							.padding(.horizontal, 8)
-							.transition(.asymmetric(
-								insertion: .move(edge: .leading).combined(with: .opacity),
-								removal: .move(edge: .leading).combined(with: .opacity)
-							))
-
-						case .recording(let shortcut), .set(let shortcut):
-							let shortcutArray = shortcut.map { String($0) }
-							HStack(spacing: 2) {
-								ForEach(shortcutArray, id: \.self) { symbol in
-									ShortcutSymbol(symbol: symbol)
-										.matchedGeometryEffect(id: GeometryID.symbol(symbol), in: namespace)
-										.transition(
-											.move(edge: .leading)
-											.combined(with: .opacity)
-										)
+									.transition(.asymmetric(
+										insertion: .move(edge: .trailing).combined(with: .opacity),
+										removal: .move(edge: .trailing).combined(with: .opacity)
+									))
+							case .preRecording:
+								HStack {
+									BlinkingLight()
+									Text("REC")
+										.commandStyle()
+										.foregroundStyle(Color.secondary)
+										.fixedSize(horizontal: true, vertical: false)
 								}
+								.padding(.horizontal, 8)
+								.transition(.asymmetric(
+									insertion: .move(edge: .leading).combined(with: .opacity),
+									removal: .move(edge: .leading).combined(with: .opacity)
+								))
+
+							case .recording(let shortcut), .set(let shortcut):
+								let shortcutArray = shortcut.map { String($0) }
+								HStack(spacing: 2) {
+									ForEach(shortcutArray, id: \.self) { symbol in
+										ShortcutSymbol(symbol: symbol)
+											.matchedGeometryEffect(id: GeometryID.symbol(symbol), in: namespace)
+											.transition(
+												.move(edge: .leading)
+												.combined(with: .opacity)
+											)
+									}
+								}
+								.id(GeometryID.shortcut)
+								.transition(
+									.offset(x: -30)
+									.combined(with: .opacity)
+								)
+								.matchedGeometryEffect(id: GeometryID.shortcut, in: namespace)
 							}
-							.id(GeometryID.shortcut)
-							.transition(
-								.offset(x: -30)
-								.combined(with: .opacity)
-							)
-							.matchedGeometryEffect(id: GeometryID.shortcut, in: namespace)
 						}
+						.padding(.horizontal, mode.thereIsNoKeys ? 8 : 2)
+						.frame(height: 26)
+						.visualEffect(.adaptive(.windowBackground))
+						.clipShape(RoundedRectangle(cornerRadius: mode.thereIsNoKeys ? 13 : 6, style: .continuous))
+						.overlay(RoundedRectangle(cornerRadius: mode.thereIsNoKeys ? 13 : 6, style: .continuous).stroke(.secondary, lineWidth: 0.5).opacity(0.3))
+						.contentShape(RoundedRectangle(cornerRadius: mode.thereIsNoKeys ? 13 : 6, style: .continuous))
+						.matchedGeometryEffect(id: GeometryID.pill, in: namespace)
 					}
-					.padding(.horizontal, mode.thereIsNoKeys ? 8 : 2)
-					.frame(height: 26)
-					.visualEffect(.adaptive(.windowBackground))
-					.clipShape(RoundedRectangle(cornerRadius: mode.thereIsNoKeys ? 13 : 6, style: .continuous))
-					.overlay(RoundedRectangle(cornerRadius: mode.thereIsNoKeys ? 13 : 6, style: .continuous).stroke(.secondary, lineWidth: 0.5).opacity(0.3))
-					.contentShape(RoundedRectangle(cornerRadius: mode.thereIsNoKeys ? 13 : 6, style: .continuous))
-					.onTapGesture {
-						if !mode.isActive {
-							isActive = true
-						}
-					}
-					.matchedGeometryEffect(id: GeometryID.pill, in: namespace)
+					.buttonStyle(.plain)
 
 					if mode != .ready {
 						Button(
@@ -125,6 +123,7 @@ extension KeyboardShortcuts {
 							}
 						)
 						.buttonStyle(.plain)
+						.allowsHitTesting(mode != .ready)
 						.matchedGeometryEffect(id: GeometryID.cancel, in: namespace)
 						.transition(.scale.combined(with: .opacity).combined(with: .offset(x: -30)))
 
@@ -142,6 +141,11 @@ extension KeyboardShortcuts {
 			case .preRecording, .recording:
 				return "press_shortcut".localized
 			}
+		}
+
+		private func activateRecorder() {
+			guard !mode.isActive else { return }
+			isActive = true
 		}
 
 	}
