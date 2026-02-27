@@ -510,21 +510,46 @@ final class AppModel {
         await floatingCapsuleClient.showTrimming()
         let historySessionID = activeHistorySessionID ?? uuid()
         defer { activeHistorySessionID = nil }
+        let pipelineStart = now
+        var pipelineStage = "stop-recording"
 
         do {
+            let stopRecordingStart = now
             let audioURL = try await audioClient.stopRecording()
             defer { try? FileManager.default.removeItem(at: audioURL) }
+            let stopRecordingElapsed = now.timeIntervalSince(stopRecordingStart)
+            let audioSizeBytes = appAudioFileSizeBytes(audioURL) ?? 0
 
             guard let selectedModelOption else {
                 throw AppTranscriptionError.pipelineUnavailable
             }
 
             let audioDuration = transcriptionClient.audioDurationSeconds(audioURL)
+            let expectedDuration = estimatedTranscriptionDuration(for: audioDuration)
+
+            logClient.dumpDebug(
+                "AppModel",
+                "Transcription pipeline started",
+                appDumpString(
+                    [
+                        "sessionID": historySessionID.uuidString,
+                        "model": selectedModelOption.rawValue,
+                        "modeRequested": transcriptionMode.rawValue,
+                        "audioFile": audioURL.lastPathComponent,
+                        "audioDuration": formatElapsedSeconds(audioDuration),
+                        "audioSizeBytes": "\(audioSizeBytes)",
+                        "captureStopElapsed": formatElapsedSeconds(stopRecordingElapsed),
+                        "expectedTranscriptionDuration": formatElapsedSeconds(expectedDuration)
+                    ]
+                )
+            )
+
             if autoSpeedRate(for: audioDuration) != nil {
                 sessionState = .processing(.speeding)
                 await floatingCapsuleClient.showSpeeding()
             }
 
+            pipelineStage = "transcribing"
             sessionState = .processing(.transcribing)
             await floatingCapsuleClient.showTranscribing()
             await soundClient.playTranscriptionStarted()
@@ -536,17 +561,33 @@ final class AppModel {
                 $transcriptionMode.withLock { $0 = mode }
             }
 
+            let transcriptionCallStart = now
             var transcript = try await transcriptionClient.transcribe(
                 audioURL,
                 selectedModelOption,
                 mode,
                 mode == .smart ? smartPrompt : nil
             )
+            let transcriptionCallElapsed = now.timeIntervalSince(transcriptionCallStart)
             let originalTranscript = transcript
             var shouldPersistOriginalVariant = false
             let transcriptionElapsed = now.timeIntervalSince(transcriptionStart)
             updateTranscriptionSpeedEstimate(audioDuration: audioDuration, elapsed: transcriptionElapsed)
             stopTranscriptionProgressTracking(finalProgress: 1)
+
+            logClient.dumpDebug(
+                "AppModel",
+                "Transcription backend returned",
+                appDumpString(
+                    [
+                        "sessionID": historySessionID.uuidString,
+                        "modeResolved": mode.rawValue,
+                        "transcriptionCallElapsed": formatElapsedSeconds(transcriptionCallElapsed),
+                        "transcriptionTotalElapsed": formatElapsedSeconds(transcriptionElapsed),
+                        "outputCharacters": "\(transcript.count)"
+                    ]
+                )
+            )
 
             // Post-process with Apple Intelligence when smart mode is requested
             // and the model doesn't natively support it.
@@ -559,36 +600,76 @@ final class AppModel {
             logger.info("Refine decision: mode=\(mode.rawValue, privacy: .public), modelSupportsSmartNatively=\(selectedModelOption.supportsSmartTranscription, privacy: .public), aiEnabled=\(self.appleIntelligenceEnabled, privacy: .public), aiAvailable=\(self.foundationModelClient.isAvailable(), privacy: .public), willRefine=\(needsAIRefine, privacy: .public)")
 
             if needsAIRefine {
+                pipelineStage = "refining"
                 sessionState = .processing(.refining)
                 await soundClient.playRefineStarted()
                 await floatingCapsuleClient.showRefining()
                 logger.info("Starting Apple Intelligence refinement: inputLength=\(transcript.count, privacy: .public)")
+                let refineStart = now
 
                 if let refined = try? await foundationModelClient.refine(transcript, smartPrompt),
                    !refined.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 {
+                    let refineElapsed = now.timeIntervalSince(refineStart)
                     logger.info("Apple Intelligence refinement succeeded: outputLength=\(refined.count, privacy: .public)")
                     shouldPersistOriginalVariant = refined != transcript
                     transcript = refined
+                    logClient.dumpDebug(
+                        "AppModel",
+                        "Refinement succeeded",
+                        appDumpString(
+                            [
+                                "sessionID": historySessionID.uuidString,
+                                "elapsed": formatElapsedSeconds(refineElapsed),
+                                "outputCharacters": "\(refined.count)"
+                            ]
+                        )
+                    )
                 } else {
+                    let refineElapsed = now.timeIntervalSince(refineStart)
                     logger.warning("Apple Intelligence refinement returned empty or failed, keeping original transcript")
+                    logClient.dumpDebug(
+                        "AppModel",
+                        "Refinement skipped/failed",
+                        appDumpString(
+                            [
+                                "sessionID": historySessionID.uuidString,
+                                "elapsed": formatElapsedSeconds(refineElapsed)
+                            ]
+                        )
+                    )
                 }
             }
 
             let isEmptyTranscript = transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 
             if isEmptyTranscript {
+                pipelineStage = "persist-empty"
                 await soundClient.playTranscriptionNoResult()
                 transientMessage = "No speech detected."
                 logger.info("Empty transcription result — no speech detected")
                 consoleLog("Empty transcription result — no speech detected")
 
+                let persistStart = now
                 let persistedPaths = await persistHistoryArtifacts(
                     audioURL: audioURL,
                     transcript: transcript,
                     timestamp: transcriptionStart,
                     mode: mode.rawValue,
                     modelID: selectedModelOption.rawValue
+                )
+                let persistElapsed = now.timeIntervalSince(persistStart)
+                logClient.dumpDebug(
+                    "AppModel",
+                    "Persisted empty transcript artifacts",
+                    appDumpString(
+                        [
+                            "sessionID": historySessionID.uuidString,
+                            "elapsed": formatElapsedSeconds(persistElapsed),
+                            "audioPath": persistedPaths?.audioRelativePath ?? "nil",
+                            "transcriptPath": persistedPaths?.transcriptRelativePath ?? "nil"
+                        ]
+                    )
                 )
 
                 appendTranscriptHistory(
@@ -603,11 +684,26 @@ final class AppModel {
                     sessionID: historySessionID
                 )
             } else {
+                pipelineStage = "paste"
                 await soundClient.playTranscriptionCompleted()
 
+                let pasteStart = now
                 let pasteResult = await pasteClient.paste(transcript, restoreClipboardAfterPaste)
+                let pasteElapsed = now.timeIntervalSince(pasteStart)
                 logger.info("Transcription completed. characters=\(transcript.count, privacy: .public), pasteResult=\(String(describing: pasteResult), privacy: .public)")
                 consoleLog("Transcription completed. characters=\(transcript.count), pasteResult=\(String(describing: pasteResult))")
+                logClient.dumpDebug(
+                    "AppModel",
+                    "Paste step",
+                    appDumpString(
+                        [
+                            "sessionID": historySessionID.uuidString,
+                            "pasteResult": pasteResult.rawValue,
+                            "elapsed": formatElapsedSeconds(pasteElapsed),
+                            "restoreClipboardAfterPaste": "\(restoreClipboardAfterPaste)"
+                        ]
+                    )
+                )
                 logClient.dumpDebug(
                     "AppModel",
                     "Transcription metrics",
@@ -616,17 +712,33 @@ final class AppModel {
                             "characters": "\(transcript.count)",
                             "audioDuration": audioDuration.formatted(.number.precision(.fractionLength(2))),
                             "transcriptionElapsed": transcriptionElapsed.formatted(.number.precision(.fractionLength(2))),
-                            "pasteResult": pasteResult.rawValue
+                            "pasteResult": pasteResult.rawValue,
+                            "sessionID": historySessionID.uuidString
                         ]
                     )
                 )
 
+                pipelineStage = "persist"
+                let persistStart = now
                 let persistedPaths = await persistHistoryArtifacts(
                     audioURL: audioURL,
                     transcript: transcript,
                     timestamp: transcriptionStart,
                     mode: mode.rawValue,
                     modelID: selectedModelOption.rawValue
+                )
+                let persistElapsed = now.timeIntervalSince(persistStart)
+                logClient.dumpDebug(
+                    "AppModel",
+                    "Persisted transcript artifacts",
+                    appDumpString(
+                        [
+                            "sessionID": historySessionID.uuidString,
+                            "elapsed": formatElapsedSeconds(persistElapsed),
+                            "audioPath": persistedPaths?.audioRelativePath ?? "nil",
+                            "transcriptPath": persistedPaths?.transcriptRelativePath ?? "nil"
+                        ]
+                    )
                 )
 
                 appendTranscriptHistory(
@@ -642,6 +754,8 @@ final class AppModel {
                 )
 
                 if shouldPersistOriginalVariant {
+                    pipelineStage = "persist-original"
+                    let originalPersistStart = now
                     let originalPaths = await persistHistoryArtifacts(
                         audioURL: audioURL,
                         transcript: originalTranscript,
@@ -649,6 +763,18 @@ final class AppModel {
                         mode: "original",
                         modelID: selectedModelOption.rawValue,
                         persistAudio: false
+                    )
+                    let originalPersistElapsed = now.timeIntervalSince(originalPersistStart)
+                    logClient.dumpDebug(
+                        "AppModel",
+                        "Persisted original transcript variant",
+                        appDumpString(
+                            [
+                                "sessionID": historySessionID.uuidString,
+                                "elapsed": formatElapsedSeconds(originalPersistElapsed),
+                                "transcriptPath": originalPaths?.transcriptRelativePath ?? "nil"
+                            ]
+                        )
                     )
 
                     appendTranscriptHistory(
@@ -681,6 +807,18 @@ final class AppModel {
 
             lastError = nil
             sessionState = .idle
+            let pipelineElapsed = now.timeIntervalSince(pipelineStart)
+            logClient.dumpDebug(
+                "AppModel",
+                "Transcription pipeline completed",
+                appDumpString(
+                    [
+                        "sessionID": historySessionID.uuidString,
+                        "elapsed": formatElapsedSeconds(pipelineElapsed),
+                        "finalStage": pipelineStage
+                    ]
+                )
+            )
         } catch {
             reportIssue(error)
             lastError = error.localizedDescription
@@ -690,6 +828,11 @@ final class AppModel {
             await floatingCapsuleClient.showError("Transcription failed")
             logger.error("Transcription failed: \(error.localizedDescription, privacy: .public)")
             consoleLog("Transcription failed: \(error.localizedDescription)")
+            let pipelineElapsed = now.timeIntervalSince(pipelineStart)
+            logClient.error(
+                "AppModel",
+                "Transcription pipeline failed. sessionID=\(historySessionID.uuidString), stage=\(pipelineStage), elapsed=\(formatElapsedSeconds(pipelineElapsed)), error=\(error.localizedDescription)"
+            )
         }
 
         await hideCapsuleAfterDelay()
@@ -1372,6 +1515,16 @@ final class AppModel {
 
     private func consoleLog(_ message: String) {
         logClient.debug("AppModel", message)
+    }
+
+    private func formatElapsedSeconds(_ seconds: Double) -> String {
+        String(format: "%.3fs", seconds)
+    }
+
+    private func appAudioFileSizeBytes(_ url: URL) -> Int64? {
+        let values = try? url.resourceValues(forKeys: [.fileSizeKey])
+        guard let size = values?.fileSize else { return nil }
+        return Int64(size)
     }
 
     private func startTranscriptionProgressTracking(audioDuration: Double) {

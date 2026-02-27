@@ -3,6 +3,7 @@ import Dependencies
 import DependenciesMacros
 import FluidAudio
 import Foundation
+import LogClient
 import VoxtralCore
 import WhisperKit
 
@@ -154,10 +155,57 @@ extension MLXClient: DependencyKey {
                 }
             },
             prepareModelIfNeeded: { model in
-                try await runtime.prepareModelIfNeeded(model: model)
+                @Dependency(\.logClient) var logClient
+                let requestID = UUID().uuidString
+                let startUptime = ProcessInfo.processInfo.systemUptime
+                logClient.debug(
+                    "MLXClient",
+                    "Prepare requested. requestID=\(requestID), model=\(model.rawValue)"
+                )
+                do {
+                    try await runtime.prepareModelIfNeeded(model: model) { message in
+                        logClient.debug("MLXClient", "[prepare \(requestID)] \(message)")
+                    }
+                    let elapsed = ProcessInfo.processInfo.systemUptime - startUptime
+                    logClient.debug(
+                        "MLXClient",
+                        "Prepare completed. requestID=\(requestID), model=\(model.rawValue), elapsed=\(formatElapsedSeconds(elapsed))"
+                    )
+                } catch {
+                    let elapsed = ProcessInfo.processInfo.systemUptime - startUptime
+                    logClient.error(
+                        "MLXClient",
+                        "Prepare failed. requestID=\(requestID), model=\(model.rawValue), elapsed=\(formatElapsedSeconds(elapsed)), error=\(error.localizedDescription)"
+                    )
+                    throw error
+                }
             },
             transcribe: { audioURL, mode in
-                try await runtime.transcribe(audioURL: audioURL, mode: mode)
+                @Dependency(\.logClient) var logClient
+                let requestID = UUID().uuidString
+                let startUptime = ProcessInfo.processInfo.systemUptime
+                logClient.debug(
+                    "MLXClient",
+                    "Transcribe requested. requestID=\(requestID), audioFile=\(audioURL.lastPathComponent), mode=\(mode.logSummary)"
+                )
+                do {
+                    let text = try await runtime.transcribe(audioURL: audioURL, mode: mode) { message in
+                        logClient.debug("MLXClient", "[transcribe \(requestID)] \(message)")
+                    }
+                    let elapsed = ProcessInfo.processInfo.systemUptime - startUptime
+                    logClient.debug(
+                        "MLXClient",
+                        "Transcribe completed. requestID=\(requestID), chars=\(text.count), elapsed=\(formatElapsedSeconds(elapsed))"
+                    )
+                    return text
+                } catch {
+                    let elapsed = ProcessInfo.processInfo.systemUptime - startUptime
+                    logClient.error(
+                        "MLXClient",
+                        "Transcribe failed. requestID=\(requestID), elapsed=\(formatElapsedSeconds(elapsed)), mode=\(mode.logSummary), error=\(error.localizedDescription)"
+                    )
+                    throw error
+                }
             },
             unloadModel: {
                 await runtime.unloadModel()
@@ -198,15 +246,26 @@ private actor LiveMLXRuntime {
     private var parakeetAsrManager: AsrManager?
     private var whisperKitInstance: WhisperKit?
 
-    func prepareModelIfNeeded(model: MLXPipelineModel) async throws {
+    func prepareModelIfNeeded(
+        model: MLXPipelineModel,
+        log: @Sendable (String) -> Void
+    ) async throws {
+        let prepareStart = ProcessInfo.processInfo.systemUptime
+        log("prepare.enter model=\(model.rawValue), loadedModel=\(loadedModel?.rawValue ?? "none")")
+
         if loadedModel == model {
+            log("prepare.skip reason=already-loaded")
             return
         }
 
+        let unloadStart = ProcessInfo.processInfo.systemUptime
         unloadModel()
+        let unloadElapsed = ProcessInfo.processInfo.systemUptime - unloadStart
+        log("prepare.unload.completed elapsed=\(formatElapsedSeconds(unloadElapsed))")
 
         switch model {
         case .mini3b, .mini3b8bit:
+            log("prepare.voxtral.begin model=\(model.rawValue)")
             var config = VoxtralPipeline.Configuration.default
             config.maxTokens = 256
             config.temperature = 0.0
@@ -219,107 +278,186 @@ private actor LiveMLXRuntime {
                 configuration: config
             )
 
+            let loadStart = ProcessInfo.processInfo.systemUptime
             try await pipeline.loadModel()
+            let loadElapsed = ProcessInfo.processInfo.systemUptime - loadStart
+            log("prepare.voxtral.loaded elapsed=\(formatElapsedSeconds(loadElapsed))")
             voxtralPipeline = pipeline
 
         case .qwen3ASR06B4bit:
             guard let fluidAudioModel = model.fluidAudioModel else {
                 throw MLXError.invalidModelIdentifier(model.rawValue)
             }
+            log("prepare.qwen.begin")
+            let resolveStart = ProcessInfo.processInfo.systemUptime
             let modelDirectory = try await FluidAudioCache.downloadIfNeeded(model: fluidAudioModel)
+            let resolveElapsed = ProcessInfo.processInfo.systemUptime - resolveStart
+            log(
+                "prepare.qwen.model-ready elapsed=\(formatElapsedSeconds(resolveElapsed)), directory=\(modelDirectory.lastPathComponent)"
+            )
             let manager = Qwen3AsrManager()
+            let loadStart = ProcessInfo.processInfo.systemUptime
             try await manager.loadModels(from: modelDirectory)
+            let loadElapsed = ProcessInfo.processInfo.systemUptime - loadStart
+            log("prepare.qwen.loaded elapsed=\(formatElapsedSeconds(loadElapsed))")
             qwen3AsrManager = manager
 
         case .parakeetTDT06BV3:
             guard let fluidAudioModel = model.fluidAudioModel else {
                 throw MLXError.invalidModelIdentifier(model.rawValue)
             }
+            log("prepare.parakeet.begin")
+            let resolveStart = ProcessInfo.processInfo.systemUptime
             let modelDirectory = try await FluidAudioCache.downloadIfNeeded(model: fluidAudioModel)
+            let resolveElapsed = ProcessInfo.processInfo.systemUptime - resolveStart
+            log(
+                "prepare.parakeet.model-ready elapsed=\(formatElapsedSeconds(resolveElapsed)), directory=\(modelDirectory.lastPathComponent)"
+            )
+            let asrLoadStart = ProcessInfo.processInfo.systemUptime
             let asrModels = try await AsrModels.load(from: modelDirectory, version: .v3)
+            let asrLoadElapsed = ProcessInfo.processInfo.systemUptime - asrLoadStart
+            log("prepare.parakeet.asrModels-loaded elapsed=\(formatElapsedSeconds(asrLoadElapsed))")
             let manager = AsrManager(config: .default)
+            let managerInitStart = ProcessInfo.processInfo.systemUptime
             try await manager.initialize(models: asrModels)
+            let managerInitElapsed = ProcessInfo.processInfo.systemUptime - managerInitStart
+            log("prepare.parakeet.manager-initialized elapsed=\(formatElapsedSeconds(managerInitElapsed))")
             parakeetAsrManager = manager
 
         case .whisperLargeV3Turbo, .whisperTiny:
             guard let variant = model.whisperKitVariant else {
                 throw MLXError.invalidModelIdentifier(model.rawValue)
             }
+            log("prepare.whisper.begin variant=\(variant)")
+            let whisperStart = ProcessInfo.processInfo.systemUptime
             whisperKitInstance = try await WhisperKit(model: variant, downloadBase: petalDirectory)
+            let whisperElapsed = ProcessInfo.processInfo.systemUptime - whisperStart
+            log("prepare.whisper.loaded elapsed=\(formatElapsedSeconds(whisperElapsed))")
         }
 
         loadedModel = model
+        let prepareElapsed = ProcessInfo.processInfo.systemUptime - prepareStart
+        log("prepare.completed model=\(model.rawValue), elapsed=\(formatElapsedSeconds(prepareElapsed))")
     }
 
-    func transcribe(audioURL: URL, mode: MLXTranscriptionMode) async throws -> String {
+    func transcribe(
+        audioURL: URL,
+        mode: MLXTranscriptionMode,
+        log: @Sendable (String) -> Void
+    ) async throws -> String {
         guard let loadedModel else {
             throw MLXError.pipelineUnavailable
         }
 
-        switch loadedModel {
-        case .mini3b, .mini3b8bit:
-            guard let voxtralPipeline else {
-                throw MLXError.pipelineUnavailable
+        let inputDuration = mlxAudioDurationSeconds(audioURL)
+        let inputSizeBytes = mlxAudioFileSizeBytes(audioURL) ?? 0
+        let totalStart = ProcessInfo.processInfo.systemUptime
+
+        log(
+            "transcribe.enter model=\(loadedModel.rawValue), mode=\(mode.logSummary), audioFile=\(audioURL.lastPathComponent), audioDuration=\(formatElapsedSeconds(inputDuration)), audioSizeBytes=\(inputSizeBytes)"
+        )
+
+        do {
+            let transcript: String
+
+            switch loadedModel {
+            case .mini3b, .mini3b8bit:
+                guard let voxtralPipeline else {
+                    throw MLXError.pipelineUnavailable
+                }
+
+                let backendStart = ProcessInfo.processInfo.systemUptime
+                switch mode {
+                case .verbatim:
+                    transcript = try await voxtralPipeline.transcribe(audio: audioURL, language: "en")
+                case let .smart(prompt):
+                    log("transcribe.voxtral.smart-prompt length=\(prompt.count)")
+                    transcript = try await voxtralPipeline.chat(audio: audioURL, prompt: prompt, language: "en")
+                }
+                let backendElapsed = ProcessInfo.processInfo.systemUptime - backendStart
+                log("transcribe.voxtral.backend completed elapsed=\(formatElapsedSeconds(backendElapsed))")
+
+            case .qwen3ASR06B4bit:
+                guard let qwen3AsrManager else {
+                    throw MLXError.pipelineUnavailable
+                }
+
+                let resampleStart = ProcessInfo.processInfo.systemUptime
+                let audioSamples = try audioConverter.resampleAudioFile(audioURL)
+                let resampleElapsed = ProcessInfo.processInfo.systemUptime - resampleStart
+                log(
+                    "transcribe.qwen.resample completed elapsed=\(formatElapsedSeconds(resampleElapsed)), samples=\(audioSamples.count)"
+                )
+
+                let inferenceStart = ProcessInfo.processInfo.systemUptime
+                let text = try await qwen3AsrManager.transcribe(audioSamples: audioSamples)
+                let inferenceElapsed = ProcessInfo.processInfo.systemUptime - inferenceStart
+                log(
+                    "transcribe.qwen.inference completed elapsed=\(formatElapsedSeconds(inferenceElapsed)), rawChars=\(text.count)"
+                )
+
+                let normalizedText = normalizeQwenTranscript(text)
+                guard !normalizedText.isEmpty else {
+                    log("transcribe.qwen.empty-normalized-output")
+                    throw MLXError.pipelineUnavailable
+                }
+                log("transcribe.qwen.normalized chars=\(normalizedText.count)")
+                transcript = normalizedText
+
+            case .parakeetTDT06BV3:
+                guard let parakeetAsrManager else {
+                    throw MLXError.pipelineUnavailable
+                }
+
+                nonisolated(unsafe) let manager = parakeetAsrManager
+                let inferenceStart = ProcessInfo.processInfo.systemUptime
+                let result = try await manager.transcribe(audioURL, source: .system)
+                let inferenceElapsed = ProcessInfo.processInfo.systemUptime - inferenceStart
+                log(
+                    "transcribe.parakeet.inference completed elapsed=\(formatElapsedSeconds(inferenceElapsed)), rawChars=\(result.text.count)"
+                )
+
+                let text = normalizeParakeetTranscript(result.text)
+                guard !text.isEmpty else {
+                    log("transcribe.parakeet.empty-normalized-output")
+                    throw MLXError.pipelineUnavailable
+                }
+                log("transcribe.parakeet.normalized chars=\(text.count)")
+                transcript = text
+
+            case .whisperLargeV3Turbo, .whisperTiny:
+                guard let whisperKitInstance else {
+                    throw MLXError.pipelineUnavailable
+                }
+                nonisolated(unsafe) let instance = whisperKitInstance
+                let audioPath = audioURL.path
+                let whisperStart = ProcessInfo.processInfo.systemUptime
+                let results = try await instance.transcribe(audioPath: audioPath)
+                let whisperElapsed = ProcessInfo.processInfo.systemUptime - whisperStart
+                log(
+                    "transcribe.whisper.backend completed elapsed=\(formatElapsedSeconds(whisperElapsed)), segments=\(results.count)"
+                )
+
+                let text = results.map(\.text).joined(separator: " ")
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !text.isEmpty else {
+                    log("transcribe.whisper.empty-output")
+                    throw MLXError.pipelineUnavailable
+                }
+                transcript = text
             }
 
-            switch mode {
-            case .verbatim:
-                return try await voxtralPipeline.transcribe(audio: audioURL, language: "en")
-            case let .smart(prompt):
-                return try await voxtralPipeline.chat(audio: audioURL, prompt: prompt, language: "en")
-            }
-
-        case .qwen3ASR06B4bit:
-            guard let qwen3AsrManager else {
-                throw MLXError.pipelineUnavailable
-            }
-
-            let audioSamples = try audioConverter.resampleAudioFile(audioURL)
-            let text = try await qwen3AsrManager.transcribe(audioSamples: audioSamples)
-            let normalizedText = normalizeQwenTranscript(text)
-            guard !normalizedText.isEmpty else {
-                throw MLXError.pipelineUnavailable
-            }
-
-            switch mode {
-            case .verbatim:
-                return normalizedText
-            case .smart:
-                return normalizedText
-            }
-
-        case .parakeetTDT06BV3:
-            guard let parakeetAsrManager else {
-                throw MLXError.pipelineUnavailable
-            }
-
-            nonisolated(unsafe) let manager = parakeetAsrManager
-            let result = try await manager.transcribe(audioURL, source: .system)
-            let text = normalizeParakeetTranscript(result.text)
-            guard !text.isEmpty else {
-                throw MLXError.pipelineUnavailable
-            }
-
-            switch mode {
-            case .verbatim:
-                return text
-            case .smart:
-                return text
-            }
-
-        case .whisperLargeV3Turbo, .whisperTiny:
-            guard let whisperKitInstance else {
-                throw MLXError.pipelineUnavailable
-            }
-            nonisolated(unsafe) let instance = whisperKitInstance
-            let audioPath = audioURL.path
-            let results = try await instance.transcribe(audioPath: audioPath)
-            let text = results.map(\.text).joined(separator: " ")
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !text.isEmpty else {
-                throw MLXError.pipelineUnavailable
-            }
-            return text
+            let totalElapsed = ProcessInfo.processInfo.systemUptime - totalStart
+            log(
+                "transcribe.completed model=\(loadedModel.rawValue), chars=\(transcript.count), elapsed=\(formatElapsedSeconds(totalElapsed))"
+            )
+            return transcript
+        } catch {
+            let failedElapsed = ProcessInfo.processInfo.systemUptime - totalStart
+            log(
+                "transcribe.failed model=\(loadedModel.rawValue), elapsed=\(formatElapsedSeconds(failedElapsed)), error=\(error.localizedDescription)"
+            )
+            throw error
         }
     }
 
@@ -517,19 +655,21 @@ private enum FluidAudioCache {
 
         switch model {
         case .qwen3Asr:
-            do {
-                _ = try await Qwen3AsrModels.download()
-            } catch {
-                progress?(0.05, "Retrying Qwen3 ASR download from Hugging Face...")
-                try await Qwen3AsrFallbackDownloader.download(to: Qwen3AsrModels.defaultCacheDirectory())
-            }
+            try await ModelDownloader.downloadFromHuggingFace(
+                repoId: "FluidInference/qwen3-asr-0.6b-coreml",
+                subfolder: "f32",
+                destination: Qwen3AsrModels.defaultCacheDirectory(),
+                fileFilter: nil,
+                progress: progress
+            )
         case .parakeetTdt06BV3:
-            _ = try await AsrModels.download(version: .v3)
-        }
-
-        if model == .qwen3Asr, resolvedDirectoryURL(for: model) == nil {
-            progress?(0.1, "Applying Qwen3 ASR download compatibility fix...")
-            try await Qwen3AsrFallbackDownloader.download(to: Qwen3AsrModels.defaultCacheDirectory())
+            try await ModelDownloader.downloadFromHuggingFace(
+                repoId: "FluidInference/parakeet-tdt-0.6b-v3-coreml",
+                subfolder: nil,
+                destination: AsrModels.defaultCacheDirectory(for: .v3),
+                fileFilter: nil,
+                progress: progress
+            )
         }
 
         guard let resolvedDirectory = resolvedDirectoryURL(for: model) else {
@@ -538,114 +678,6 @@ private enum FluidAudioCache {
 
         progress?(1, "Download complete")
         return resolvedDirectory
-    }
-}
-
-private enum Qwen3AsrFallbackDownloader {
-    private static let repoID = "FluidInference/qwen3-asr-0.6b-coreml"
-    private static let variantPath = "f32"
-    private static let requiredLocalFiles = [
-        "qwen3_asr_audio_encoder.mlmodelc",
-        "qwen3_asr_decoder_stateful.mlmodelc",
-        "qwen3_asr_embeddings.bin",
-        "vocab.json",
-    ]
-    private static let requiredRemoteFilePaths = Set([
-        "f32/qwen3_asr_embeddings.bin",
-        "f32/vocab.json",
-    ])
-    private static let requiredRemoteDirectoryPrefixes = [
-        "f32/qwen3_asr_audio_encoder.mlmodelc/",
-        "f32/qwen3_asr_decoder_stateful.mlmodelc/",
-    ]
-
-    private struct HuggingFaceTreeItem: Decodable {
-        let type: String
-        let path: String
-    }
-
-    static func download(to directory: URL) async throws {
-        if Qwen3AsrModels.modelsExist(at: directory) {
-            return
-        }
-
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-
-        let filePaths = try await listRequiredRemoteFiles()
-        for remotePath in filePaths {
-            let localRelativePath = String(remotePath.dropFirst("\(variantPath)/".count))
-            let destinationURL = directory.appendingPathComponent(localRelativePath)
-
-            if FileManager.default.fileExists(atPath: destinationURL.path) {
-                continue
-            }
-
-            try FileManager.default.createDirectory(
-                at: destinationURL.deletingLastPathComponent(),
-                withIntermediateDirectories: true
-            )
-
-            let sourceURL = try resolveURL(for: remotePath)
-            let (temporaryURL, response) = try await URLSession.shared.download(from: sourceURL)
-            guard
-                let httpResponse = response as? HTTPURLResponse,
-                (200..<300).contains(httpResponse.statusCode)
-            else {
-                throw MLXDownloadError.failed("Failed downloading Qwen3 ASR file: \(remotePath)")
-            }
-
-            if FileManager.default.fileExists(atPath: destinationURL.path) {
-                try? FileManager.default.removeItem(at: destinationURL)
-            }
-            try FileManager.default.moveItem(at: temporaryURL, to: destinationURL)
-        }
-
-        guard Qwen3AsrModels.modelsExist(at: directory) else {
-            let missing = requiredLocalFiles.filter { file in
-                !FileManager.default.fileExists(atPath: directory.appendingPathComponent(file).path)
-            }
-            throw MLXDownloadError.failed(
-                "Qwen3 ASR download incomplete. Missing files: \(missing.joined(separator: ", "))"
-            )
-        }
-    }
-
-    private static func listRequiredRemoteFiles() async throws -> [String] {
-        let apiURL = URL(
-            string: "https://huggingface.co/api/models/\(repoID)/tree/main/\(variantPath)?recursive=1"
-        )!
-        let (data, response) = try await URLSession.shared.data(from: apiURL)
-        guard
-            let httpResponse = response as? HTTPURLResponse,
-            (200..<300).contains(httpResponse.statusCode)
-        else {
-            throw MLXDownloadError.failed("Unable to list files for \(repoID)/\(variantPath).")
-        }
-
-        let items = try JSONDecoder().decode([HuggingFaceTreeItem].self, from: data)
-        let files = items
-            .filter { $0.type == "file" }
-            .map(\.path)
-            .filter { path in
-                requiredRemoteFilePaths.contains(path)
-                    || requiredRemoteDirectoryPrefixes.contains(where: { path.hasPrefix($0) })
-            }
-            .sorted()
-
-        guard !files.isEmpty else {
-            throw MLXDownloadError.failed(
-                "No files found for \(repoID)/\(variantPath). Repository layout may have changed."
-            )
-        }
-        return files
-    }
-
-    private static func resolveURL(for remotePath: String) throws -> URL {
-        let encodedPath = remotePath.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? remotePath
-        guard let url = URL(string: "https://huggingface.co/\(repoID)/resolve/main/\(encodedPath)") else {
-            throw MLXDownloadError.failed("Invalid Qwen3 ASR download URL for path: \(remotePath)")
-        }
-        return url
     }
 }
 
@@ -720,15 +752,19 @@ private enum WhisperKitCache {
 
         progress(0, "Downloading WhisperKit model...")
         let modelName = whisperKitModelName(for: variant)
+        let modelDir = petalDirectory
+            .appendingPathComponent("models")
+            .appendingPathComponent("argmaxinc")
+            .appendingPathComponent("whisperkit-coreml")
+            .appendingPathComponent(modelName)
 
-        _ = try await WhisperKit.download(
-            variant: modelName,
-            downloadBase: petalDirectory
-        ) { downloadProgress in
-            let fraction = downloadProgress.fractionCompleted
-            let percent = Int((fraction * 100).rounded())
-            progress(fraction, "Downloading WhisperKit model... \(percent)%")
-        }
+        try await ModelDownloader.downloadFromHuggingFace(
+            repoId: "argmaxinc/whisperkit-coreml",
+            subfolder: modelName,
+            destination: modelDir,
+            fileFilter: nil,
+            progress: progress
+        )
         progress(1, "Download complete")
     }
 
@@ -761,4 +797,32 @@ private enum WhisperKitCache {
             return variant
         }
     }
+}
+
+private extension MLXTranscriptionMode {
+    var logSummary: String {
+        switch self {
+        case .verbatim:
+            return "verbatim"
+        case let .smart(prompt):
+            return "smart(promptChars=\(prompt.count))"
+        }
+    }
+}
+
+private func formatElapsedSeconds(_ seconds: Double) -> String {
+    String(format: "%.3fs", seconds)
+}
+
+private func mlxAudioDurationSeconds(_ url: URL) -> Double {
+    guard let file = try? AVAudioFile(forReading: url) else { return 0 }
+    let sampleRate = file.fileFormat.sampleRate
+    guard sampleRate > 0 else { return 0 }
+    return Double(file.length) / sampleRate
+}
+
+private func mlxAudioFileSizeBytes(_ url: URL) -> Int64? {
+    let values = try? url.resourceValues(forKeys: [.fileSizeKey])
+    guard let size = values?.fileSize else { return nil }
+    return Int64(size)
 }

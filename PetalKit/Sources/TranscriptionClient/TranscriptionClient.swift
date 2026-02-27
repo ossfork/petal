@@ -4,6 +4,7 @@ import DependenciesMacros
 import Foundation
 import AudioSpeedClient
 import AudioTrimClient
+import LogClient
 import MLXClient
 import Shared
 #if canImport(Speech)
@@ -31,6 +32,7 @@ extension TranscriptionClient: DependencyKey {
                 @Dependency(\.mlxClient) var mlxClient
                 @Dependency(\.audioTrimClient) var trimClient
                 @Dependency(\.audioSpeedClient) var speedClient
+                @Dependency(\.logClient) var logClient
                 if option.requiresDownload, let pipelineModel = option.pipelineModel {
                     try await mlxClient.prepareModelIfNeeded(pipelineModel)
                 }
@@ -38,24 +40,96 @@ extension TranscriptionClient: DependencyKey {
                 @Shared(.trimSilenceEnabled) var trimEnabled
                 @Shared(.autoSpeedEnabled) var speedEnabled
 
+                let requestID = UUID().uuidString
+                let requestStartUptime = ProcessInfo.processInfo.systemUptime
                 var workingAudioURL = audioURL
                 var generatedAudioURLs = Set<URL>()
+                var stage = "setup"
+                let inputDuration = audioFileDurationSeconds(audioURL)
+                let inputSizeBytes = audioFileSizeBytes(audioURL) ?? 0
+
+                logClient.dumpDebug(
+                    "TranscriptionClient",
+                    "Transcription request",
+                    appDumpString(
+                        [
+                            "requestID": requestID,
+                            "model": option.rawValue,
+                            "mode": mode.rawValue,
+                            "inputFile": audioURL.lastPathComponent,
+                            "inputDuration": formatElapsedSeconds(inputDuration),
+                            "inputSizeBytes": "\(inputSizeBytes)",
+                            "trimEnabled": "\(trimEnabled)",
+                            "autoSpeedEnabled": "\(speedEnabled)"
+                        ]
+                    )
+                )
 
                 if trimEnabled {
+                    stage = "trim"
+                    let trimStartUptime = ProcessInfo.processInfo.systemUptime
+                    let beforeTrimDuration = audioFileDurationSeconds(workingAudioURL)
                     let trimmedURL = try await trimClient.trimSilence(workingAudioURL, Self.trimSilenceThreshold)
                     if trimmedURL != workingAudioURL {
                         generatedAudioURLs.insert(trimmedURL)
                         workingAudioURL = trimmedURL
                     }
+                    let trimElapsed = ProcessInfo.processInfo.systemUptime - trimStartUptime
+                    let afterTrimDuration = audioFileDurationSeconds(workingAudioURL)
+                    logClient.dumpDebug(
+                        "TranscriptionClient",
+                        "Trim stage",
+                        appDumpString(
+                            [
+                                "requestID": requestID,
+                                "changedFile": "\(workingAudioURL != audioURL)",
+                                "beforeDuration": formatElapsedSeconds(beforeTrimDuration),
+                                "afterDuration": formatElapsedSeconds(afterTrimDuration),
+                                "elapsed": formatElapsedSeconds(trimElapsed),
+                                "workingFile": workingAudioURL.lastPathComponent
+                            ]
+                        )
+                    )
+                } else {
+                    logClient.debug(
+                        "TranscriptionClient",
+                        "Trim stage skipped. requestID=\(requestID), trimEnabled=false"
+                    )
                 }
 
                 let duration = await audioFileDurationSecondsAsync(workingAudioURL)
                 if speedEnabled, let speedRate = Self.autoSpeedRate(for: duration) {
+                    stage = "speed"
+                    let speedStartUptime = ProcessInfo.processInfo.systemUptime
+                    let beforeSpeedDuration = duration
                     let spedUpURL = try await speedClient.speedUp(workingAudioURL, speedRate)
                     if spedUpURL != workingAudioURL {
                         generatedAudioURLs.insert(spedUpURL)
                         workingAudioURL = spedUpURL
                     }
+                    let speedElapsed = ProcessInfo.processInfo.systemUptime - speedStartUptime
+                    let afterSpeedDuration = audioFileDurationSeconds(workingAudioURL)
+                    logClient.dumpDebug(
+                        "TranscriptionClient",
+                        "Speed stage",
+                        appDumpString(
+                            [
+                                "requestID": requestID,
+                                "rate": speedRate.formatted(.number.precision(.fractionLength(2))),
+                                "changedFile": "\(workingAudioURL != audioURL)",
+                                "beforeDuration": formatElapsedSeconds(beforeSpeedDuration),
+                                "afterDuration": formatElapsedSeconds(afterSpeedDuration),
+                                "elapsed": formatElapsedSeconds(speedElapsed),
+                                "workingFile": workingAudioURL.lastPathComponent
+                            ]
+                        )
+                    )
+                } else {
+                    let resolvedRate = speedEnabled ? (Self.autoSpeedRate(for: duration) ?? 0) : 0
+                    logClient.debug(
+                        "TranscriptionClient",
+                        "Speed stage skipped. requestID=\(requestID), autoSpeedEnabled=\(speedEnabled), rate=\(resolvedRate)"
+                    )
                 }
 
                 defer {
@@ -64,16 +138,52 @@ extension TranscriptionClient: DependencyKey {
                     }
                 }
 
-                if option == .appleSpeech {
-                    return try await Self.transcribeWithAppleSpeech(workingAudioURL)
-                }
+                do {
+                    stage = "backend"
+                    let backendStartUptime = ProcessInfo.processInfo.systemUptime
+                    let transcript: String
 
-                return try await mlxClient.transcribe(
-                    workingAudioURL,
-                    mode == .verbatim
-                        ? .verbatim
-                        : .smart(prompt: prompt ?? Self.defaultSmartPrompt)
-                )
+                    if option == .appleSpeech {
+                        transcript = try await Self.transcribeWithAppleSpeech(workingAudioURL)
+                    } else {
+                        transcript = try await mlxClient.transcribe(
+                            workingAudioURL,
+                            mode == .verbatim
+                                ? .verbatim
+                                : .smart(prompt: prompt ?? Self.defaultSmartPrompt)
+                        )
+                    }
+
+                    let backendElapsed = ProcessInfo.processInfo.systemUptime - backendStartUptime
+                    let totalElapsed = ProcessInfo.processInfo.systemUptime - requestStartUptime
+                    let workingDuration = audioFileDurationSeconds(workingAudioURL)
+                    let outputCharacters = transcript.count
+
+                    logClient.dumpDebug(
+                        "TranscriptionClient",
+                        "Transcription completed",
+                        appDumpString(
+                            [
+                                "requestID": requestID,
+                                "backend": option == .appleSpeech ? "apple-speech" : "mlx",
+                                "workingFile": workingAudioURL.lastPathComponent,
+                                "workingDuration": formatElapsedSeconds(workingDuration),
+                                "backendElapsed": formatElapsedSeconds(backendElapsed),
+                                "totalElapsed": formatElapsedSeconds(totalElapsed),
+                                "outputCharacters": "\(outputCharacters)"
+                            ]
+                        )
+                    )
+
+                    return transcript
+                } catch {
+                    let failedElapsed = ProcessInfo.processInfo.systemUptime - requestStartUptime
+                    logClient.error(
+                        "TranscriptionClient",
+                        "Transcription failed. requestID=\(requestID), stage=\(stage), elapsed=\(formatElapsedSeconds(failedElapsed)), model=\(option.rawValue), error=\(error.localizedDescription)"
+                    )
+                    throw error
+                }
             },
             unloadModel: {
                 @Dependency(\.mlxClient) var mlxClient
@@ -133,6 +243,16 @@ private extension TranscriptionClient {
             return 1.25
         }
     }
+}
+
+private func formatElapsedSeconds(_ seconds: Double) -> String {
+    String(format: "%.3fs", seconds)
+}
+
+private func audioFileSizeBytes(_ url: URL) -> Int64? {
+    let values = try? url.resourceValues(forKeys: [.fileSizeKey])
+    guard let size = values?.fileSize else { return nil }
+    return Int64(size)
 }
 
 private extension ModelOption {

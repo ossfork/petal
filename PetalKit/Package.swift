@@ -17,6 +17,7 @@ extension Target.Dependency {
     static let windowClient: Self = "WindowClient"
     static let foundationModelClient: Self = "FoundationModelClient"
     static let soundClient: Self = "SoundClient"
+    static let logClient: Self = "LogClient"
 
     static let dependencies: Self = .product(name: "Dependencies", package: "swift-dependencies")
     static let dependenciesMacros: Self = .product(name: "DependenciesMacros", package: "swift-dependencies")
@@ -161,6 +162,7 @@ let package = Package(
             name: "MLXClient",
             dependencies: [
                 .shared,
+                .logClient,
                 .voxtralCore,
                 .fluidAudio,
                 .whisperKit,
@@ -188,6 +190,7 @@ let package = Package(
             name: "TranscriptionClient",
             dependencies: [
                 .shared,
+                .logClient,
                 .audioTrimClient,
                 .audioSpeedClient,
                 .mlxClient,
