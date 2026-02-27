@@ -380,37 +380,6 @@ extension MLXArray {
 }
 
 /**
- * Helper function to convert snake_case parameter names to camelCase
- * while preserving quantized suffixes (.scales, .biases, .weight)
- */
-private func convertSnakeCaseToCamelCase(_ snakeCaseString: String) -> String {
-    // Handle quantized parameter suffixes first
-    var baseName = snakeCaseString
-    var suffix = ""
-
-    if snakeCaseString.hasSuffix(".scales") {
-        baseName = String(snakeCaseString.dropLast(7)) // Remove ".scales"
-        suffix = ".scales"
-    } else if snakeCaseString.hasSuffix(".biases") {
-        baseName = String(snakeCaseString.dropLast(7)) // Remove ".biases"
-        suffix = ".biases"
-    } else if snakeCaseString.hasSuffix(".weight") {
-        baseName = String(snakeCaseString.dropLast(7)) // Remove ".weight"
-        suffix = ".weight"
-    }
-
-    // Convert snake_case to camelCase for the base name
-    let components = baseName.split(separator: "_")
-    guard !components.isEmpty else { return snakeCaseString }
-
-    let camelCase = String(components.first!) + components.dropFirst().map {
-        String($0.prefix(1).uppercased() + $0.dropFirst())
-    }.joined()
-
-    return camelCase + suffix
-}
-
-/**
  * Extension to support model loading operations not provided by MLX
  */
 extension Module {

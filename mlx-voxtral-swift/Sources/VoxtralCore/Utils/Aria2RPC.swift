@@ -192,10 +192,6 @@ actor Aria2RPCClient {
         try await call(.pause, params: [.string(gid)])
     }
 
-    func unpause(gid: String) async throws -> String {
-        try await call(.unpause, params: [.string(gid)])
-    }
-
     func forceRemove(gid: String) async throws -> String {
         try await call(.forceRemove, params: [.string(gid)])
     }

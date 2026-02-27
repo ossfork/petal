@@ -592,35 +592,6 @@ extension Module {
         return parameters
     }
     
-    func namedModules() -> [(String, Module)] {
-        // Python equivalent: model.named_modules()
-        // Iterate through all submodules of the module using Swift reflection
-        var modules: [(String, Module)] = []
-        
-        // Add self as root module
-        modules.append(("", self))
-        
-        let mirror = Mirror(reflecting: self)
-        for child in mirror.children {
-            if let label = child.label {
-                // Check if this property is a Module
-                if let module = child.value as? Module {
-                    modules.append((label, module))
-                    
-                    // Recursively get nested modules
-                    let nestedModules = module.namedModules()
-                    for (nestedName, nestedModule) in nestedModules {
-                        let fullName = nestedName.isEmpty ? label : "\(label).\(nestedName)"
-                        if !nestedName.isEmpty { // Skip empty names to avoid duplicates
-                            modules.append((fullName, nestedModule))
-                        }
-                    }
-                }
-            }
-        }
-        
-        return modules
-    }
 }
 
 // VoxtralForConditionalGeneration is now implemented in VoxtralModeling.swift

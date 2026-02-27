@@ -23,17 +23,6 @@ extension NSEvent {
 }
 
 
-extension NSTextField {
-	func hideCaret() {
-		(currentEditor() as? NSTextView)?.insertionPointColor = .clear
-	}
-
-    func restoreCaret() {
-        (currentEditor() as? NSTextView)?.insertionPointColor = .labelColor
-    }
-}
-
-
 extension NSView {
 	func focus() {
 		window?.makeFirstResponder(self)
@@ -41,49 +30,6 @@ extension NSView {
 
 	func blur() {
 		window?.makeFirstResponder(nil)
-	}
-}
-
-
-/**
-Listen to local events.
-
-- Important: Don't foret to call `.start()`.
-
-```
-eventMonitor = LocalEventMonitor(events: [.leftMouseDown, .rightMouseDown]) { event in
-	// Do something
-
-	return event
-}.start()
-```
-*/
-final class LocalEventMonitor {
-	private let events: NSEvent.EventTypeMask
-	private let callback: (NSEvent) -> NSEvent?
-	private weak var monitor: AnyObject?
-
-	init(events: NSEvent.EventTypeMask, callback: @escaping (NSEvent) -> NSEvent?) {
-		self.events = events
-		self.callback = callback
-	}
-
-	deinit {
-		stop()
-	}
-
-	@discardableResult
-	func start() -> Self {
-		monitor = NSEvent.addLocalMonitorForEvents(matching: events, handler: callback) as AnyObject
-		return self
-	}
-
-	func stop() {
-		guard let monitor else {
-			return
-		}
-
-		NSEvent.removeMonitor(monitor)
 	}
 }
 
@@ -148,14 +94,6 @@ final class RunLoopLocalEventMonitor {
 
 
 extension NSEvent {
-	static var modifiers: ModifierFlags {
-		modifierFlags
-			.intersection(.deviceIndependentFlagsMask)
-			// We remove `capsLock` as it shouldn't affect the modifiers.
-			// We remove `numericPad`/`function` as arrow keys trigger it, use `event.specialKeys` instead.
-			.subtracting([.capsLock, .numericPad, .function])
-	}
-
 	/**
 	Real modifiers.
 
@@ -178,16 +116,6 @@ extension NSEvent {
 			// We remove `capsLock` as it shouldn't affect the modifiers.
 			// We remove `numericPad`/`function` as arrow keys trigger it, use `event.specialKeys` instead.
 			.subtracting([.capsLock, .numericPad, .function])
-	}
-}
-
-
-extension NSSearchField {
-	/**
-	Clear the search field.
-	*/
-	func clear() {
-		(cell as? NSSearchFieldCell)?.cancelButtonCell?.performClick(self)
 	}
 }
 
@@ -454,25 +382,4 @@ final class ObjectAssociation<T> {
 	}
 }
 
-
-extension HorizontalAlignment {
-	private enum ControlAlignment: AlignmentID {
-		static func defaultValue(in context: ViewDimensions) -> CGFloat { // swiftlint:disable:this no_cgfloat
-			context[HorizontalAlignment.center]
-		}
-	}
-
-	fileprivate static let controlAlignment = Self(ControlAlignment.self)
-}
-
-extension View {
-	func formLabel(@ViewBuilder _ label: () -> some View) -> some View {
-		HStack(alignment: .firstTextBaseline) {
-			label()
-			labelsHidden()
-				.alignmentGuide(.controlAlignment) { $0[.leading] }
-		}
-			.alignmentGuide(.leading) { $0[.controlAlignment] }
-	}
-}
 #endif

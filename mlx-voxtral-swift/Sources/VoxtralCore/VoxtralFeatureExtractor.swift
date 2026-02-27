@@ -13,9 +13,6 @@ import AVFoundation
 let SAMPLE_RATE: Int = 16000
 let N_FFT: Int = 400
 let HOP_LENGTH: Int = 160
-let CHUNK_LENGTH: Int = 30  // seconds
-let N_SAMPLES: Int = CHUNK_LENGTH * SAMPLE_RATE  // 480000
-let N_FRAMES: Int = N_SAMPLES / HOP_LENGTH  // 3000
 let N_MELS: Int = 128
 
 /**
@@ -519,32 +516,4 @@ public class VoxtralFeatureExtractor {
             throw VoxtralError.audioProcessingFailed("Unsupported raw_speech type")
         }
     }
-}
-
-/**
- * Direct Python equivalent: def process_audio_chunk(chunk: mx.array, chunk_length: int = CHUNK_LENGTH, hop_length: int = HOP_LENGTH) -> mx.array
- */
-func processAudioChunk(_ chunk: MLXArray, chunkLength: Int = CHUNK_LENGTH, hopLength: Int = HOP_LENGTH) -> MLXArray {
-    // Python:
-    // expected_length = chunk_length * SAMPLE_RATE
-    // if chunk.shape[0] < expected_length:
-    //     chunk = mx.pad(chunk, [(0, expected_length - chunk.shape[0])])
-    // elif chunk.shape[0] > expected_length:
-    //     chunk = chunk[:expected_length]
-    // return log_mel_spectrogram(chunk)
-    
-    let expectedLength = chunkLength * SAMPLE_RATE
-    
-    let adjustedChunk: MLXArray
-    if chunk.shape[0] < expectedLength {
-        let padAmount = expectedLength - chunk.shape[0]
-        adjustedChunk = padded(chunk, widths: [IntOrPair((0, padAmount))])
-    } else if chunk.shape[0] > expectedLength {
-        adjustedChunk = chunk[0..<expectedLength]
-    } else {
-        adjustedChunk = chunk
-    }
-    
-    let (result, _) = logMelSpectrogram(adjustedChunk)
-    return result
 }

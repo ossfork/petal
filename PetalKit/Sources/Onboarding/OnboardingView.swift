@@ -1,5 +1,4 @@
 import AppKit
-import Assets
 import SwiftUI
 import UI
 

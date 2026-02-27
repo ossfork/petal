@@ -268,7 +268,8 @@ struct TranscriptionPane: View {
 
     @ViewBuilder
     private func downloadProgressSection(progress: ModelDownloadState.Progress, isPaused: Bool) -> some View {
-        let modelName = viewModel.downloadModel.selectedModelOption?.displayName ?? "model"
+        let modelName = viewModel.downloadModel.downloadingModelOption?.displayName
+            ?? viewModel.downloadModel.selectedModelOption?.displayName ?? "model"
         HStack(spacing: 12) {
             ProgressView(value: progress.fraction)
                 .progressViewStyle(.circular)

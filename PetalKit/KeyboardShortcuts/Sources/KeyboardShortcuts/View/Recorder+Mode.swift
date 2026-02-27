@@ -32,13 +32,6 @@ public extension KeyboardShortcuts {
                 return false
             }
         }
-
-		var isRecording: Bool {
-			switch self {
-			case .recording: true
-			default: false
-			}
-		}
     }
 }
 

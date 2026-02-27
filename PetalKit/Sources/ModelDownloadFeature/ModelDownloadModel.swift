@@ -14,6 +14,8 @@ public final class ModelDownloadModel {
     public var transientMessage: String?
     public var onDownloadCompleted: (@MainActor () -> Void)?
 
+    public private(set) var downloadingModelOption: ModelOption?
+
     @ObservationIgnored @Dependency(\.downloadClient) private var downloadClient
 
     public init(isPreviewMode: Bool = false) {
@@ -104,6 +106,7 @@ public final class ModelDownloadModel {
 
         guard !state.isActive else { return }
 
+        downloadingModelOption = option
         state = .preparing
         transientMessage = nil
         lastError = nil
@@ -116,14 +119,18 @@ public final class ModelDownloadModel {
                 }
             }
 
+            downloadingModelOption = nil
             state = .downloaded
             onDownloadCompleted?()
             transientMessage = "Model ready. Click Finish Setup to continue."
             lastError = nil
         } catch is CancellationError {
+            downloadingModelOption = nil
         } catch let error as DownloadClientFailure {
+            downloadingModelOption = nil
             handleDownloadFailure(error)
         } catch {
+            downloadingModelOption = nil
             handleDownloadFailure(.failed(error.localizedDescription))
         }
     }
@@ -164,6 +171,7 @@ public final class ModelDownloadModel {
     }
 
     private func resetToIdle() {
+        downloadingModelOption = nil
         state = .notDownloaded
         lastError = nil
     }

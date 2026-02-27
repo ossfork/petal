@@ -7,11 +7,9 @@ extension KeyboardShortcuts {
 		private let name: Name
 		private let onChange: ((Shortcut?) -> Void)?
 		@Namespace private var namespace
-		@Environment(\.isEnabled) var isEnabled
 
 		@State private var isActive = false
 		@State private var mode: RecorderMode = .ready
-		@State private var size: CGSize = .zero
 		@State private var symbolName: String = "xmark.circle.fill"
 		@State private var delayedResetTask: Task<Void, Never>?
 
@@ -145,18 +143,6 @@ extension KeyboardShortcuts {
 			}
 		}
 
-		var preRecordingLabelXOffset: CGFloat {
-			switch mode {
-			case .ready:
-				return -100
-			case .preRecording:
-				return 0
-			case .recording:
-				return 120
-			case .set:
-				return -120
-			}
-		}
 	}
 
 	enum GeometryID: Hashable {
@@ -164,15 +150,6 @@ extension KeyboardShortcuts {
 		case cancel
 		case symbol(String)
 		case shortcut
-	}
-
-	private struct ContentSize: PreferenceKey {
-		static var defaultValue: CGSize = .zero
-
-		static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
-			guard nextValue() != .zero else { return }
-			value = nextValue()
-		}
 	}
 }
 

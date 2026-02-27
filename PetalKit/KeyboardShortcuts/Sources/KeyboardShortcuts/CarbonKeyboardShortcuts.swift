@@ -200,12 +200,6 @@ enum CarbonKeyboardShortcuts {
 		}
 	}
 
-	static func unregisterAll() {
-		for hotKey in hotKeys.values {
-			unregisterHotKey(hotKey)
-		}
-	}
-
 	private static func softUnregisterAll() {
 		for hotKey in hotKeys.values {
 			UnregisterEventHotKey(hotKey.carbonHotKey)

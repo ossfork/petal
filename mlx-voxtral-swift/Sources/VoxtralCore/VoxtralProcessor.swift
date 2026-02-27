@@ -93,61 +93,6 @@ public class VoxtralProcessor {
     }
     
     /**
-     * Direct Python equivalent: def _get_special_token_ids(self) -> Dict[str, int]:
-     */
-    private func _getSpecialTokenIds() -> [String: Int] {
-        var specialTokens: [String: Int] = [:]
-        
-        guard let tokenizer = self.tokenizer else {
-            return [:]
-        }
-        
-        // Python: if hasattr(self.tokenizer, 'get_control_token'):
-        if tokenizer.hasGetControlToken {
-            // Python: special_tokens['bos'] = self.tokenizer.get_control_token('<s>')
-            specialTokens["bos"] = tokenizer.getControlToken("<s>")
-            specialTokens["eos"] = tokenizer.getControlToken("</s>")
-            specialTokens["inst"] = tokenizer.getControlToken("[INST]")
-            specialTokens["inst_end"] = tokenizer.getControlToken("[/INST]")
-            specialTokens["audio"] = tokenizer.getControlToken("[AUDIO]")
-            specialTokens["begin_audio"] = tokenizer.getControlToken("[BEGIN_AUDIO]")
-            specialTokens["transcribe"] = tokenizer.getControlToken("[TRANSCRIBE]")
-        } else if tokenizer.hasAudioTokenId {
-            // Python: elif hasattr(self.tokenizer, 'audio_token_id'):
-            specialTokens["audio"] = tokenizer.audioTokenId
-            if tokenizer.hasVocab {
-                let vocab = tokenizer.vocab
-                specialTokens["bos"] = vocab["<s>"] ?? 1
-                specialTokens["eos"] = vocab["</s>"] ?? 2
-                specialTokens["inst"] = vocab["[INST]"] ?? 3
-                specialTokens["inst_end"] = vocab["[/INST]"] ?? 4
-                specialTokens["begin_audio"] = vocab["[BEGIN_AUDIO]"] ?? 25
-                specialTokens["transcribe"] = vocab["[TRANSCRIBE]"] ?? 34
-            }
-        } else {
-            // Python: else: special_tokens = { 'bos': 1, ... }
-            specialTokens = [
-                "bos": 1,
-                "eos": 2,
-                "inst": 3,
-                "inst_end": 4,
-                "audio": 24,
-                "begin_audio": 25,
-                "transcribe": 34
-            ]
-        }
-        
-        // Python: if hasattr(self.tokenizer, 'pad_token_id'):
-        if tokenizer.hasPadTokenId {
-            specialTokens["pad"] = tokenizer.padTokenIdValue
-        } else {
-            specialTokens["pad"] = 0
-        }
-        
-        return specialTokens
-    }
-    
-    /**
      * Direct Python equivalent: def __call__(self, text: Optional[str] = None, audio: Optional[Union[np.ndarray, List[float], str]] = None, ...):
      */
     public func callAsFunction(

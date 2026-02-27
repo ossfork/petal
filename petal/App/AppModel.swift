@@ -1,5 +1,4 @@
 import AppKit
-import Assets
 import AudioClient
 import class SwiftUI.NSHostingView
 import FloatingCapsuleClient
@@ -99,6 +98,7 @@ final class AppModel {
     @ObservationIgnored private var transcriptionProgressTask: Task<Void, Never>?
     @ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
     @ObservationIgnored private var miniDownloadRestoreTask: Task<Void, Never>?
+    @ObservationIgnored private var warmupTask: Task<Void, Never>?
     @ObservationIgnored private var menuBarFlashTask: Task<Void, Never>?
     @ObservationIgnored private var downloadStateObserverTask: Task<Void, Never>?
     @ObservationIgnored private var isShowingMiniDownload = false
@@ -134,13 +134,18 @@ final class AppModel {
 
         modelDownloadViewModel.onDownloadCompleted = { [weak self] in
             guard let self, self.hasCompletedSetup else { return }
+            self.warmupTask?.cancel()
             self.isWarmingModel = true
             self.transientMessage = "Warming up \(self.selectedModelOption?.displayName ?? "model")…"
-            Task { [weak self] in
+            self.warmupTask = Task { [weak self] in
                 guard let self else { return }
                 await self.warmModelTask()
-                self.isWarmingModel = false
-                self.transientMessage = nil
+                if !Task.isCancelled {
+                    self.isWarmingModel = false
+                    if self.transientMessage?.contains("Warming") == true {
+                        self.transientMessage = nil
+                    }
+                }
             }
         }
 
@@ -221,13 +226,18 @@ final class AppModel {
             $transcriptionMode.withLock { $0 = normalizedMode }
         }
         guard hasCompletedSetup, isSelectedModelDownloaded else { return }
+        warmupTask?.cancel()
         isWarmingModel = true
         transientMessage = "Warming up \(selectedModelOption?.displayName ?? "model")…"
-        Task {
+        warmupTask = Task {
             await transcriptionClient.unloadModel()
             await warmModelTask()
-            isWarmingModel = false
-            transientMessage = nil
+            if !Task.isCancelled {
+                isWarmingModel = false
+                if transientMessage?.contains("Warming") == true {
+                    transientMessage = nil
+                }
+            }
         }
     }
 

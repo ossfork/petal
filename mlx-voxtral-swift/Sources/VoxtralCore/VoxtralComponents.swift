@@ -686,7 +686,6 @@ public class AudioEncoder {
     
     private let sampleRate = 16000
     private let targetFPS = 75.0
-    private let segmentDuration = 5.0
     private let audioTokenId = 24
     
     public init() {}
@@ -743,7 +742,6 @@ public class AudioEncoder {
  */
 public class ChatTemplateProcessor {
     
-    private let audioTokenId = 24
     private let bosToken = 1
     private let eosToken = 2
     
