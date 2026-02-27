@@ -5,9 +5,9 @@ import Speech
 
 public enum ModelProvider: String, Sendable, Equatable {
     case voxtralCore = "Voxtral Core"
-    case nvidia = "NVIDIA"
     case appleSpeech = "Apple Speech"
-    case mlxAudioSTT = "MLX Audio STT"
+    case fluidAudio = "FluidAudio"
+    case nvidia = "NVIDIA"
     case whisperKit = "WhisperKit"
 }
 
@@ -110,13 +110,13 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
         case .qwen3ASR06B4bit:
             return ModelDescriptor(
                 id: rawValue,
-                repoID: "mlx-community/Qwen3-ASR-0.6B-4bit",
-                name: "Qwen3 ASR 0.6B (4-bit)",
-                summary: "Recommended for fast, lightweight on-device transcription.",
-                size: "~1.2 GB",
-                quantization: "4-bit",
+                repoID: "FluidInference/qwen3-asr-0.6b-coreml/f32",
+                name: "Qwen3 ASR 0.6B (f32)",
+                summary: "Fast multilingual transcription supporting 30+ languages including Chinese dialects.",
+                size: "~2.5 GB",
+                quantization: "FP32 CoreML",
                 parameters: "0.6B",
-                provider: .mlxAudioSTT,
+                provider: .fluidAudio,
                 recommended: true,
                 speedScore: 4,
                 smartScore: 4
@@ -124,22 +124,22 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
         case .parakeetTDT06BV3:
             return ModelDescriptor(
                 id: rawValue,
-                repoID: "mlx-community/parakeet-tdt-0.6b-v3",
+                repoID: "FluidInference/parakeet-tdt-0.6b-v3-coreml",
                 name: "Parakeet TDT 0.6B (v3)",
-                summary: "Fast and accurate Parakeet transcriber with timestamp-aware decoding.",
-                quantization: "MLX",
+                summary: "Top-ranked accuracy on the Open ASR Leaderboard with 110x real-time speed.",
+                quantization: "CoreML",
                 parameters: "0.6B",
                 provider: .nvidia,
                 recommended: false,
-                speedScore: 4,
-                smartScore: 3
+                speedScore: 5,
+                smartScore: 4
             )
         case .whisperLargeV3Turbo:
             return ModelDescriptor(
                 id: rawValue,
                 repoID: "argmaxinc/whisperkit-coreml",
                 name: "Whisper Large V3 Turbo",
-                summary: "High-accuracy Whisper model for multilingual transcription via WhisperKit.",
+                summary: "OpenAI's speed-optimized Whisper with near-large accuracy across 99 languages.",
                 size: "~1.6 GB",
                 quantization: "CoreML",
                 parameters: "809M",
@@ -153,7 +153,7 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 id: rawValue,
                 repoID: "argmaxinc/whisperkit-coreml",
                 name: "Whisper Tiny",
-                summary: "Smallest Whisper option for fast, lightweight transcription via WhisperKit.",
+                summary: "Smallest and fastest Whisper model, ideal when speed matters more than peak accuracy.",
                 size: "~150 MB",
                 quantization: "CoreML",
                 parameters: "39M",
@@ -167,9 +167,9 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 id: rawValue,
                 repoID: "mlx-community/Voxtral-Mini-3B-2507-bf16",
                 name: "Voxtral Mini 3B (bf16)",
-                summary: "Accurate on-device transcription with Smart mode support.",
-                size: "~8.7 GB",
-                quantization: "bf16",
+                summary: "Mistral's speech model with transcription, Q&A, and summarization from voice.",
+                size: "~9.4 GB",
+                quantization: "BF16",
                 parameters: "3B",
                 provider: .voxtralCore,
                 recommended: false,
@@ -181,7 +181,7 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 id: rawValue,
                 repoID: "mzbac/voxtral-mini-3b-8bit",
                 name: "Voxtral Mini 3B (8-bit)",
-                summary: "Quantized 3B model for lower memory usage with Smart mode support.",
+                summary: "Quantized Voxtral for lower memory with transcription, Q&A, and summarization.",
                 size: "~4.6 GB",
                 quantization: "8-bit",
                 parameters: "3B",
@@ -255,14 +255,17 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
             return isAppleSpeechSupportedOnCurrentDevice ? .appleSpeech : .defaultOption
         case Self.qwen3ASR06B4bit.rawValue,
              "qwen3-asr-0.6b",
-             "mlx-community/qwen3-asr-0.6b-4bit":
+             "mlx-community/qwen3-asr-0.6b-4bit",
+             "fluidinference/qwen3-asr-0.6b-coreml/f32",
+             "fluidinference/qwen3-asr-0.6b-coreml/int8":
             return .qwen3ASR06B4bit
         case Self.parakeetTDT06BV3.rawValue,
              "parakeet",
              "paracrete",
              "parakeet-tdt",
              "parakeet-tdt-0.6b",
-             "mlx-community/parakeet-tdt-0.6b-v3":
+             "mlx-community/parakeet-tdt-0.6b-v3",
+             "fluidinference/parakeet-tdt-0.6b-v3-coreml":
             return .parakeetTDT06BV3
         case "parakeet-ctc",
              "parakeet-ctc-0.6b",
