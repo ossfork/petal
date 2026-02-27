@@ -12,6 +12,7 @@ public final class ModelDownloadModel {
     public var state: ModelDownloadState = .notDownloaded
     public var lastError: String?
     public var transientMessage: String?
+    public var onDownloadCompleted: (@MainActor () -> Void)?
 
     @ObservationIgnored @Dependency(\.downloadClient) private var downloadClient
 
@@ -116,6 +117,7 @@ public final class ModelDownloadModel {
             }
 
             state = .downloaded
+            onDownloadCompleted?()
             transientMessage = "Model ready. Click Finish Setup to continue."
             lastError = nil
         } catch is CancellationError {

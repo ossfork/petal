@@ -132,6 +132,18 @@ final class AppModel {
             return
         }
 
+        modelDownloadViewModel.onDownloadCompleted = { [weak self] in
+            guard let self, self.hasCompletedSetup else { return }
+            self.isWarmingModel = true
+            self.transientMessage = "Warming up \(self.selectedModelOption?.displayName ?? "model")…"
+            Task { [weak self] in
+                guard let self else { return }
+                await self.warmModelTask()
+                self.isWarmingModel = false
+                self.transientMessage = nil
+            }
+        }
+
         $transcriptHistoryDays.withLock { $0 = historyClient.bootstrap(historyRetentionMode, $0) }
 
         registerShortcutHandlers()
