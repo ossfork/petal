@@ -59,7 +59,6 @@ public enum MLXPipelineModel: String, Sendable {
     case mini3b8bit
     case qwen3ASR06B4bit
     case parakeetTDT06BV3
-    case parakeetCTC06B
     case whisperLargeV3Turbo
     case whisperTiny
 }
@@ -246,7 +245,7 @@ private actor LiveMLXRuntime {
             }
             qwen3ASRModel = try await Qwen3ASRModel.fromPretrained(repoID, cache: petalHubCache)
 
-        case .parakeetTDT06BV3, .parakeetCTC06B:
+        case .parakeetTDT06BV3:
             guard let repoID = model.parakeetRepoID else {
                 throw MLXError.invalidModelIdentifier(model.rawValue)
             }
@@ -286,7 +285,7 @@ private actor LiveMLXRuntime {
             }
             return try transcribeWithQwen(audioURL: audioURL, mode: mode, model: qwen3ASRModel)
 
-        case .parakeetTDT06BV3, .parakeetCTC06B:
+        case .parakeetTDT06BV3:
             guard let parakeetModel else {
                 throw MLXError.pipelineUnavailable
             }
@@ -695,7 +694,7 @@ private extension MLXModelInfo {
 private extension MLXPipelineModel {
     var qwenRepoID: String? {
         switch self {
-        case .mini3b, .mini3b8bit, .parakeetTDT06BV3, .parakeetCTC06B, .whisperLargeV3Turbo, .whisperTiny:
+        case .mini3b, .mini3b8bit, .parakeetTDT06BV3, .whisperLargeV3Turbo, .whisperTiny:
             return nil
         case .qwen3ASR06B4bit:
             return "mlx-community/Qwen3-ASR-0.6B-4bit"
@@ -706,8 +705,6 @@ private extension MLXPipelineModel {
         switch self {
         case .parakeetTDT06BV3:
             return "mlx-community/parakeet-tdt-0.6b-v3"
-        case .parakeetCTC06B:
-            return "mlx-community/parakeet-ctc-0.6b"
         case .mini3b, .mini3b8bit, .qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny:
             return nil
         }
@@ -719,7 +716,7 @@ private extension MLXPipelineModel {
             return "openai_whisper-large-v3_turbo"
         case .whisperTiny:
             return "openai_whisper-tiny"
-        case .mini3b, .mini3b8bit, .qwen3ASR06B4bit, .parakeetTDT06BV3, .parakeetCTC06B:
+        case .mini3b, .mini3b8bit, .qwen3ASR06B4bit, .parakeetTDT06BV3:
             return nil
         }
     }
@@ -730,7 +727,7 @@ private extension MLXPipelineModel {
             return .mini3b
         case .mini3b8bit:
             return .mini3b8bit
-        case .qwen3ASR06B4bit, .parakeetTDT06BV3, .parakeetCTC06B, .whisperLargeV3Turbo, .whisperTiny:
+        case .qwen3ASR06B4bit, .parakeetTDT06BV3, .whisperLargeV3Turbo, .whisperTiny:
             return .mini3b
         }
     }

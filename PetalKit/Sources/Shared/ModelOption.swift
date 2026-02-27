@@ -57,7 +57,6 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
     case appleSpeech = "apple-speech"
     case qwen3ASR06B4bit = "qwen3-asr-0.6b-4bit"
     case parakeetTDT06BV3 = "parakeet-tdt-0.6b-v3"
-    case parakeetCTC06B = "parakeet-ctc-0.6b"
     case whisperLargeV3Turbo = "whisper-large-v3-turbo"
     case whisperTiny = "whisper-tiny"
     case mini3b = "mini-3b"
@@ -67,7 +66,6 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
         var options: [ModelOption] = [
             .qwen3ASR06B4bit,
             .parakeetTDT06BV3,
-            .parakeetCTC06B,
             .whisperLargeV3Turbo,
             .whisperTiny,
             .mini3b,
@@ -135,19 +133,6 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
                 recommended: false,
                 speedScore: 4,
                 smartScore: 3
-            )
-        case .parakeetCTC06B:
-            return ModelDescriptor(
-                id: rawValue,
-                repoID: "mlx-community/parakeet-ctc-0.6b",
-                name: "Parakeet CTC 0.6B",
-                summary: "Lightweight Parakeet CTC variant tuned for efficient local transcription.",
-                quantization: "MLX",
-                parameters: "0.6B",
-                provider: .nvidia,
-                recommended: false,
-                speedScore: 4,
-                smartScore: 2
             )
         case .whisperLargeV3Turbo:
             return ModelDescriptor(
@@ -236,14 +221,14 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .appleSpeech:
             return false
-        case .qwen3ASR06B4bit, .parakeetTDT06BV3, .parakeetCTC06B, .whisperLargeV3Turbo, .whisperTiny, .mini3b, .mini3b8bit:
+        case .qwen3ASR06B4bit, .parakeetTDT06BV3, .whisperLargeV3Turbo, .whisperTiny, .mini3b, .mini3b8bit:
             return true
         }
     }
 
     public var supportedTranscriptionModes: [TranscriptionMode] {
         switch self {
-        case .appleSpeech, .qwen3ASR06B4bit, .parakeetTDT06BV3, .parakeetCTC06B, .whisperLargeV3Turbo, .whisperTiny:
+        case .appleSpeech, .qwen3ASR06B4bit, .parakeetTDT06BV3, .whisperLargeV3Turbo, .whisperTiny:
             return [.verbatim]
         case .mini3b, .mini3b8bit:
             return TranscriptionMode.allCases
@@ -279,11 +264,11 @@ public enum ModelOption: String, CaseIterable, Identifiable, Sendable {
              "parakeet-tdt-0.6b",
              "mlx-community/parakeet-tdt-0.6b-v3":
             return .parakeetTDT06BV3
-        case Self.parakeetCTC06B.rawValue,
-             "parakeet-ctc",
+        case "parakeet-ctc",
              "parakeet-ctc-0.6b",
              "mlx-community/parakeet-ctc-0.6b":
-            return .parakeetCTC06B
+            // Keep backward compatibility with old persisted IDs, but force TDT-only behavior.
+            return .parakeetTDT06BV3
         case Self.whisperLargeV3Turbo.rawValue,
              "whisper-large-v3-turbo-asr-fp16",
              "whisper-large-v3",

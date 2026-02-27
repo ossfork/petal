@@ -194,7 +194,7 @@ private extension ModelOption {
             return .mlxAudioSTT
         case .mini3b, .mini3b8bit:
             return .voxtral
-        case .qwen3ASR06B4bit, .parakeetTDT06BV3, .parakeetCTC06B:
+        case .qwen3ASR06B4bit, .parakeetTDT06BV3:
             return .mlxAudioSTT
         case .whisperLargeV3Turbo, .whisperTiny:
             return .whisperKit

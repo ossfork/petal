@@ -34,7 +34,6 @@ MODELS=(
   "apple-speech"
   "qwen3-asr-0.6b-4bit"
   "parakeet-tdt-0.6b-v3"
-  "parakeet-ctc-0.6b"
   "whisper-large-v3-turbo"
   "whisper-tiny"
   "mini-3b"
@@ -393,9 +392,6 @@ model_dir_found() {
       ;;
     parakeet-tdt-0.6b-v3)
       pattern='parakeet-tdt'
-      ;;
-    parakeet-ctc-0.6b)
-      pattern='parakeet-ctc-0.6b'
       ;;
     whisper-large-v3-turbo)
       pattern='whisper-large-v3'
