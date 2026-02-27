@@ -497,8 +497,14 @@ public class ModelDownloader {
         activeGIDs = []
     }
 
-    private static func fetchModelFiles(repoId: String) async throws -> [HuggingFaceTreeItem] {
-        guard let url = URL(string: "https://huggingface.co/api/models/\(repoId)/tree/main?recursive=1") else {
+    private static func fetchModelFiles(repoId: String, subfolder: String? = nil) async throws -> [HuggingFaceTreeItem] {
+        var urlString = "https://huggingface.co/api/models/\(repoId)/tree/main"
+        if let subfolder {
+            urlString += "/\(subfolder)"
+        }
+        urlString += "?recursive=1"
+
+        guard let url = URL(string: urlString) else {
             throw ModelDownloaderError.downloadFailed("Invalid HuggingFace API URL.")
         }
 
@@ -576,6 +582,179 @@ public class ModelDownloader {
 
         let speed = formatter.string(fromByteCount: Int64(speedBytesPerSecond.rounded()))
         return "Downloading model files... \(percent)% (\(speed)/s)"
+    }
+
+    // MARK: - Generic HuggingFace Download
+
+    /// Download files from a HuggingFace repository into a local directory using aria2c.
+    ///
+    /// - Parameters:
+    ///   - repoId: HuggingFace repository (e.g. "argmaxinc/whisperkit-coreml").
+    ///   - subfolder: Optional path inside the repo to scope the download (e.g. "f32").
+    ///   - destination: Local directory to save files into.
+    ///   - fileFilter: Predicate applied to each *local* relative path. `nil` accepts all files.
+    ///   - progress: Callback receiving (fraction, status string) updates.
+    public static func downloadFromHuggingFace(
+        repoId: String,
+        subfolder: String?,
+        destination: URL,
+        fileFilter: ((String) -> Bool)?,
+        progress: DownloadProgressCallback?
+    ) async throws {
+        guard let aria2cURL = findAria2cBinaryURL() else {
+            throw ModelDownloaderError.aria2BinaryMissing
+        }
+
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+
+        let files = try await fetchModelFiles(repoId: repoId, subfolder: subfolder)
+        let prefix = subfolder.map { $0 + "/" } ?? ""
+
+        let filteredFiles = files.filter { item in
+            guard item.type == "file" else { return false }
+            let localPath = prefix.isEmpty ? item.path : String(item.path.dropFirst(prefix.count))
+            if let fileFilter {
+                return fileFilter(localPath)
+            }
+            return true
+        }
+
+        guard !filteredFiles.isEmpty else {
+            throw ModelDownloaderError.downloadFailed("No files found in HuggingFace tree for \(repoId).")
+        }
+
+        // Create subdirectories for nested files (e.g. .mlmodelc bundles)
+        for file in filteredFiles {
+            let localPath = prefix.isEmpty ? file.path : String(file.path.dropFirst(prefix.count))
+            let parent = destination.appendingPathComponent((localPath as NSString).deletingLastPathComponent)
+            if parent.path != destination.path {
+                try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
+            }
+        }
+
+        // Start aria2c as RPC daemon
+        let port = UInt16.random(in: 49152...65000)
+        let token = UUID().uuidString
+
+        let process = Process()
+        process.executableURL = aria2cURL
+        process.arguments = [
+            "--enable-rpc=true",
+            "--rpc-listen-port=\(port)",
+            "--rpc-secret=\(token)",
+            "--rpc-listen-all=false",
+            "--dir=\(destination.path)",
+            "--continue=true",
+            "--allow-overwrite=true",
+            "--auto-file-renaming=false",
+            "--max-concurrent-downloads=6",
+            "--split=8",
+            "--min-split-size=1M",
+            "--summary-interval=0",
+            "--console-log-level=warn",
+            "--download-result=hide",
+            "--check-certificate=false"
+        ]
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+
+        let client = Aria2RPCClient()
+        await client.initialize(port: port, token: token)
+        rpcClient = client
+        daemonProcess = process
+        activeGIDs = []
+        downloadIntent = .active
+
+        try process.run()
+
+        // Wait for daemon to become ready
+        var daemonReady = false
+        for _ in 0..<30 {
+            try await Task.sleep(for: .milliseconds(100))
+            if let _ = try? await client.getVersion() {
+                daemonReady = true
+                break
+            }
+        }
+
+        guard daemonReady else {
+            process.terminate()
+            daemonProcess = nil
+            rpcClient = nil
+            throw ModelDownloaderError.downloadFailed("aria2c RPC daemon failed to start.")
+        }
+
+        // Submit each file as a download via RPC
+        var gids: [String] = []
+        for file in filteredFiles {
+            let encodedPath = encodePathForURL(file.path)
+            let url = "https://huggingface.co/\(repoId)/resolve/main/\(encodedPath)?download=true"
+            let localPath = prefix.isEmpty ? file.path : String(file.path.dropFirst(prefix.count))
+            let gid = try await client.addUri([url], options: [
+                "out": localPath
+            ])
+            gids.append(gid)
+        }
+        activeGIDs = gids
+
+        progress?(0.0, "Downloading model files... 0%")
+
+        // Poll RPC for progress
+        while true {
+            try await Task.sleep(for: .seconds(1))
+
+            if downloadIntent != .active { break }
+
+            let active = (try? await client.tellActive()) ?? []
+            let waiting = (try? await client.tellWaiting()) ?? []
+            let stopped = (try? await client.tellStopped()) ?? []
+
+            let all = active + waiting + stopped
+
+            var totalBytes: Int64 = 0
+            var completedBytes: Int64 = 0
+            var totalSpeed: Int64 = 0
+
+            for status in all {
+                totalBytes += Int64(status.totalLength) ?? 0
+                completedBytes += Int64(status.completedLength) ?? 0
+                totalSpeed += Int64(status.downloadSpeed) ?? 0
+            }
+
+            // Check for errors in stopped downloads
+            for status in stopped {
+                if status.status == "error" {
+                    let msg = status.errorMessage ?? "Unknown error (code: \(status.errorCode ?? "?"))"
+                    shutdownDaemon()
+                    throw ModelDownloaderError.downloadFailed("aria2c download error: \(msg)")
+                }
+            }
+
+            if totalBytes > 0 {
+                let fraction = min(Double(completedBytes) / Double(totalBytes), 1.0)
+                let percent = Int((fraction * 100).rounded())
+                let speedBytesPerSecond: Double? = totalSpeed > 0 ? Double(totalSpeed) : nil
+                let status = downloadStatus(percent: percent, speedBytesPerSecond: speedBytesPerSecond)
+                progress?(fraction, status)
+            }
+
+            // All done when nothing is active or waiting
+            if active.isEmpty && waiting.isEmpty { break }
+        }
+
+        shutdownDaemon()
+
+        switch downloadIntent {
+        case .paused:
+            throw ModelDownloaderError.downloadPaused
+        case .cancelled:
+            try? FileManager.default.removeItem(at: destination)
+            throw ModelDownloaderError.downloadCancelled
+        case .active:
+            break
+        }
+
+        progress?(1.0, "Download complete!")
     }
 
     /// Delete the default/recommended model
