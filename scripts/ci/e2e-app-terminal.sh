@@ -8,7 +8,7 @@ TRIGGER_MODE="hotkey"
 LAUNCH_MODE=""
 TEXT="petal app e2e verification sentence"
 WAIT_TIMEOUT_SECONDS=120
-E2E_AUDIO_FIXTURE_PATH="${PETAL_E2E_AUDIO_FILE:-${E2E_AUDIO_FIXTURE_PATH:-$ROOT_DIR/mlx-audio-swift/Tests/media/conversational_a.wav}}"
+E2E_AUDIO_FIXTURE_PATH="${PETAL_E2E_AUDIO_FILE:-${E2E_AUDIO_FIXTURE_PATH:-$ROOT_DIR/assets/e2e/conversational_a.wav}}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in

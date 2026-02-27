@@ -1,9 +1,8 @@
+import AVFoundation
 import Dependencies
 import DependenciesMacros
+import FluidAudio
 import Foundation
-import HuggingFace
-import MLXAudioCore
-import MLXAudioSTT
 import VoxtralCore
 import WhisperKit
 
@@ -11,12 +10,9 @@ import WhisperKit
 private let petalDirectory: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
     .appendingPathComponent("petal")
 
-/// HubCache rooted at ~/Documents/petal/models/ so mlx-audio-swift stores models there.
-private let petalHubCache = HubCache(cacheDirectory: petalDirectory.appendingPathComponent("models"))
-
 public enum MLXModelBackend: String, Sendable, Equatable {
     case voxtral
-    case mlxAudioSTT
+    case fluidAudio
     case whisperKit
 }
 
@@ -109,8 +105,8 @@ extension MLXClient: DependencyKey {
                 switch info.backend {
                 case .voxtral:
                     return ModelDownloader.findModelPath(for: info.voxtralModelInfo) != nil
-                case .mlxAudioSTT:
-                    return MLXAudioCache.isModelDownloaded(repoId: info.repoId)
+                case .fluidAudio:
+                    return FluidAudioCache.isModelDownloaded(info: info)
                 case .whisperKit:
                     return WhisperKitCache.isModelDownloaded(variant: info.id)
                 }
@@ -120,8 +116,8 @@ extension MLXClient: DependencyKey {
                     switch info.backend {
                     case .voxtral:
                         _ = try await ModelDownloader.download(info.voxtralModelInfo, progress: progress)
-                    case .mlxAudioSTT:
-                        try await MLXAudioCache.downloadSnapshotIfNeeded(repoId: info.repoId, progress: progress)
+                    case .fluidAudio:
+                        try await FluidAudioCache.downloadIfNeeded(info: info, progress: progress)
                     case .whisperKit:
                         try await WhisperKitCache.downloadIfNeeded(variant: info.id, progress: progress)
                     }
@@ -139,8 +135,8 @@ extension MLXClient: DependencyKey {
                 switch info.backend {
                 case .voxtral:
                     return ModelDownloader.findModelPath(for: info.voxtralModelInfo)
-                case .mlxAudioSTT:
-                    return ModelDownloader.findModelPath(for: info.voxtralModelInfo)
+                case .fluidAudio:
+                    return FluidAudioCache.modelDirectoryURL(info: info)
                 case .whisperKit:
                     return WhisperKitCache.modelDirectoryURL(variant: info.id)
                 }
@@ -151,8 +147,8 @@ extension MLXClient: DependencyKey {
                     if let path = ModelDownloader.findModelPath(for: info.voxtralModelInfo) {
                         try FileManager.default.removeItem(at: path)
                     }
-                case .mlxAudioSTT:
-                    try MLXAudioCache.deleteModel(repoId: info.repoId)
+                case .fluidAudio:
+                    try FluidAudioCache.deleteModel(info: info)
                 case .whisperKit:
                     try WhisperKitCache.deleteModel(variant: info.id)
                 }
@@ -194,25 +190,12 @@ public extension DependencyValues {
 }
 
 private actor LiveMLXRuntime {
-    private static let qwenPrimaryParams = STTGenerateParameters(
-        maxTokens: 2048,
-        temperature: 0.0,
-        language: "English",
-        chunkDuration: 30.0,
-        minChunkDuration: 1.0
-    )
-    private static let qwenFallbackParams = STTGenerateParameters(
-        maxTokens: 1536,
-        temperature: 0.0,
-        language: "English",
-        chunkDuration: 15.0,
-        minChunkDuration: 1.0
-    )
+    private let audioConverter = AudioConverter()
 
     private var loadedModel: MLXPipelineModel?
     private var voxtralPipeline: VoxtralPipeline?
-    private var qwen3ASRModel: Qwen3ASRModel?
-    private var parakeetModel: ParakeetModel?
+    private var qwen3AsrManager: Qwen3AsrManager?
+    private var parakeetAsrManager: AsrManager?
     private var whisperKitInstance: WhisperKit?
 
     func prepareModelIfNeeded(model: MLXPipelineModel) async throws {
@@ -240,16 +223,23 @@ private actor LiveMLXRuntime {
             voxtralPipeline = pipeline
 
         case .qwen3ASR06B4bit:
-            guard let repoID = model.qwenRepoID else {
+            guard let fluidAudioModel = model.fluidAudioModel else {
                 throw MLXError.invalidModelIdentifier(model.rawValue)
             }
-            qwen3ASRModel = try await Qwen3ASRModel.fromPretrained(repoID, cache: petalHubCache)
+            let modelDirectory = try await FluidAudioCache.downloadIfNeeded(model: fluidAudioModel)
+            let manager = Qwen3AsrManager()
+            try await manager.loadModels(from: modelDirectory)
+            qwen3AsrManager = manager
 
         case .parakeetTDT06BV3:
-            guard let repoID = model.parakeetRepoID else {
+            guard let fluidAudioModel = model.fluidAudioModel else {
                 throw MLXError.invalidModelIdentifier(model.rawValue)
             }
-            parakeetModel = try await ParakeetModel.fromPretrained(repoID, cache: petalHubCache)
+            let modelDirectory = try await FluidAudioCache.downloadIfNeeded(model: fluidAudioModel)
+            let asrModels = try await AsrModels.load(from: modelDirectory, version: .v3)
+            let manager = AsrManager(config: .default)
+            try await manager.initialize(models: asrModels)
+            parakeetAsrManager = manager
 
         case .whisperLargeV3Turbo, .whisperTiny:
             guard let variant = model.whisperKitVariant else {
@@ -280,16 +270,42 @@ private actor LiveMLXRuntime {
             }
 
         case .qwen3ASR06B4bit:
-            guard let qwen3ASRModel else {
+            guard let qwen3AsrManager else {
                 throw MLXError.pipelineUnavailable
             }
-            return try transcribeWithQwen(audioURL: audioURL, mode: mode, model: qwen3ASRModel)
+
+            let audioSamples = try audioConverter.resampleAudioFile(audioURL)
+            let text = try await qwen3AsrManager.transcribe(audioSamples: audioSamples)
+            let normalizedText = normalizeQwenTranscript(text)
+            guard !normalizedText.isEmpty else {
+                throw MLXError.pipelineUnavailable
+            }
+
+            switch mode {
+            case .verbatim:
+                return normalizedText
+            case .smart:
+                return normalizedText
+            }
 
         case .parakeetTDT06BV3:
-            guard let parakeetModel else {
+            guard let parakeetAsrManager else {
                 throw MLXError.pipelineUnavailable
             }
-            return try transcribeWithParakeet(audioURL: audioURL, mode: mode, model: parakeetModel)
+
+            nonisolated(unsafe) let manager = parakeetAsrManager
+            let result = try await manager.transcribe(audioURL, source: .system)
+            let text = normalizeParakeetTranscript(result.text)
+            guard !text.isEmpty else {
+                throw MLXError.pipelineUnavailable
+            }
+
+            switch mode {
+            case .verbatim:
+                return text
+            case .smart:
+                return text
+            }
 
         case .whisperLargeV3Turbo, .whisperTiny:
             guard let whisperKitInstance else {
@@ -310,50 +326,10 @@ private actor LiveMLXRuntime {
     func unloadModel() {
         voxtralPipeline?.unload()
         voxtralPipeline = nil
-        qwen3ASRModel = nil
-        parakeetModel = nil
+        qwen3AsrManager = nil
+        parakeetAsrManager = nil
         whisperKitInstance = nil
         loadedModel = nil
-    }
-
-    // Qwen3 ASR currently supports direct ASR generation only, so smart mode falls back to verbatim output.
-    private func transcribeWithQwen(
-        audioURL: URL,
-        mode: MLXTranscriptionMode,
-        model: Qwen3ASRModel
-    ) throws -> String {
-        let (_, audio) = try loadAudioArray(from: audioURL, sampleRate: model.sampleRate)
-        let primaryOutput = model.generate(
-            audio: audio,
-            generationParameters: Self.qwenPrimaryParams
-        )
-        let primaryText = normalizeQwenTranscript(primaryOutput.text)
-        let text: String
-
-        if QwenTranscriptGuard.isLikelyLooped(primaryText) {
-            let fallbackOutput = model.generate(
-                audio: audio,
-                generationParameters: Self.qwenFallbackParams
-            )
-            let fallbackText = normalizeQwenTranscript(fallbackOutput.text)
-
-            if fallbackText.isEmpty {
-                text = primaryText
-            } else if QwenTranscriptGuard.isLikelyLooped(fallbackText) {
-                text = QwenTranscriptGuard.preferredTranscript(primary: primaryText, fallback: fallbackText)
-            } else {
-                text = fallbackText
-            }
-        } else {
-            text = primaryText
-        }
-
-        switch mode {
-        case .verbatim:
-            return text
-        case .smart:
-            return text
-        }
     }
 
     private func normalizeQwenTranscript(_ text: String) -> String {
@@ -362,132 +338,10 @@ private actor LiveMLXRuntime {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    // Parakeet currently supports direct ASR generation only, so smart mode falls back to verbatim output.
-    private func transcribeWithParakeet(
-        audioURL: URL,
-        mode: MLXTranscriptionMode,
-        model: ParakeetModel
-    ) throws -> String {
-        let (_, audio) = try loadAudioArray(from: audioURL, sampleRate: model.preprocessConfig.sampleRate)
-        let output = model.generate(audio: audio)
-        let text = normalizeParakeetTranscript(output.text)
-        guard !text.isEmpty else {
-            throw MLXError.pipelineUnavailable
-        }
-
-        switch mode {
-        case .verbatim:
-            return text
-        case .smart:
-            return text
-        }
-    }
-
     private func normalizeParakeetTranscript(_ text: String) -> String {
         text
             .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-}
-
-enum QwenTranscriptGuard {
-    static func isLikelyLooped(_ text: String) -> Bool {
-        let words = words(in: text)
-        guard words.count >= 16 else { return false }
-
-        let metrics = LoopMetrics(words: words)
-        let dominantShare = Double(metrics.maxFrequency) / Double(words.count)
-
-        if metrics.longestRun >= 7 { return true }
-        if dominantShare >= 0.5, metrics.uniqueRatio <= 0.3 { return true }
-        if metrics.hasRepeatedNGram(n: 3, minRepeats: 5), metrics.uniqueRatio <= 0.45 { return true }
-        return false
-    }
-
-    static func preferredTranscript(primary: String, fallback: String) -> String {
-        let primaryMetrics = LoopMetrics(words: words(in: primary))
-        let fallbackMetrics = LoopMetrics(words: words(in: fallback))
-        let primaryScore = primaryMetrics.qualityScore
-        let fallbackScore = fallbackMetrics.qualityScore
-
-        if primaryScore == fallbackScore {
-            return primary.count <= fallback.count ? primary : fallback
-        }
-        return primaryScore >= fallbackScore ? primary : fallback
-    }
-
-    private static func words(in text: String) -> [String] {
-        text
-            .lowercased()
-            .split(whereSeparator: { !$0.isLetter && !$0.isNumber && $0 != "'" })
-            .map(String.init)
-    }
-
-    private struct LoopMetrics {
-        let words: [String]
-        let uniqueRatio: Double
-        let maxFrequency: Int
-        let longestRun: Int
-
-        init(words: [String]) {
-            self.words = words
-            if words.isEmpty {
-                uniqueRatio = 0
-                maxFrequency = 0
-                longestRun = 0
-                return
-            }
-
-            var counts: [String: Int] = [:]
-            counts.reserveCapacity(words.count)
-
-            var currentRun = 0
-            var lastWord: String?
-            var bestRun = 0
-
-            for word in words {
-                counts[word, default: 0] += 1
-
-                if word == lastWord {
-                    currentRun += 1
-                } else {
-                    currentRun = 1
-                    lastWord = word
-                }
-
-                if currentRun > bestRun {
-                    bestRun = currentRun
-                }
-            }
-
-            uniqueRatio = Double(counts.count) / Double(words.count)
-            maxFrequency = counts.values.max() ?? 0
-            longestRun = bestRun
-        }
-
-        var qualityScore: Double {
-            guard !words.isEmpty else { return -Double.greatestFiniteMagnitude }
-            let runPenalty = Double(longestRun) / Double(words.count)
-            let dominancePenalty = Double(maxFrequency) / Double(words.count)
-            return uniqueRatio - runPenalty - dominancePenalty
-        }
-
-        func hasRepeatedNGram(n: Int, minRepeats: Int) -> Bool {
-            guard n > 0, words.count >= n * minRepeats else { return false }
-
-            var counts: [String: Int] = [:]
-            counts.reserveCapacity(words.count / n)
-            let limit = words.count - n
-
-            for index in 0...limit {
-                let key = words[index..<(index + n)].joined(separator: " ")
-                counts[key, default: 0] += 1
-                if counts[key, default: 0] >= minRepeats {
-                    return true
-                }
-            }
-            return false
-        }
     }
 }
 
@@ -528,147 +382,270 @@ private func normalizeDownloadError(_ error: any Error) -> MLXDownloadError {
     return .failed(error.localizedDescription)
 }
 
-private enum MLXAudioCache {
-    static func isModelDownloaded(repoId: String) -> Bool {
-        candidateModelDirectories(repoId: repoId).contains { hasDownloadedWeights(at: $0) }
-    }
+private enum FluidAudioModel: Sendable, Equatable {
+    case qwen3Asr
+    case parakeetTdt06BV3
 
-    static func downloadSnapshotIfNeeded(
-        repoId: String,
-        progress: @escaping @Sendable (Double, String) -> Void
-    ) async throws {
-        guard let repoID = Repo.ID(rawValue: repoId) else {
-            throw MLXError.invalidModelIdentifier(repoId)
-        }
+    init?(info: MLXModelInfo) {
+        let normalizedID = info.id.lowercased()
+        let normalizedRepo = info.repoId.lowercased()
 
-        if isModelDownloaded(repoId: repoId) {
-            progress(1, "Model already downloaded")
-            return
-        }
-
-        // Reuse the existing aria2c downloader path for consistency with Voxtral downloads.
-        let downloadInfo = VoxtralModelInfo(
-            id: repoId.replacingOccurrences(of: "/", with: "--"),
-            repoId: repoId,
-            name: repoId,
-            description: "MLX Audio model",
-            size: "",
-            quantization: "",
-            parameters: "",
-            recommended: false
-        )
-
-        let downloadedPath = try await ModelDownloader.download(downloadInfo, progress: progress)
-        try linkIntoMLXAudioCache(source: downloadedPath, repoID: repoID)
-
-        guard isModelDownloaded(repoId: repoId) else {
-            throw ModelDownloaderError.downloadFailed("Downloaded model files were not detected in cache.")
-        }
-        progress(1, "Download complete")
-    }
-
-    static func deleteModel(repoId: String) throws {
-        let fileManager = FileManager.default
-        var firstError: (any Error)?
-        let paths = candidateModelDirectories(repoId: repoId).sorted { $0.path.count > $1.path.count }
-
-        for path in paths where fileManager.fileExists(atPath: path.path) {
-            do {
-                try fileManager.removeItem(at: path)
-            } catch {
-                if firstError == nil {
-                    firstError = error
-                }
+        switch normalizedID {
+        case MLXPipelineModel.qwen3ASR06B4bit.rawValue:
+            self = .qwen3Asr
+        case MLXPipelineModel.parakeetTDT06BV3.rawValue:
+            self = .parakeetTdt06BV3
+        default:
+            switch normalizedRepo {
+            case "fluidinference/qwen3-asr-0.6b-coreml/f32",
+                 "fluidinference/qwen3-asr-0.6b-coreml/int8",
+                 "mlx-community/qwen3-asr-0.6b-4bit":
+                self = .qwen3Asr
+            case "fluidinference/parakeet-tdt-0.6b-v3-coreml",
+                 "mlx-community/parakeet-tdt-0.6b-v3":
+                self = .parakeetTdt06BV3
+            default:
+                return nil
             }
         }
+    }
 
-        if let firstError {
-            throw firstError
+    var directoryURL: URL {
+        switch self {
+        case .qwen3Asr:
+            return Qwen3AsrModels.defaultCacheDirectory()
+        case .parakeetTdt06BV3:
+            return AsrModels.defaultCacheDirectory(for: .v3)
         }
     }
 
-    private static func candidateModelDirectories(repoId: String) -> [URL] {
-        var paths: [URL] = []
-        var seen = Set<String>()
+    var candidateDirectoryURLs: [URL] {
+        switch self {
+        case .qwen3Asr:
+            let defaultDirectory = Qwen3AsrModels.defaultCacheDirectory()
+            let repoDirectory = defaultDirectory.deletingLastPathComponent()
+            let modelsRoot = repoDirectory.deletingLastPathComponent()
 
-        func appendUnique(_ url: URL) {
-            let normalizedPath = url.standardizedFileURL.path
-            guard seen.insert(normalizedPath).inserted else { return }
-            paths.append(url)
-        }
-
-        if let repoID = Repo.ID(rawValue: repoId) {
-            appendUnique(modelDirectory(for: repoID))
-        } else {
-            let fallbackSubdirectory = repoId.replacingOccurrences(of: "/", with: "_")
-            appendUnique(
-                petalHubCache.cacheDirectory
-                    .appendingPathComponent("mlx-audio")
-                    .appendingPathComponent(fallbackSubdirectory)
-            )
-        }
-
-        // Support direct model folders created by the downloader (`org--repo`) in addition
-        // to linked MLX Audio cache folders (`org_repo`).
-        appendUnique(
-            petalHubCache.cacheDirectory
-                .appendingPathComponent(repoId.replacingOccurrences(of: "/", with: "--"))
-        )
-
-        return paths
-    }
-
-    private static func hasDownloadedWeights(at modelDirectory: URL) -> Bool {
-        let resolvedDirectory = modelDirectory.resolvingSymlinksInPath()
-        let fileManager = FileManager.default
-
-        guard fileManager.fileExists(atPath: resolvedDirectory.path) else {
-            return false
-        }
-
-        guard let files = try? fileManager.contentsOfDirectory(
-            at: resolvedDirectory,
-            includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey],
-            options: [.skipsHiddenFiles]
-        ) else {
-            return false
-        }
-
-        return files.contains { file in
-            guard file.pathExtension.lowercased() == "safetensors" else { return false }
-            let values = try? file.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey])
-            let size = values?.fileSize ?? 0
-            return (values?.isRegularFile ?? true) && size > 0
+            return [
+                defaultDirectory,
+                repoDirectory,
+                repoDirectory.appendingPathComponent("qwen3-asr-0.6b-coreml-f32", isDirectory: true),
+                modelsRoot.appendingPathComponent("qwen3-asr-0.6b-coreml-f32", isDirectory: true),
+            ]
+        case .parakeetTdt06BV3:
+            return [AsrModels.defaultCacheDirectory(for: .v3)]
         }
     }
 
-    private static func modelDirectory(for repoID: Repo.ID) -> URL {
-        let modelSubdirectory = repoID.description.replacingOccurrences(of: "/", with: "_")
-        return petalHubCache.cacheDirectory
-            .appendingPathComponent("mlx-audio")
-            .appendingPathComponent(modelSubdirectory)
+    var displayName: String {
+        switch self {
+        case .qwen3Asr:
+            return "Qwen3 ASR"
+        case .parakeetTdt06BV3:
+            return "Parakeet TDT"
+        }
+    }
+}
+
+private enum FluidAudioCache {
+    static func isModelDownloaded(info: MLXModelInfo) -> Bool {
+        guard let model = FluidAudioModel(info: info) else { return false }
+        return isModelDownloaded(model: model)
     }
 
-    private static func linkIntoMLXAudioCache(source: URL, repoID: Repo.ID) throws {
-        let destination = modelDirectory(for: repoID)
-        let sourcePath = source.resolvingSymlinksInPath().path
-        let destinationPath = destination.resolvingSymlinksInPath().path
-        let fileManager = FileManager.default
+    static func downloadIfNeeded(
+        info: MLXModelInfo,
+        progress: @escaping @Sendable (Double, String) -> Void
+    ) async throws {
+        guard let model = FluidAudioModel(info: info) else {
+            throw MLXError.invalidModelIdentifier(info.id)
+        }
+        _ = try await downloadIfNeeded(model: model, progress: progress)
+    }
 
-        if sourcePath == destinationPath {
+    @discardableResult
+    static func downloadIfNeeded(model: FluidAudioModel) async throws -> URL {
+        try await downloadIfNeeded(model: model, progress: nil)
+    }
+
+    static func modelDirectoryURL(info: MLXModelInfo) -> URL? {
+        guard let model = FluidAudioModel(info: info) else { return nil }
+        return resolvedDirectoryURL(for: model)
+    }
+
+    static func deleteModel(info: MLXModelInfo) throws {
+        guard let model = FluidAudioModel(info: info) else {
+            throw MLXError.invalidModelIdentifier(info.id)
+        }
+        for directory in model.candidateDirectoryURLs {
+            if FileManager.default.fileExists(atPath: directory.path) {
+                try FileManager.default.removeItem(at: directory)
+            }
+        }
+    }
+
+    private static func isModelDownloaded(model: FluidAudioModel) -> Bool {
+        resolvedDirectoryURL(for: model) != nil
+    }
+
+    private static func resolvedDirectoryURL(for model: FluidAudioModel) -> URL? {
+        switch model {
+        case .qwen3Asr:
+            for candidate in model.candidateDirectoryURLs {
+                if Qwen3AsrModels.modelsExist(at: candidate) {
+                    return candidate
+                }
+            }
+            return nil
+        case .parakeetTdt06BV3:
+            let defaultDirectory = model.directoryURL
+            return AsrModels.modelsExist(at: defaultDirectory, version: .v3) ? defaultDirectory : nil
+        }
+    }
+
+    @discardableResult
+    private static func downloadIfNeeded(
+        model: FluidAudioModel,
+        progress: (@Sendable (Double, String) -> Void)?
+    ) async throws -> URL {
+        if let existingDirectory = resolvedDirectoryURL(for: model) {
+            progress?(1, "Model already downloaded")
+            return existingDirectory
+        }
+
+        progress?(0, "Downloading \(model.displayName) model...")
+
+        switch model {
+        case .qwen3Asr:
+            do {
+                _ = try await Qwen3AsrModels.download()
+            } catch {
+                progress?(0.05, "Retrying Qwen3 ASR download from Hugging Face...")
+                try await Qwen3AsrFallbackDownloader.download(to: Qwen3AsrModels.defaultCacheDirectory())
+            }
+        case .parakeetTdt06BV3:
+            _ = try await AsrModels.download(version: .v3)
+        }
+
+        if model == .qwen3Asr, resolvedDirectoryURL(for: model) == nil {
+            progress?(0.1, "Applying Qwen3 ASR download compatibility fix...")
+            try await Qwen3AsrFallbackDownloader.download(to: Qwen3AsrModels.defaultCacheDirectory())
+        }
+
+        guard let resolvedDirectory = resolvedDirectoryURL(for: model) else {
+            throw MLXDownloadError.failed("Downloaded model files were not detected in cache.")
+        }
+
+        progress?(1, "Download complete")
+        return resolvedDirectory
+    }
+}
+
+private enum Qwen3AsrFallbackDownloader {
+    private static let repoID = "FluidInference/qwen3-asr-0.6b-coreml"
+    private static let variantPath = "f32"
+    private static let requiredLocalFiles = [
+        "qwen3_asr_audio_encoder.mlmodelc",
+        "qwen3_asr_decoder_stateful.mlmodelc",
+        "qwen3_asr_embeddings.bin",
+        "vocab.json",
+    ]
+    private static let requiredRemoteFilePaths = Set([
+        "f32/qwen3_asr_embeddings.bin",
+        "f32/vocab.json",
+    ])
+    private static let requiredRemoteDirectoryPrefixes = [
+        "f32/qwen3_asr_audio_encoder.mlmodelc/",
+        "f32/qwen3_asr_decoder_stateful.mlmodelc/",
+    ]
+
+    private struct HuggingFaceTreeItem: Decodable {
+        let type: String
+        let path: String
+    }
+
+    static func download(to directory: URL) async throws {
+        if Qwen3AsrModels.modelsExist(at: directory) {
             return
         }
 
-        if fileManager.fileExists(atPath: destination.path) {
-            try fileManager.removeItem(at: destination)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+
+        let filePaths = try await listRequiredRemoteFiles()
+        for remotePath in filePaths {
+            let localRelativePath = String(remotePath.dropFirst("\(variantPath)/".count))
+            let destinationURL = directory.appendingPathComponent(localRelativePath)
+
+            if FileManager.default.fileExists(atPath: destinationURL.path) {
+                continue
+            }
+
+            try FileManager.default.createDirectory(
+                at: destinationURL.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+
+            let sourceURL = try resolveURL(for: remotePath)
+            let (temporaryURL, response) = try await URLSession.shared.download(from: sourceURL)
+            guard
+                let httpResponse = response as? HTTPURLResponse,
+                (200..<300).contains(httpResponse.statusCode)
+            else {
+                throw MLXDownloadError.failed("Failed downloading Qwen3 ASR file: \(remotePath)")
+            }
+
+            if FileManager.default.fileExists(atPath: destinationURL.path) {
+                try? FileManager.default.removeItem(at: destinationURL)
+            }
+            try FileManager.default.moveItem(at: temporaryURL, to: destinationURL)
         }
 
-        try fileManager.createDirectory(
-            at: destination.deletingLastPathComponent(),
-            withIntermediateDirectories: true,
-            attributes: nil
-        )
-        try fileManager.createSymbolicLink(at: destination, withDestinationURL: source)
+        guard Qwen3AsrModels.modelsExist(at: directory) else {
+            let missing = requiredLocalFiles.filter { file in
+                !FileManager.default.fileExists(atPath: directory.appendingPathComponent(file).path)
+            }
+            throw MLXDownloadError.failed(
+                "Qwen3 ASR download incomplete. Missing files: \(missing.joined(separator: ", "))"
+            )
+        }
+    }
+
+    private static func listRequiredRemoteFiles() async throws -> [String] {
+        let apiURL = URL(
+            string: "https://huggingface.co/api/models/\(repoID)/tree/main/\(variantPath)?recursive=1"
+        )!
+        let (data, response) = try await URLSession.shared.data(from: apiURL)
+        guard
+            let httpResponse = response as? HTTPURLResponse,
+            (200..<300).contains(httpResponse.statusCode)
+        else {
+            throw MLXDownloadError.failed("Unable to list files for \(repoID)/\(variantPath).")
+        }
+
+        let items = try JSONDecoder().decode([HuggingFaceTreeItem].self, from: data)
+        let files = items
+            .filter { $0.type == "file" }
+            .map(\.path)
+            .filter { path in
+                requiredRemoteFilePaths.contains(path)
+                    || requiredRemoteDirectoryPrefixes.contains(where: { path.hasPrefix($0) })
+            }
+            .sorted()
+
+        guard !files.isEmpty else {
+            throw MLXDownloadError.failed(
+                "No files found for \(repoID)/\(variantPath). Repository layout may have changed."
+            )
+        }
+        return files
+    }
+
+    private static func resolveURL(for remotePath: String) throws -> URL {
+        let encodedPath = remotePath.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? remotePath
+        guard let url = URL(string: "https://huggingface.co/\(repoID)/resolve/main/\(encodedPath)") else {
+            throw MLXDownloadError.failed("Invalid Qwen3 ASR download URL for path: \(remotePath)")
+        }
+        return url
     }
 }
 
@@ -692,20 +669,13 @@ private extension MLXModelInfo {
 }
 
 private extension MLXPipelineModel {
-    var qwenRepoID: String? {
+    var fluidAudioModel: FluidAudioModel? {
         switch self {
-        case .mini3b, .mini3b8bit, .parakeetTDT06BV3, .whisperLargeV3Turbo, .whisperTiny:
-            return nil
         case .qwen3ASR06B4bit:
-            return "mlx-community/Qwen3-ASR-0.6B-4bit"
-        }
-    }
-
-    var parakeetRepoID: String? {
-        switch self {
+            return .qwen3Asr
         case .parakeetTDT06BV3:
-            return "mlx-community/parakeet-tdt-0.6b-v3"
-        case .mini3b, .mini3b8bit, .qwen3ASR06B4bit, .whisperLargeV3Turbo, .whisperTiny:
+            return .parakeetTdt06BV3
+        case .mini3b, .mini3b8bit, .whisperLargeV3Turbo, .whisperTiny:
             return nil
         }
     }

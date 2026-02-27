@@ -16,12 +16,14 @@ func legacyModelIDsMapToValidatedModel() {
 func qwenModelIDsMapToQwenOption() {
     #expect(ModelOption.from(modelID: "qwen3-asr-0.6b") == .qwen3ASR06B4bit)
     #expect(ModelOption.from(modelID: "mlx-community/Qwen3-ASR-0.6B-4bit") == .qwen3ASR06B4bit)
+    #expect(ModelOption.from(modelID: "FluidInference/qwen3-asr-0.6b-coreml/f32") == .qwen3ASR06B4bit)
 }
 
 @Test
 func parakeetModelIDsMapToParakeetOptions() {
     #expect(ModelOption.from(modelID: "parakeet") == .parakeetTDT06BV3)
     #expect(ModelOption.from(modelID: "mlx-community/parakeet-tdt-0.6b-v3") == .parakeetTDT06BV3)
+    #expect(ModelOption.from(modelID: "FluidInference/parakeet-tdt-0.6b-v3-coreml") == .parakeetTDT06BV3)
     #expect(ModelOption.from(modelID: "mlx-community/parakeet-ctc-0.6b") == .parakeetTDT06BV3)
 }
 
@@ -70,7 +72,7 @@ func qwenSupportsVerbatimOnly() {
 func parakeetSupportsVerbatimOnly() {
     #expect(ModelOption.parakeetTDT06BV3.supportedTranscriptionModes == [.verbatim])
     #expect(!ModelOption.parakeetTDT06BV3.supportsSmartTranscription)
-    #expect(ModelOption.parakeetTDT06BV3.providerDisplayName == "NVIDIA")
+    #expect(ModelOption.parakeetTDT06BV3.providerDisplayName == "FluidAudio")
 }
 
 @Test

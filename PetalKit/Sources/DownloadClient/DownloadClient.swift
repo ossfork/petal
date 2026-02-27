@@ -191,11 +191,11 @@ private extension ModelOption {
         switch self {
         case .appleSpeech:
             // Apple Speech is handled outside MLX download/runtime paths.
-            return .mlxAudioSTT
+            return .fluidAudio
         case .mini3b, .mini3b8bit:
             return .voxtral
         case .qwen3ASR06B4bit, .parakeetTDT06BV3:
-            return .mlxAudioSTT
+            return .fluidAudio
         case .whisperLargeV3Turbo, .whisperTiny:
             return .whisperKit
         }

@@ -28,12 +28,6 @@ else
       rm -rf "$package_dir/.build"
     fi
 
-    if [[ "$package_dir" == "$ROOT_DIR/mlx-audio-swift" && "${PETAL_RUN_MLX_AUDIO_TESTS:-0}" != "1" ]]; then
-      echo "==> swift build --package-path $package_dir (mlx-audio-swift tests skipped; set PETAL_RUN_MLX_AUDIO_TESTS=1 to enable)"
-      swift build --package-path "$package_dir"
-      continue
-    fi
-
     if [[ -d "$package_dir/Tests" ]] && find "$package_dir/Tests" -name '*.swift' -print -quit | grep -q .; then
       echo "==> swift test --package-path $package_dir"
       swift test --package-path "$package_dir"

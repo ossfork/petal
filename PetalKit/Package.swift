@@ -26,9 +26,7 @@ extension Target.Dependency {
     static let casePaths: Self = .product(name: "CasePaths", package: "swift-case-paths")
     static let keyboardShortcuts: Self = .product(name: "KeyboardShortcuts", package: "KeyboardShortcuts")
     static let sauce: Self = .product(name: "Sauce", package: "Sauce")
-    static let mlxAudioCore: Self = .product(name: "MLXAudioCore", package: "MLXAudio")
-    static let mlxAudioSTT: Self = .product(name: "MLXAudioSTT", package: "MLXAudio")
-    static let huggingFace: Self = .product(name: "HuggingFace", package: "swift-huggingface")
+    static let fluidAudio: Self = .product(name: "FluidAudio", package: "FluidAudio")
     static let voxtralCore: Self = .product(name: "VoxtralCore", package: "MLXVoxtralSwift")
     static let whisperKit: Self = .product(name: "WhisperKit", package: "WhisperKit")
 }
@@ -62,7 +60,7 @@ let package = Package(
         .library(name: "FoundationModelClient", targets: ["FoundationModelClient"]),
     ],
     dependencies: [
-        .package(name: "MLXAudio", path: "../mlx-audio-swift"),
+        .package(url: "https://github.com/FluidInference/FluidAudio", from: "0.12.1"),
         .package(name: "MLXVoxtralSwift", path: "../mlx-voxtral-swift"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.11.0"),
         .package(url: "https://github.com/pointfreeco/swift-sharing.git", from: "2.7.4"),
@@ -70,7 +68,6 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "1.7.2"),
         .package(name: "KeyboardShortcuts", path: "KeyboardShortcuts"),
         .package(url: "https://github.com/Clipy/Sauce.git", from: "2.4.1"),
-        .package(url: "https://github.com/huggingface/swift-huggingface", from: "0.7.1"),
         .package(url: "https://github.com/argmaxinc/WhisperKit", from: "0.15.0"),
     ],
     targets: [
@@ -165,9 +162,7 @@ let package = Package(
             dependencies: [
                 .shared,
                 .voxtralCore,
-                .mlxAudioCore,
-                .mlxAudioSTT,
-                .huggingFace,
+                .fluidAudio,
                 .whisperKit,
             ]
         ),

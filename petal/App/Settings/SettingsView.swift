@@ -223,8 +223,7 @@ struct TranscriptionPane: View {
     private func providerIcon(for option: ModelOption) -> Image {
         switch option.provider {
         case .appleSpeech: .swiftLogo
-        case .mlxAudioSTT: .qwen
-        case .nvidia: .nvidia
+        case .fluidAudio: .qwen
         case .whisperKit: .openai
         case .voxtralCore: .mistral
         }

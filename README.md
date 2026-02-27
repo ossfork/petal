@@ -49,9 +49,9 @@
       <td>Default balanced on-device model.</td>
     </tr>
     <tr>
-      <td valign="middle"><img src="assets/readme/models/nvidia.png" alt="NVIDIA" width="28" height="28"> NVIDIA</td>
+      <td valign="middle"><img src="assets/readme/models/nvidia.png" alt="FluidAudio" width="28" height="28"> FluidAudio</td>
       <td>Parakeet TDT 0.6B (v3)</td>
-      <td>Fast local Parakeet transcription via MLX Audio STT.</td>
+      <td>Fast local Parakeet transcription via FluidAudio.</td>
     </tr>
     <tr>
       <td valign="middle"><img src="assets/readme/models/openai.png" alt="Whisper" width="28" height="28"> Whisper</td>
