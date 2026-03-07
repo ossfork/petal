@@ -22,11 +22,6 @@
 
 <img width="2088" height="1202" alt="CleanShot 2026-02-26 at 14 29 25@2x" src="https://github.com/user-attachments/assets/53b4df91-6e02-4fae-8232-59518450b106" />
 
-<p align="center">
-<h3><a href="https://apps.apple.com/ca/app/petal-ai-voice-recorder/id6759932376"/>Petal is now avialable on iOS and watchOS</a></h3>
-<img width="4096" height="2169" alt="petal-optimized" src="https://github.com/user-attachments/assets/366ef71e-9617-41b2-b159-1d24850f588a" />
-</p>
-
 
 ## Install
 
@@ -82,3 +77,5 @@
 ## Privacy
 
 Petal is designed for local transcription workflows and keeps the experience on-device where possible.
+
+
