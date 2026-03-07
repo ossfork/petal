@@ -15,9 +15,6 @@
   <a aria-label="Support Development" href="https://github.com/sponsors/Aayush9029">
     <img alt="Support Development" src="https://img.shields.io/badge/Support%20Development-white.svg?style=for-the-badge&logo=githubsponsors&logoColor=ff5ca8">
   </a>
-  <a aria-label="Download Latest Version" href="https://apps.apple.com/ca/app/petal-ai-voice-recorder/id6759932376">
-    <img alt="Download Latest Version" src="https://img.shields.io/badge/Download%20iOS%20Version-black.svg?style=for-the-badge&logo=apple">
-  </a>
 </p>
 
 <img width="2088" height="1202" alt="CleanShot 2026-02-26 at 14 29 25@2x" src="https://github.com/user-attachments/assets/53b4df91-6e02-4fae-8232-59518450b106" />
