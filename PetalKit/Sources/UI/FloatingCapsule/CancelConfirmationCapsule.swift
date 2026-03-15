@@ -4,6 +4,7 @@ private let countdownDuration: TimeInterval = 4
 
 struct CancelConfirmationCapsule: View {
     var isActive: Bool
+    var blur: CGFloat = 0
 
     @State private var progress: CGFloat = 1
     @Environment(\.colorScheme) private var colorScheme
@@ -26,7 +27,7 @@ struct CancelConfirmationCapsule: View {
             .foregroundStyle(.primary)
             .lineLimit(1)
         }
-        .floatingCapsuleChrome()
+        .floatingCapsuleChrome(blur: blur)
         .overlay {
             Capsule()
                 .trim(from: 0, to: progress)

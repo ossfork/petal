@@ -24,7 +24,7 @@ public struct FloatingCapsuleView: View {
             case .transcribing:
                 transcribing
             case .refining:
-                RefiningCapsuleContent()
+                RefiningCapsuleContent(contentBlur: blurRadius)
             case .copiedToClipboard:
                 copiedToClipboard
             case .accessibilityPrompt:
@@ -36,12 +36,12 @@ public struct FloatingCapsuleView: View {
             }
         }
         .fixedSize()
-        .blur(radius: blurRadius)
+        .blur(radius: blurRadius > 0 ? 8 : 0)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .animation(.easeInOut(duration: 0.35), value: self.state.phase)
         .onChange(of: state.phase) { _, newPhase in
             guard newPhase != .hidden else { return }
-            blurRadius = 10
+            blurRadius = 12
             withAnimation(.easeOut(duration: 0.5)) {
                 blurRadius = 0
             }
@@ -62,11 +62,11 @@ public struct FloatingCapsuleView: View {
 
             RecordingBars(level: self.state.level)
         }
-        .floatingCapsuleChrome()
+        .floatingCapsuleChrome(blur: blurRadius)
     }
 
     private var confirmCancel: some View {
-        CancelConfirmationCapsule(isActive: state.cancelCountdownActive)
+        CancelConfirmationCapsule(isActive: state.cancelCountdownActive, blur: blurRadius)
     }
 
     private var trimming: some View {
@@ -79,7 +79,7 @@ public struct FloatingCapsuleView: View {
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(.primary)
         }
-        .floatingCapsuleChrome()
+        .floatingCapsuleChrome(blur: blurRadius)
     }
 
     private var speeding: some View {
@@ -92,7 +92,7 @@ public struct FloatingCapsuleView: View {
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(.teal)
         }
-        .floatingCapsuleChrome()
+        .floatingCapsuleChrome(blur: blurRadius)
     }
 
     private var transcribing: some View {
@@ -103,7 +103,7 @@ public struct FloatingCapsuleView: View {
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(.primary)
         }
-        .floatingCapsuleChrome()
+        .floatingCapsuleChrome(blur: blurRadius)
     }
 
     private var error: some View {
@@ -116,7 +116,7 @@ public struct FloatingCapsuleView: View {
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(.primary)
         }
-        .floatingCapsuleChrome()
+        .floatingCapsuleChrome(blur: blurRadius)
     }
 
     private var copiedToClipboard: some View {
@@ -130,7 +130,7 @@ public struct FloatingCapsuleView: View {
                 .foregroundStyle(.primary)
         }
         .frame(height: 20)
-        .floatingCapsuleChrome()
+        .floatingCapsuleChrome(blur: blurRadius)
     }
 
     private var accessibilityPrompt: some View {
@@ -147,7 +147,7 @@ public struct FloatingCapsuleView: View {
                     .foregroundStyle(.primary)
             }
             .frame(height: 20)
-            .floatingCapsuleChrome()
+            .floatingCapsuleChrome(blur: blurRadius)
         }
         .buttonStyle(.plain)
     }
@@ -163,7 +163,7 @@ public struct FloatingCapsuleView: View {
                 .foregroundStyle(.primary)
         }
         .frame(height: 20)
-        .floatingCapsuleChrome()
+        .floatingCapsuleChrome(blur: blurRadius)
     }
 
 }

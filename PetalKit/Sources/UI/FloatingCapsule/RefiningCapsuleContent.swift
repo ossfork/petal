@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct RefiningCapsuleContent: View {
+    var contentBlur: CGFloat = 0
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "apple.intelligence")
@@ -11,7 +12,7 @@ struct RefiningCapsuleContent: View {
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(.primary)
         }
-        .floatingCapsuleChrome()
+        .floatingCapsuleChrome(blur: contentBlur)
         .overlay {
             ZStack {
                 Capsule()
