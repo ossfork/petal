@@ -1,7 +1,10 @@
 import AppKit
 import Dependencies
 import DependenciesMacros
+import os.log
 import Sauce
+
+private let logger = Logger(subsystem: "com.optimalapps.petal", category: "KeyboardClient")
 
 public enum KeyPress: Equatable, Sendable {
     case escape
@@ -51,6 +54,7 @@ public extension DependencyValues {
 @MainActor
 private final class LiveKeyboardRuntime {
     private var localMonitor: Any?
+    private var globalMonitor: Any?
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private var handler: KeyPressHandler?
@@ -71,6 +75,11 @@ private final class LiveKeyboardRuntime {
         if let localMonitor {
             NSEvent.removeMonitor(localMonitor)
             self.localMonitor = nil
+        }
+
+        if let globalMonitor {
+            NSEvent.removeMonitor(globalMonitor)
+            self.globalMonitor = nil
         }
 
         if let runLoopSource {
@@ -95,6 +104,7 @@ private final class LiveKeyboardRuntime {
                 .takeUnretainedValue()
 
             if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+                logger.warning("CGEvent tap was disabled (type=\(String(describing: type))), re-enabling")
                 if let tap = runtime.eventTap {
                     CGEvent.tapEnable(tap: tap, enable: true)
                 }
@@ -117,15 +127,29 @@ private final class LiveKeyboardRuntime {
             callback: callback,
             userInfo: userInfo
         ) else {
+            logger.error("CGEvent tap creation failed — falling back to global NSEvent monitor")
+            installGlobalMonitor()
             return
         }
 
+        logger.info("CGEvent tap installed successfully")
         eventTap = tap
 
         let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
         runLoopSource = source
         CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
+    }
+
+    private func installGlobalMonitor() {
+        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            self?.handle(event)
+        }
+        if globalMonitor != nil {
+            logger.info("Global NSEvent monitor installed as fallback")
+        } else {
+            logger.error("Global NSEvent monitor also failed to install")
+        }
     }
 
     @discardableResult
