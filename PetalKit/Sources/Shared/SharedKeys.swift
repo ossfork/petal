@@ -58,6 +58,24 @@ public extension SharedKey where Self == AppStorageKey<HistoryRetentionMode>.Def
     }
 }
 
+public extension SharedKey where Self == AppStorageKey<ShortcutTriggerMode>.Default {
+    static var shortcutTriggerMode: Self {
+        Self[.appStorage("shortcut_trigger_mode"), default: .combo]
+    }
+}
+
+public extension SharedKey where Self == AppStorageKey<Double>.Default {
+    static var doubleTapInterval: Self {
+        Self[.appStorage("double_tap_interval"), default: 0.4]
+    }
+}
+
+public extension SharedKey where Self == AppStorageKey<DoubleTapKey>.Default {
+    static var doubleTapKey: Self {
+        Self[.appStorage("double_tap_key"), default: .unconfigured]
+    }
+}
+
 public extension SharedKey where Self == FileStorageKey<[TranscriptHistoryDay]>.Default {
     static var transcriptHistoryDays: Self {
         Self[

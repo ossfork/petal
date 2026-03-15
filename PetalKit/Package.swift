@@ -17,6 +17,7 @@ extension Target.Dependency {
     static let windowClient: Self = "WindowClient"
     static let foundationModelClient: Self = "FoundationModelClient"
     static let soundClient: Self = "SoundClient"
+    static let doubleTapClient: Self = "DoubleTapClient"
     static let logClient: Self = "LogClient"
 
     static let dependencies: Self = .product(name: "Dependencies", package: "swift-dependencies")
@@ -58,6 +59,7 @@ let package = Package(
         .library(name: "SoundClient", targets: ["SoundClient"]),
         .library(name: "LogClient", targets: ["LogClient"]),
         .library(name: "WindowClient", targets: ["WindowClient"]),
+        .library(name: "DoubleTapClient", targets: ["DoubleTapClient"]),
         .library(name: "FoundationModelClient", targets: ["FoundationModelClient"]),
     ],
     dependencies: [
@@ -223,6 +225,12 @@ let package = Package(
             ]
         ),
         .target(
+            name: "DoubleTapClient",
+            dependencies: [
+                .shared,
+            ]
+        ),
+        .target(
             name: "WindowClient",
             dependencies: [
                 .dependencies,
@@ -253,6 +261,7 @@ let package = Package(
                 "HistoryClient",
                 "SoundClient",
                 "LogClient",
+                "DoubleTapClient",
             ]
         ),
     ]

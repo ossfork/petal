@@ -3,11 +3,13 @@ import UniformTypeIdentifiers
 import Dependencies
 import FoundationModelClient
 import HistoryClient
+import KeyboardShortcuts
 import LogClient
 import ModelDownloadFeature
 import Observation
 import PermissionsClient
 import Shared
+import SwiftUI
 
 @MainActor
 @Observable
@@ -22,6 +24,9 @@ final class SettingsViewModel {
     @ObservationIgnored @Shared(.logsEnabled) var logsEnabled = false
     @ObservationIgnored @Shared(.restoreClipboardAfterPaste) var restoreClipboardAfterPaste = true
     @ObservationIgnored @Shared(.pushToTalkThreshold) var pushToTalkThreshold: PushToTalkThreshold = .long
+    @ObservationIgnored @Shared(.shortcutTriggerMode) var shortcutTriggerMode: ShortcutTriggerMode = .combo
+    @ObservationIgnored @Shared(.doubleTapKey) var doubleTapKey: DoubleTapKey = .unconfigured
+    @ObservationIgnored @Shared(.doubleTapInterval) var doubleTapInterval: Double = 0.4
     @ObservationIgnored @Shared(.transcriptHistoryDays) private var transcriptHistoryDays: [TranscriptHistoryDay] = []
 
     var microphoneAuthorized = false
@@ -51,6 +56,29 @@ final class SettingsViewModel {
 
     var canExportLogs: Bool {
         logClient.logFileURL() != nil
+    }
+
+    var doubleTapRecorderBinding: Binding<DoubleTapRecorder.DoubleTapKey> {
+        Binding(
+            get: { [weak self] in
+                guard let self, self.doubleTapKey.isConfigured else { return .unconfigured }
+                return .configured(
+                    keyCode: self.doubleTapKey.keyCode,
+                    isModifier: self.doubleTapKey.isModifier,
+                    displayName: self.doubleTapKey.displayName
+                )
+            },
+            set: { [weak self] newValue in
+                guard let self else { return }
+                switch newValue {
+                case .unconfigured:
+                    self.$doubleTapKey.withLock { $0 = .unconfigured }
+                case let .configured(keyCode, isModifier, _):
+                    self.$doubleTapKey.withLock { $0 = DoubleTapKey(keyCode: keyCode, isModifier: isModifier) }
+                }
+                self.appModel.registerShortcutHandlers()
+            }
+        )
     }
 
     var appleIntelligenceAvailable: Bool {
@@ -147,6 +175,11 @@ final class SettingsViewModel {
     func deleteMediaOnly() {
         let updated = historyClient.deleteMediaOnly(transcriptHistoryDays)
         $transcriptHistoryDays.withLock { $0 = updated }
+    }
+
+    func triggerModeChanged(_ mode: ShortcutTriggerMode) {
+        $shortcutTriggerMode.withLock { $0 = mode }
+        appModel.registerShortcutHandlers()
     }
 
     func exportLogs() {

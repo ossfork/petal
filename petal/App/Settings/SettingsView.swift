@@ -34,11 +34,32 @@ struct GeneralPane: View {
     var body: some View {
         Form {
             Section("Shortcut") {
-                LabeledContent("Push to Talk") {
-                    KeyboardShortcuts.Recorder(for: .pushToTalk)
+                if viewModel.shortcutTriggerMode == .combo {
+                    LabeledContent("Push to Talk") {
+                        KeyboardShortcuts.Recorder(for: .pushToTalk)
+                    }
+                    Text("Tap to toggle recording, or hold and release to stop.")
+                        .settingDescription()
+                } else {
+                    LabeledContent("Double-Tap Key") {
+                        DoubleTapRecorder(key: viewModel.doubleTapRecorderBinding)
+                    }
+                    Text("Press the same key twice quickly to activate. Hold the second press for push-to-talk.")
+                        .settingDescription()
+
+                    LabeledContent("Trigger Delay") {
+                        Picker("Trigger Delay", selection: Binding(viewModel.$doubleTapInterval)) {
+                            Text("0.3s").tag(0.3)
+                            Text("0.4s").tag(0.4)
+                            Text("0.5s").tag(0.5)
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 180)
+                        .labelsHidden()
+                    }
+                    Text("Maximum gap between taps to trigger.")
+                        .settingDescription()
                 }
-                Text("Tap to toggle recording, or hold and release to stop.")
-                    .settingDescription()
 
                 LabeledContent("Hold Duration") {
                     Picker("Hold Duration", selection: Binding(viewModel.$pushToTalkThreshold)) {
@@ -50,6 +71,13 @@ struct GeneralPane: View {
                     .frame(width: 180)
                     .labelsHidden()
                 }
+
+                Toggle("Double-tap mode", isOn: Binding(
+                    get: { viewModel.shortcutTriggerMode == .doubleTap },
+                    set: { viewModel.triggerModeChanged($0 ? .doubleTap : .combo) }
+                ))
+                Text("Use a single key pressed twice quickly instead of a key combo.")
+                    .settingDescription()
             }
 
             Section("Permissions") {

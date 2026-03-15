@@ -1,6 +1,7 @@
 import AppKit
 import AudioClient
 import class SwiftUI.NSHostingView
+import DoubleTapClient
 import FloatingCapsuleClient
 import FoundationModelClient
 import Foundation
@@ -46,6 +47,9 @@ final class AppModel {
     @ObservationIgnored @Shared(.historyRetentionMode) var historyRetentionMode: HistoryRetentionMode = .both
     @ObservationIgnored @Shared(.pushToTalkThreshold) var pushToTalkThreshold: PushToTalkThreshold = .long
     @ObservationIgnored @Shared(.restoreClipboardAfterPaste) var restoreClipboardAfterPaste = true
+    @ObservationIgnored @Shared(.shortcutTriggerMode) var shortcutTriggerMode: ShortcutTriggerMode = .combo
+    @ObservationIgnored @Shared(.doubleTapKey) var doubleTapKey: DoubleTapKey = .unconfigured
+    @ObservationIgnored @Shared(.doubleTapInterval) var doubleTapInterval: Double = 0.4
     @ObservationIgnored @Shared(.transcriptHistoryDays) var transcriptHistoryDays: [TranscriptHistoryDay] = []
 
     let modelDownloadViewModel: ModelDownloadModel
@@ -81,6 +85,7 @@ final class AppModel {
     @ObservationIgnored @Dependency(\.historyClient) private var historyClient
     @ObservationIgnored @Dependency(\.logClient) private var logClient
     @ObservationIgnored @Dependency(\.foundationModelClient) private var foundationModelClient
+    @ObservationIgnored @Dependency(\.doubleTapClient) private var doubleTapClient
     @ObservationIgnored @Dependency(\.windowClient) private var windowClient
     @ObservationIgnored private let logger = Logger(subsystem: "com.optimalapps.petal", category: "AppModel")
 
@@ -1029,16 +1034,33 @@ final class AppModel {
 
     // MARK: - Private: Shortcuts & Keyboard
 
-    private func registerShortcutHandlers() {
+    func registerShortcutHandlers() {
         if isPreviewMode { return }
-        KeyboardShortcuts.removeAllHandlers()
 
-        KeyboardShortcuts.onKeyDown(for: .pushToTalk) { [weak self] in
-            Task { await self?.pushToTalkKeyDown() }
-        }
+        switch shortcutTriggerMode {
+        case .combo:
+            Task { await doubleTapClient.stop() }
+            KeyboardShortcuts.removeAllHandlers()
+            KeyboardShortcuts.onKeyDown(for: .pushToTalk) { [weak self] in
+                Task { await self?.pushToTalkKeyDown() }
+            }
+            KeyboardShortcuts.onKeyUp(for: .pushToTalk) { [weak self] in
+                Task { await self?.pushToTalkKeyUp() }
+            }
 
-        KeyboardShortcuts.onKeyUp(for: .pushToTalk) { [weak self] in
-            Task { await self?.pushToTalkKeyUp() }
+        case .doubleTap:
+            KeyboardShortcuts.removeAllHandlers()
+            KeyboardShortcuts.disable(.pushToTalk)
+            guard doubleTapKey.isConfigured else { return }
+            let key = doubleTapKey
+            let interval = doubleTapInterval
+            Task { [weak self] in
+                await self?.doubleTapClient.start(key, interval, { [weak self] in
+                    Task { @MainActor in await self?.pushToTalkKeyDown() }
+                }, { [weak self] in
+                    Task { @MainActor in await self?.pushToTalkKeyUp() }
+                })
+            }
         }
     }
 
