@@ -7,6 +7,7 @@ import Shared
 
 @DependencyClient
 public struct SoundClient: Sendable {
+    public var warmup: @Sendable () async -> Void = {}
     public var playRecordingStarted: @Sendable () async -> Void = {}
     public var playTranscriptionStarted: @Sendable () async -> Void = {}
     public var playTranscriptionCompleted: @Sendable () async -> Void = {}
@@ -19,6 +20,9 @@ extension SoundClient: DependencyKey {
     public static var liveValue: Self {
         let runtime = SoundRuntime()
         return Self(
+            warmup: {
+                await runtime.warmup()
+            },
             playRecordingStarted: {
                 await runtime.play(.recordingStarted)
             },
@@ -87,6 +91,14 @@ private actor SoundRuntime {
     }
 
     private var players: [SoundLibrary: AVAudioPlayer] = [:]
+
+    func warmup() {
+        for effect in [Effect.recordingStarted, .transcriptionCompleted] {
+            for variant in effect.variants {
+                _ = try? player(for: variant)
+            }
+        }
+    }
 
     func play(_ effect: Effect) {
         let variants = effect.variants

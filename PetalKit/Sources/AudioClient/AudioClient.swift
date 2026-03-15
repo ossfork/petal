@@ -20,6 +20,7 @@ enum AudioClientError: LocalizedError, Sendable {
 @DependencyClient
 public struct AudioClient: Sendable {
     public var isRecording: @Sendable () async -> Bool = { false }
+    public var warmup: @Sendable () -> Void = {}
     public var startRecording: @Sendable (@escaping @Sendable (Double) -> Void) async throws -> Void
     public var stopRecording: @Sendable () async throws -> URL
     public var cancelRecording: @Sendable () async -> Void = {}
@@ -30,6 +31,9 @@ extension AudioClient: DependencyKey {
         return Self(
             isRecording: {
                 LiveAudioCaptureRuntimeContainer.shared.isRecording
+            },
+            warmup: {
+                LiveAudioCaptureRuntimeContainer.shared.warmup()
             },
             startRecording: { levelHandler in
                 try await LiveAudioCaptureRuntimeContainer.shared.startRecording(levelHandler: levelHandler)
@@ -48,6 +52,7 @@ extension AudioClient: TestDependencyKey {
     public static var testValue: Self {
         Self(
             isRecording: { false },
+            warmup: {},
             startRecording: { _ in },
             stopRecording: { URL(fileURLWithPath: "/dev/null") },
             cancelRecording: {}
@@ -88,11 +93,22 @@ private final class LevelSmoother: @unchecked Sendable {
 private final class LiveAudioCaptureRuntime: @unchecked Sendable {
     private let stateQueue = DispatchQueue(label: "com.petal.audio.capture.runtime")
     private var recorder: AVAudioRecorder?
+    private var standbyRecorder: AVAudioRecorder?
+    private var standbyURL: URL?
     private var simulatedRecordingSourceURL: URL?
     private var recordingURL: URL?
     private var levelHandler: @Sendable (Double) -> Void = { _ in }
     private var levelTimer: DispatchSourceTimer?
     private let levelSmoother = LevelSmoother()
+
+    private nonisolated(unsafe) static let recordingSettings: [String: Any] = [
+        AVFormatIDKey: Int(kAudioFormatLinearPCM),
+        AVSampleRateKey: 44_100,
+        AVNumberOfChannelsKey: 1,
+        AVLinearPCMBitDepthKey: 16,
+        AVLinearPCMIsFloatKey: false,
+        AVLinearPCMIsBigEndianKey: false
+    ]
 
     var isRecording: Bool {
         stateQueue.sync {
@@ -100,6 +116,14 @@ private final class LiveAudioCaptureRuntime: @unchecked Sendable {
                 return true
             }
             return recorder?.isRecording ?? false
+        }
+    }
+
+    /// Pre-creates and prepares an AVAudioRecorder so the next
+    /// `startRecording` call only needs to call `record()`.
+    func warmup() {
+        stateQueue.async { [self] in
+            warmupStandbyLocked()
         }
     }
 
@@ -116,6 +140,21 @@ private final class LiveAudioCaptureRuntime: @unchecked Sendable {
         }
     }
 
+    private func warmupStandbyLocked() {
+        guard standbyRecorder == nil, recorder == nil else { return }
+        guard Self.e2eAudioFixtureURL() == nil else { return }
+
+        let url = FileManager.default.temporaryDirectory
+            .appending(path: "petal-\(UUID().uuidString).wav")
+        do {
+            let rec = try AVAudioRecorder(url: url, settings: Self.recordingSettings)
+            rec.isMeteringEnabled = true
+            guard rec.prepareToRecord() else { return }
+            standbyRecorder = rec
+            standbyURL = url
+        } catch {}
+    }
+
     private func startRecordingLocked(levelHandler: @escaping @Sendable (Double) -> Void) throws {
         guard recorder == nil, simulatedRecordingSourceURL == nil else { return }
         self.levelHandler = levelHandler
@@ -127,19 +166,24 @@ private final class LiveAudioCaptureRuntime: @unchecked Sendable {
             return
         }
 
+        // Use pre-warmed standby recorder if available
+        if let standby = standbyRecorder, let url = standbyURL {
+            standbyRecorder = nil
+            standbyURL = nil
+            guard standby.record() else {
+                throw AudioClientError.failedToStart
+            }
+            self.recorder = standby
+            recordingURL = url
+            startLevelPollingLocked()
+            return
+        }
+
+        // Fallback: create fresh recorder
         let audioURL = FileManager.default.temporaryDirectory
             .appending(path: "petal-\(UUID().uuidString).wav")
 
-        let settings: [String: Any] = [
-            AVFormatIDKey: Int(kAudioFormatLinearPCM),
-            AVSampleRateKey: 44_100,
-            AVNumberOfChannelsKey: 1,
-            AVLinearPCMBitDepthKey: 16,
-            AVLinearPCMIsFloatKey: false,
-            AVLinearPCMIsBigEndianKey: false
-        ]
-
-        let recorder = try AVAudioRecorder(url: audioURL, settings: settings)
+        let recorder = try AVAudioRecorder(url: audioURL, settings: Self.recordingSettings)
         recorder.isMeteringEnabled = true
         guard recorder.prepareToRecord(), recorder.record() else {
             throw AudioClientError.failedToStart
@@ -177,6 +221,11 @@ private final class LiveAudioCaptureRuntime: @unchecked Sendable {
         self.recorder = nil
         recordingURL = nil
         levelHandler(0)
+
+        // Pre-warm next standby recorder in the background
+        stateQueue.asyncAfter(deadline: .now() + 0.1) { [self] in
+            warmupStandbyLocked()
+        }
 
         let fileSize = (try? FileManager.default.attributesOfItem(atPath: url.path))?[.size] as? Int64 ?? 0
 
@@ -217,6 +266,11 @@ private final class LiveAudioCaptureRuntime: @unchecked Sendable {
         levelHandler(0)
         if let url {
             try? FileManager.default.removeItem(at: url)
+        }
+
+        // Pre-warm next standby recorder in the background
+        stateQueue.asyncAfter(deadline: .now() + 0.1) { [self] in
+            warmupStandbyLocked()
         }
     }
 

@@ -155,6 +155,7 @@ final class AppModel {
         registerKeyboardMonitor()
         refreshPermissionStatus()
         startPermissionMonitoring()
+        audioClient.warmup()
         logger.info("AppModel initialized. setupCompleted=\(self.hasCompletedSetup, privacy: .public), model=\(self.selectedModelID, privacy: .public)")
         consoleLog("AppModel initialized. setupCompleted=\(self.hasCompletedSetup), model=\(self.selectedModelID)")
 
@@ -260,6 +261,10 @@ final class AppModel {
         didBootstrap = true
         logger.info("App did launch. setupCompleted=\(self.hasCompletedSetup, privacy: .public), modelDownloaded=\(self.isSelectedModelDownloaded, privacy: .public)")
         consoleLog("App did launch. setupCompleted=\(self.hasCompletedSetup), modelDownloaded=\(self.isSelectedModelDownloaded)")
+
+        // Pre-warm sound players in background so first recording
+        // feedback is instant.
+        Task { await soundClient.warmup() }
 
         if hasCompletedSetup, isSelectedModelDownloaded {
             Task { await warmModelTask() }
@@ -387,12 +392,6 @@ final class AppModel {
             return
         }
 
-        let isCurrentlyRecording = await audioClient.isRecording()
-        if isCurrentlyRecording {
-            logger.debug("Ignoring key down because recording is already active")
-            return
-        }
-
         guard !pushToTalkIsActive else { return }
 
         pushToTalkIsActive = true
@@ -428,10 +427,15 @@ final class AppModel {
             isAwaitingCancelRecordingConfirmation = false
             sessionState = .recording
             activeHistorySessionID = uuid()
-            await soundClient.playRecordingStarted()
-            await floatingCapsuleClient.showRecording()
             logger.info("Recording started")
             consoleLog("Recording started")
+
+            // Fire-and-forget: don't block the recording start path on
+            // sound playback and capsule animation.
+            Task {
+                await soundClient.playRecordingStarted()
+            }
+            await floatingCapsuleClient.showRecording()
 
             if pendingStopAfterStart {
                 pendingStopAfterStart = false
@@ -1230,10 +1234,10 @@ final class AppModel {
             sessionState = .recording
             activeHistorySessionID = uuid()
             transientMessage = "Listening... use petal://stop to transcribe."
-            await soundClient.playRecordingStarted()
-            await floatingCapsuleClient.showRecording()
             logger.info("Recording started from deep link")
             consoleLog("Recording started from deep link")
+            Task { await soundClient.playRecordingStarted() }
+            await floatingCapsuleClient.showRecording()
         } catch {
             reportIssue(error)
             sessionState = .error(error.localizedDescription)
