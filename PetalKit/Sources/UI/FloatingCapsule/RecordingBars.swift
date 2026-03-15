@@ -18,9 +18,10 @@ struct RecordingBars: View {
     }
 
     private func barHeight(base: CGFloat) -> CGFloat {
-        let clamped = max(0.03, min(1, level))
-        let scale = CGFloat(clamped) * 12
-        return 4 + (scale * base)
+        let clamped = max(0, min(1, level))
+        let boosted = pow(clamped, 0.5) // sqrt curve — much more sensitive to quiet input
+        let scale = boosted * 14
+        return 2 + (scale * base)
     }
 }
 

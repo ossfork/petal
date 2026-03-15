@@ -204,8 +204,10 @@ private final class LiveFloatingCapsuleRuntime {
     private func positionPanel() {
         guard let screen = NSScreen.main else { return }
 
+        let panelWidth: CGFloat = 400
+        panel.setContentSize(NSSize(width: panelWidth, height: 52))
         let visibleFrame = screen.visibleFrame
-        let x = visibleFrame.midX - panel.frame.width / 2
+        let x = visibleFrame.midX - panelWidth / 2
         let y = visibleFrame.minY + 36
         panel.setFrameOrigin(NSPoint(x: x, y: y))
     }

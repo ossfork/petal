@@ -2,6 +2,7 @@ import SwiftUI
 
 public struct FloatingCapsuleView: View {
     @Bindable var state: FloatingCapsuleState
+    @State private var blurRadius: CGFloat = 0
 
     public init(state: FloatingCapsuleState) {
         self.state = state
@@ -35,8 +36,16 @@ public struct FloatingCapsuleView: View {
             }
         }
         .fixedSize()
+        .blur(radius: blurRadius)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .animation(.snappy(duration: 0.18), value: self.state.phase)
+        .animation(.easeInOut(duration: 0.35), value: self.state.phase)
+        .onChange(of: state.phase) { _, newPhase in
+            guard newPhase != .hidden else { return }
+            blurRadius = 10
+            withAnimation(.easeOut(duration: 0.5)) {
+                blurRadius = 0
+            }
+        }
     }
 
     // MARK: - Phase content
@@ -90,9 +99,8 @@ public struct FloatingCapsuleView: View {
         HStack(spacing: 8) {
             CircularProgressRing(progress: self.state.transcriptionProgress)
 
-            Text(self.transcribingLabel)
+            Text("Transcribing")
                 .font(.footnote.weight(.semibold))
-                .monospacedDigit()
                 .foregroundStyle(.primary)
         }
         .floatingCapsuleChrome()
@@ -158,10 +166,6 @@ public struct FloatingCapsuleView: View {
         .floatingCapsuleChrome()
     }
 
-    private var transcribingLabel: String {
-        let percent = Int((state.transcriptionProgress * 100).rounded())
-        return "Transcribing \(String(format: "%3d", percent))%"
-    }
 }
 
 // MARK: - Preview
