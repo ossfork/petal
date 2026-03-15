@@ -6,15 +6,15 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
-      <title>Version 1.0.8</title>
-      <pubDate>Sat, 28 Feb 2026 14:43:21 +0000</pubDate>
-      <sparkle:version>14</sparkle:version>
-      <sparkle:shortVersionString>1.0.8</sparkle:shortVersionString>
+      <title>Version 1.0.9</title>
+      <pubDate>Sun, 15 Mar 2026 00:55:36 +0000</pubDate>
+      <sparkle:version>15</sparkle:version>
+      <sparkle:shortVersionString>1.0.9</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/Aayush9029/petal/releases/download/v1.0.8/Petal-1.0.8.dmg"
-        sparkle:edSignature="FjtFY+PvPOwCll2N0YtUJcohA2EWhfARVF7G5cioZ7Xw5R0FXJRpC5uMe6V47NVWcG04LmRnbPu54JLngPOaBQ=="
-        length="25514920"
+        url="https://github.com/Aayush9029/petal/releases/download/v1.0.9/Petal-1.0.9.dmg"
+        sparkle:edSignature="OkljcrHhnY8ZyAaxDHX710VFTcnlKZwN59KMm5tvMYKZJTsAAi37juxbAJpGS5cr0z9FQIixOFa0VTXBhZyvBA=="
+        length="25562599"
         type="application/octet-stream"
       />
     </item>
