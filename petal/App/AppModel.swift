@@ -95,6 +95,7 @@ final class AppModel {
     @ObservationIgnored private var pushToTalkIsActive = false
     @ObservationIgnored private var toggleRecordingIsActive = false
     @ObservationIgnored private var isAwaitingCancelRecordingConfirmation = false
+    @ObservationIgnored private var cancelConfirmationTimerTask: Task<Void, Never>?
     @ObservationIgnored private var ignoreNextShortcutKeyUp = false
     @ObservationIgnored private var currentShortcutPressStart: Date?
     @ObservationIgnored private var isStartingRecording = false
@@ -1082,9 +1083,12 @@ final class AppModel {
 
         if isAwaitingCancelRecordingConfirmation {
             switch keyPress {
-            case .escape, .return, .character("y"), .character("n"):
+            case .character("y"):
                 Task { await handleConfirmationKeyPress(keyPress) }
                 return true
+            case .escape:
+                // Don't capture — let it pass through to the focused app.
+                return false
             default:
                 return false
             }
@@ -1098,7 +1102,7 @@ final class AppModel {
     private func handleConfirmationKeyPress(_ keyPress: KeyPress) async {
         let isCurrentlyRecording = await audioClient.isRecording()
         guard isCurrentlyRecording else { return }
-        resolveCancelRecordingConfirmation(with: keyPress)
+        cancelRecordingFromConfirmation()
     }
 
     private func handleEscapeDuringRecording() async {
@@ -1107,16 +1111,27 @@ final class AppModel {
         presentCancelRecordingConfirmation()
     }
 
+    private static let cancelConfirmationTimeout: TimeInterval = 4
+
     private func presentCancelRecordingConfirmation() {
         isAwaitingCancelRecordingConfirmation = true
+        cancelConfirmationTimerTask?.cancel()
         Task { await floatingCapsuleClient.showCancelConfirmation() }
         logger.info("Recording cancel confirmation shown")
         consoleLog("Recording cancel confirmation shown")
+
+        cancelConfirmationTimerTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Self.cancelConfirmationTimeout))
+            guard !Task.isCancelled else { return }
+            self?.dismissCancelRecordingConfirmation()
+        }
     }
 
     private func dismissCancelRecordingConfirmation() {
         guard isAwaitingCancelRecordingConfirmation else { return }
 
+        cancelConfirmationTimerTask?.cancel()
+        cancelConfirmationTimerTask = nil
         isAwaitingCancelRecordingConfirmation = false
         guard case .recording = sessionState else {
             Task { await floatingCapsuleClient.hide() }
@@ -1131,22 +1146,13 @@ final class AppModel {
                 await floatingCapsuleClient.hide()
             }
         }
-        logger.info("Recording cancel confirmation dismissed")
-        consoleLog("Recording cancel confirmation dismissed")
-    }
-
-    private func resolveCancelRecordingConfirmation(with keyPress: KeyPress) {
-        switch keyPress {
-        case .character("y"), .return:
-            cancelRecordingFromConfirmation()
-        case .character("n"), .escape:
-            dismissCancelRecordingConfirmation()
-        default:
-            break
-        }
+        logger.info("Recording cancel confirmation auto-dismissed")
+        consoleLog("Recording cancel confirmation auto-dismissed")
     }
 
     private func cancelRecordingFromConfirmation() {
+        cancelConfirmationTimerTask?.cancel()
+        cancelConfirmationTimerTask = nil
         Task {
             let isCurrentlyRecording = await audioClient.isRecording()
             guard isCurrentlyRecording else {

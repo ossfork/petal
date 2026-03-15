@@ -20,6 +20,7 @@ public final class FloatingCapsuleState {
     public var phase: Phase = .hidden
     public var level: Double = 0
     public var transcriptionProgress: Double = 0
+    public var cancelCountdownActive: Bool = false
     public var onAccessibilityTapped: (() -> Void)?
 
     public init() {}

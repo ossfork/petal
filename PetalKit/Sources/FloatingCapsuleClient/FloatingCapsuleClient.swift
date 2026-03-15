@@ -122,6 +122,7 @@ private final class LiveFloatingCapsuleRuntime {
     }
 
     func showRecording() {
+        state.cancelCountdownActive = false
         state.phase = .recording
         showWindowIfNeeded()
     }
@@ -157,8 +158,13 @@ private final class LiveFloatingCapsuleRuntime {
     }
 
     func showCancelConfirmation() {
+        state.cancelCountdownActive = false
         state.phase = .confirmCancel
         showWindowIfNeeded()
+        // Trigger on next run loop so SwiftUI sees the change from false → true
+        DispatchQueue.main.async { [state] in
+            state.cancelCountdownActive = true
+        }
     }
 
     func showCopiedToClipboard() {
@@ -186,6 +192,7 @@ private final class LiveFloatingCapsuleRuntime {
         state.phase = .hidden
         state.level = 0
         state.transcriptionProgress = 0
+        state.cancelCountdownActive = false
         panel.orderOut(nil)
     }
 

@@ -57,21 +57,7 @@ public struct FloatingCapsuleView: View {
     }
 
     private var confirmCancel: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "escape")
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.secondary)
-
-            (
-                Text("Cancel recording?  ")
-                    + Text("Y").foregroundColor(.red)
-                    + Text(" / N")
-            )
-            .font(.footnote.weight(.semibold))
-            .foregroundStyle(.primary)
-            .lineLimit(1)
-        }
-        .floatingCapsuleChrome()
+        CancelConfirmationCapsule(isActive: state.cancelCountdownActive)
     }
 
     private var trimming: some View {
