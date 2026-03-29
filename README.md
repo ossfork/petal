@@ -64,6 +64,11 @@
       <td>High-accuracy and lightweight Whisper options via WhisperKit.</td>
     </tr>
     <tr>
+      <td valign="middle"><img src="assets/readme/models/cohere.png" alt="Cohere" width="28" height="28"> Cohere</td>
+      <td>Cohere Transcribe 2B (q4f16, fp16)</td>
+      <td><b>Experimental</b> — #1 on Open ASR Leaderboard. Hybrid CoreML encoder + ONNX decoder. See <a href="https://github.com/Aayush9029/petal/tree/cohere"><code>cohere</code></a> branch.</td>
+    </tr>
+    <tr>
       <td valign="middle"><img src="assets/readme/models/mistral.png" alt="Voxtral" width="28" height="28"> Voxtral</td>
       <td>Voxtral BF16, Voxtral 8-bit</td>
       <td>Fast local transcription with higher-end on-device quality.</td>
