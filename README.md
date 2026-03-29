@@ -17,7 +17,13 @@
   </a>
 </p>
 
-<img width="2088" height="1202" alt="CleanShot 2026-02-26 at 14 29 25@2x" src="https://github.com/user-attachments/assets/53b4df91-6e02-4fae-8232-59518450b106" />
+
+  <p align="center">
+    <img src="https://github.com/user-attachments/assets/3b5190e8-fe02-4225-9b77-f57c2127fe8d" width="100%">
+  </p>
+
+
+
 
 
 ## Install
@@ -70,7 +76,12 @@
 - Multiple transcription engines, all in one native app.
 - Local-first workflow designed for Apple Silicon Macs.
 - Fast transcription workflow with quick copy/paste output.
-
+- Raycast extension
+  
+  <a href="https://www.raycast.com/Aayush9029/petal" title="Install petal Raycast Extension">
+    <img src="https://www.raycast.com/Aayush9029/petal/install_button@2x.png?v=1.1" height="48" style="height: 48px;" alt="" />
+  </a>
+  
 ## Privacy
 
 Petal is designed for local transcription workflows and keeps the experience on-device where possible.
