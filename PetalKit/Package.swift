@@ -31,6 +31,7 @@ extension Target.Dependency {
     static let fluidAudio: Self = .product(name: "FluidAudio", package: "FluidAudio")
     static let voxtralCore: Self = .product(name: "VoxtralCore", package: "MLXVoxtralSwift")
     static let whisperKit: Self = .product(name: "WhisperKit", package: "WhisperKit")
+    static let onnxRuntime: Self = .product(name: "onnxruntime", package: "onnxruntime-swift-package-manager")
 }
 
 let package = Package(
@@ -72,6 +73,7 @@ let package = Package(
         .package(name: "KeyboardShortcuts", path: "KeyboardShortcuts"),
         .package(url: "https://github.com/Clipy/Sauce.git", from: "2.4.1"),
         .package(url: "https://github.com/argmaxinc/WhisperKit", from: "0.15.0"),
+        .package(url: "https://github.com/microsoft/onnxruntime-swift-package-manager", from: "1.24.0"),
     ],
     targets: [
         .target(
@@ -168,6 +170,7 @@ let package = Package(
                 .voxtralCore,
                 .fluidAudio,
                 .whisperKit,
+                .onnxRuntime,
             ]
         ),
         .target(

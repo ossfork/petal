@@ -1,5 +1,5 @@
 {
-  "originHash" : "0313ebf51bd3937e721da5834e94572a6a7a7c8c916e4ec1a2954445162698fa",
+  "originHash" : "b6815d2a0e77590c01570e109481dcd03c58cd6e11b56701e10914f96739bdb1",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -35,6 +35,15 @@
       "state" : {
         "revision" : "7e19e09027923d89ac47dd087d9627f610e5a91a",
         "version" : "2.30.6"
+      }
+    },
+    {
+      "identity" : "onnxruntime-swift-package-manager",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/microsoft/onnxruntime-swift-package-manager",
+      "state" : {
+        "revision" : "b7fb7f7dea8a2469e6335d95a61b8f36d0dc83b2",
+        "version" : "1.24.2"
       }
     },
     {
